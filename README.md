@@ -1,1 +1,0 @@
-# prikorm.bot
