@@ -34,6 +34,7 @@ function buildApp() {
     `;
     container.appendChild(onboarding);
 
+    // Основные экраны
     const screensContainer = document.createElement('div');
     screensContainer.id = 'screens-container';
     screensContainer.style.display = 'none';
@@ -178,7 +179,172 @@ function buildApp() {
     `;
     container.appendChild(bottomNav);
 
-    // Модалки (онбординг, готовность, кормление, карточка продукта, action sheet)
-    // ... (я пропущу их здесь, чтобы не перегружать ответ, но они есть в полной версии)
-    // В полном коде они будут включены.
+    // Модалка онбординга
+    const modal = document.createElement('div');
+    modal.id = 'modal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-box">
+            <h2>🌸 Данные малыша</h2>
+            <div class="input-group"><label>Имя мамы</label><input type="text" id="inpMother" placeholder="Анна"></div>
+            <div class="input-group"><label>Имя малыша</label><input type="text" id="inpBaby" placeholder="София"></div>
+            <div class="input-group"><label>Дата рождения (ДД.ММ.ГГГГ)</label><input type="text" id="inpBirth" placeholder="21.02.2026"></div>
+            <div class="input-group"><label>Тип вскармливания</label>
+                <select id="inpFeeding"><option value="ГВ">ГВ</option><option value="ИВ">ИВ</option><option value="Смешанное">Смешанное</option></select>
+            </div>
+            <div class="input-group"><label>Пол</label>
+                <select id="inpGender"><option value="Мальчик">Мальчик</option><option value="Девочка">Девочка</option></select>
+            </div>
+            <button class="btn" id="saveBtn">Сохранить</button>
+        </div>
+    `;
+    container.appendChild(modal);
+
+    // Модалка готовности
+    const readinessModal = document.createElement('div');
+    readinessModal.id = 'readinessModal';
+    readinessModal.className = 'modal';
+    readinessModal.innerHTML = `
+        <div class="modal-box">
+            <h2>🌸 Проверка готовности</h2>
+            <div id="readinessQuestions">
+                <p style="color:#7a6e66; margin-bottom:12px;">Ответьте на 5 вопросов:</p>
+                <div class="readiness-question" data-q="1">
+                    <p>1. Ребёнок уверенно держит голову и шею?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div class="readiness-question" data-q="2">
+                    <p>2. Может сидеть с поддержкой или самостоятельно?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div class="readiness-question" data-q="3">
+                    <p>3. Проявляет интерес к еде (смотрит, тянется)?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div class="readiness-question" data-q="4">
+                    <p>4. Исчез рефлекс выталкивания ложки языком?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div class="readiness-question" data-q="5">
+                    <p>5. Может брать предметы и направлять их ко рту?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div id="readinessResult" style="margin-top:12px; display:none;"></div>
+                <button class="btn mt-8" id="readinessSubmit" style="display:none;">Сохранить результат</button>
+            </div>
+        </div>
+    `;
+    container.appendChild(readinessModal);
+
+    // Модалка кормления
+    const feedingModal = document.createElement('div');
+    feedingModal.id = 'feedingModal';
+    feedingModal.className = 'modal';
+    feedingModal.innerHTML = `
+        <div class="modal-box">
+            <h2>🍽 Добавить кормление</h2>
+            <div class="input-group">
+                <label>Продукт</label>
+                <input type="text" id="feedingProduct" placeholder="Введите название" style="width:100%;">
+                <div id="recentProducts" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;"></div>
+            </div>
+            <div class="input-group">
+                <label>Способ приготовления</label>
+                <div class="btn-group" id="prepMethodGroup">
+                    <button class="btn btn-sm btn-outline prep-method" data-method="Пар">Пар</button>
+                    <button class="btn btn-sm btn-outline prep-method" data-method="Варка">Варка</button>
+                    <button class="btn btn-sm btn-outline prep-method" data-method="Запекание">Запекание</button>
+                    <button class="btn btn-sm btn-outline prep-method" data-method="Тушение">Тушение</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Форма</label>
+                <div class="btn-group" id="formGroup">
+                    <button class="btn btn-sm btn-outline form-option" data-form="Пюре">Пюре</button>
+                    <button class="btn btn-sm btn-outline form-option" data-form="Размятое">Размятое</button>
+                    <button class="btn btn-sm btn-outline form-option" data-form="Мягкие кусочки">Кусочки</button>
+                    <button class="btn btn-sm btn-outline form-option" data-form="Finger food">Finger food</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Количество</label>
+                <div class="btn-group" id="amountGroup">
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Не измеряла">Не измеряла</button>
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Попробовал">Попробовал</button>
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Немного">Немного</button>
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Средняя порция">Средняя</button>
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Хорошо поел">Хорошо поел</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Приготовила сама или купила?</label>
+                <div class="btn-group" id="sourceGroup">
+                    <button class="btn btn-sm btn-outline source-option" data-source="home">🏠 Приготовила сама</button>
+                    <button class="btn btn-sm btn-outline source-option" data-source="store">🛒 Купила готовое</button>
+                </div>
+            </div>
+            <div class="input-group" id="storeFields" style="display:none;">
+                <label>Бренд</label><input type="text" id="storeBrand" placeholder="Бренд">
+                <label>Название</label><input type="text" id="storeName" placeholder="Название">
+            </div>
+            <div class="input-group"><label>Дата</label><input type="text" id="feedingDate" placeholder="ДД.ММ.ГГГГ"></div>
+            <div class="input-group"><label>Реакция</label>
+                <select id="feedingReaction"><option value="Всё хорошо">🟢 Всё хорошо</option><option value="Незначительные изменения">🟡 Незначительные изменения</option><option value="Подозрительная реакция">🟠 Подозрительная реакция</option><option value="Выраженная реакция">🔴 Выраженная реакция</option></select>
+            </div>
+            <div class="input-group"><label>Заметка</label><input type="text" id="feedingNotes" placeholder="Необязательно"></div>
+            <button class="btn" id="saveFeedingBtn">Сохранить кормление</button>
+        </div>
+    `;
+    container.appendChild(feedingModal);
+
+    // Карточка продукта
+    const productCardModal = document.createElement('div');
+    productCardModal.id = 'productCardModal';
+    productCardModal.className = 'modal';
+    productCardModal.innerHTML = `
+        <div class="modal-box">
+            <div id="productCardContent"></div>
+            <button class="btn btn-outline" id="closeProductCard" style="margin-top:8px;">Закрыть</button>
+        </div>
+    `;
+    container.appendChild(productCardModal);
+
+    // Action Sheet
+    const actionSheet = document.createElement('div');
+    actionSheet.id = 'actionSheet';
+    actionSheet.className = 'modal';
+    actionSheet.style.justifyContent = 'flex-end';
+    actionSheet.style.alignItems = 'stretch';
+    actionSheet.innerHTML = `
+        <div class="modal-box" style="max-width:100%; border-radius:24px 24px 0 0; margin-bottom:0; padding-bottom:env(safe-area-inset-bottom);">
+            <h2 style="text-align:center; font-size:18px; margin-bottom:12px;">Что добавить?</h2>
+            <button class="btn btn-outline action-item" data-action="feeding">🍽 Кормление</button>
+            <button class="btn btn-outline action-item" data-action="product">🥕 Новый продукт</button>
+            <button class="btn btn-outline action-item" data-action="water">💧 Вода</button>
+            <button class="btn btn-outline action-item" data-action="reaction">🌸 Реакция</button>
+            <button class="btn btn-outline action-item" data-action="photo">📷 Фото</button>
+            <button class="btn btn-outline action-item" data-action="note">📝 Заметка</button>
+            <button class="btn btn-secondary" id="closeActionSheet">Отмена</button>
+        </div>
+    `;
+    container.appendChild(actionSheet);
+
+    // Сохраняем ссылки для быстрого доступа
+    window._elements = {
+        container,
+        onboarding,
+        screensContainer,
+        home,
+        plan,
+        products,
+        diary,
+        recipes,
+        profileScreen,
+        bottomNav,
+        modal,
+        readinessModal,
+        feedingModal,
+        productCardModal,
+        actionSheet
+    };
 }
