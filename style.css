@@ -1,4 +1,6 @@
-/* style.css — все стили приложения */
+/* ============================================================
+   style.css — все стили приложения (полная версия)
+   ============================================================ */
 
 * {
     margin: 0;
@@ -91,6 +93,14 @@ body {
     background: #d5cdc5;
 }
 
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 14px;
+    min-height: 34px;
+    width: auto;
+    display: inline-block;
+}
+
 .input-group {
     margin-bottom: 14px;
 }
@@ -181,6 +191,7 @@ body {
     border-radius: 12px;
     padding: 12px;
     border: 1px solid #efe8e0;
+    transition: all 0.15s;
 }
 
 .product-card .name {
@@ -193,6 +204,47 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
+    margin-bottom: 4px;
+}
+
+.product-card .btn-sm {
+    font-size: 11px;
+    padding: 4px 8px;
+    min-height: 24px;
+}
+
+.product-card .btn-sm:active {
+    transform: scale(0.96);
+}
+
+.recipe-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.recipe-card {
+    background: #faf6f0;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #efe8e0;
+}
+
+.recipe-card .name {
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.recipe-card .meta {
+    font-size: 13px;
+    color: #7a6e66;
+    margin-top: 4px;
+}
+
+.recipe-card .prep {
+    font-size: 13px;
+    color: #555;
+    margin-top: 6px;
 }
 
 .bottom-nav {
@@ -398,6 +450,36 @@ body {
 
 .hidden {
     display: none !important;
+}
+
+/* ============================================================
+   Новые стили для опросника готовности и кнопок
+   ============================================================ */
+
+.readiness-question {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #efe8e0;
+}
+
+.readiness-question p {
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-group .btn {
+    flex: 1;
+}
+
+.readiness-answer.active {
+    background: #e8a87c;
+    color: #fff;
+    border-color: #e8a87c;
 }
 
 @media (max-width: 380px) {
