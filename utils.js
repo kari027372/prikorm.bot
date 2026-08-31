@@ -1,4 +1,4 @@
-// utils.js — ВСЕ вспомогательные функции
+// utils.js — все вспомогательные функции (исправленная версия)
 
 // ================================================================
 // 1. ВОЗРАСТ
@@ -65,9 +65,7 @@ function getPrikormDays(profile) {
 
 function filterProductsByAge(profile, products) {
     const age = profile.age_months || 0;
-    const feeding = profile.feeding_type || 'ГВ';
-    const minAge = getMinAge(feeding);
-    return products.filter(p => p.min_age <= age && p.min_age >= minAge);
+    return products.filter(p => p.min_age <= age && p.min_age >= 4);
 }
 
 function getAvailableProducts(profile, products) {
@@ -75,11 +73,10 @@ function getAvailableProducts(profile, products) {
     const excluded = profile.excluded_foods || [];
     const allergies = profile.allergies || [];
     const age = profile.age_months || 0;
-    const feeding = profile.feeding_type || 'ГВ';
-    const minAge = getMinAge(feeding);
+    // Исправлено: убираем ограничение по минимальному возрасту начала прикорма
     return products.filter(p =>
         p.min_age <= age &&
-        p.min_age >= minAge &&
+        p.min_age >= 4 && // исключаем запрещённые (min_age=999)
         !introduced.includes(p.name) &&
         !excluded.includes(p.name) &&
         !allergies.includes(p.name)
@@ -115,15 +112,14 @@ function getNextProduct(profile, products) {
     const available = getAvailableProducts(profile, products);
     if (available.length === 0) return null;
 
-    // 1. Приоритет: источники железа
+    // 1. Железо
     const iron = available.filter(p => p.iron);
     if (iron.length > 0) {
-        // Сортируем по возрасту введения
         iron.sort((a, b) => a.min_age - b.min_age);
         return iron[0];
     }
 
-    // 2. Аллергены (если возраст >= 6 мес.)
+    // 2. Аллергены (если >=6 мес.)
     if (profile.age_months >= 6) {
         const allergens = available.filter(p => p.allergen);
         if (allergens.length > 0) {
@@ -132,33 +128,11 @@ function getNextProduct(profile, products) {
         }
     }
 
-    // 3. Остальные, с учётом категорий (ротация)
+    // 3. Ротация по категориям (упрощённо: возвращаем первый)
     const rest = available.filter(p => !p.iron && !p.allergen);
     if (rest.length > 0) {
-        // Группируем по категориям, чтобы не повторять одно и то же
-        const introduced = profile.introduced_foods || [];
-        const categories = [...new Set(rest.map(p => p.cat))];
-        // Сначала выбираем категории, которых мало в рационе
-        const categoryCount = {};
-        introduced.forEach(name => {
-            const product = products.find(p => p.name === name);
-            if (product) {
-                categoryCount[product.cat] = (categoryCount[product.cat] || 0) + 1;
-            }
-        });
-        // Находим категорию с наименьшим количеством
-        let minCount = Infinity;
-        let selectedCategory = categories[0];
-        for (const cat of categories) {
-            const count = categoryCount[cat] || 0;
-            if (count < minCount) {
-                minCount = count;
-                selectedCategory = cat;
-            }
-        }
-        const candidates = rest.filter(p => p.cat === selectedCategory);
-        candidates.sort((a, b) => a.min_age - b.min_age);
-        return candidates[0];
+        rest.sort((a, b) => a.min_age - b.min_age);
+        return rest[0];
     }
 
     return null;
@@ -177,7 +151,6 @@ function generateDailyPlan(profile, products) {
     const available = getAvailableProducts(profile, products);
     const result = [];
 
-    // Если нет введённых продуктов или все продукты введены
     if (introduced.length === 0 || available.length === 0) {
         const next = getNextProduct(profile, products);
         if (next) {
@@ -191,27 +164,19 @@ function generateDailyPlan(profile, products) {
         return result;
     }
 
-    // Берём уже введённые продукты для основы
     const knownProducts = introduced.map(name => products.find(p => p.name === name)).filter(Boolean);
-    // И новые продукты для введения
     const newProducts = available.slice(0, Math.min(meals, available.length));
-
-    // Распределяем по приёмам пищи (не более 1 нового продукта в день)
     const times = ['🌅 Завтрак', '☀️ Обед', '🌙 Ужин', '🍼 Перекус'];
     let newIndex = 0;
 
     for (let i = 0; i < meals && i < times.length; i++) {
         const meal = { time: times[i], foods: [], description: '', isNew: false };
-
-        // Добавляем 1–2 знакомых продукта
         const known = knownProducts.filter(p => p);
         if (known.length > 0) {
             const idx = i % known.length;
             meal.foods.push(known[idx].name);
             meal.description = known[idx].texture[age >= 10 ? 10 : age >= 8 ? 8 : 6] || 'пюре';
         }
-
-        // Добавляем 1 новый продукт (если есть)
         if (newIndex < newProducts.length) {
             const np = newProducts[newIndex];
             meal.foods.push('🆕 ' + np.name);
@@ -219,12 +184,10 @@ function generateDailyPlan(profile, products) {
             meal.isNew = true;
             newIndex++;
         }
-
         if (meal.foods.length > 0) {
             result.push(meal);
         }
     }
-
     return result;
 }
 
@@ -307,5 +270,52 @@ function getStats(profile) {
         allergyCount: allergies.length,
         excludedCount: excluded.length,
         historyCount: history.length
+    };
+}
+
+// ================================================================
+// 9. МИГРАЦИЯ ДАННЫХ
+// ================================================================
+
+function migrateData() {
+    const oldKey = 'prikorm_app_v2';
+    const newKey = 'prikorm_app_v3';
+    const oldData = localStorage.getItem(oldKey);
+    const newData = localStorage.getItem(newKey);
+    if (oldData && !newData) {
+        try {
+            const parsed = JSON.parse(oldData);
+            if (!parsed.loved_foods) parsed.loved_foods = [];
+            if (!parsed.disliked_foods) parsed.disliked_foods = [];
+            if (!parsed.readiness_score) parsed.readiness_score = 0;
+            if (!parsed.readiness_passed) parsed.readiness_passed = false;
+            if (!parsed.water_log) parsed.water_log = [];
+            if (!parsed.notes) parsed.notes = [];
+            localStorage.setItem(newKey, JSON.stringify(parsed));
+            console.log('✅ Данные перенесены из старой версии');
+        } catch (e) {
+            console.log('❌ Ошибка миграции:', e);
+        }
+    }
+}
+
+// ================================================================
+// 10. АКТИВНЫЙ ПРОДУКТ
+// ================================================================
+
+function activeProductStatus(profile) {
+    const product = profile.active_product;
+    if (!product) return null;
+    const start = profile.observation_start ? new Date(profile.observation_start.split('.').reverse().join('-')) : null;
+    const days = profile.observation_days || 2;
+    if (!start) return null;
+    const passed = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
+    const left = Math.max(0, days - passed);
+    const finished = left <= 0;
+    return {
+        product: product,
+        passed: passed,
+        left: left,
+        finished: finished
     };
 }
