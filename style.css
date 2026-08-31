@@ -1,489 +1,139 @@
 /* ============================================================
-   style.css — все стили приложения (полная версия)
+   Новые стили для Action Sheet, модалки кормления и плана
    ============================================================ */
 
-* {
-    margin: 0;
+/* Кнопка + */
+#addActionBtn {
+    font-size: 28px;
     padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
-}
-
-body {
-    background: #f8f4f0;
-    padding: 16px;
-    padding-bottom: 80px;
-    color: #2c2c2c;
-    min-height: 100vh;
-}
-
-.container {
-    max-width: 450px;
-    margin: 0 auto;
-}
-
-.card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 18px 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-    border: 1px solid #efe8e0;
-}
-
-.card h2 {
-    font-size: 17px;
-    font-weight: 600;
-    margin-bottom: 10px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    margin: 8px auto 0;
     display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.card .sub {
-    color: #7a6e66;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.btn {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    background: #e8a87c;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn:active {
-    background: #d4916b;
-}
-
-.btn-outline {
-    background: transparent;
-    color: #e8a87c;
-    border: 1.5px solid #e8a87c;
-}
-
-.btn-outline:active {
-    background: #f7e4d6;
-}
-
-.btn-danger {
-    background: transparent;
-    color: #d44a4a;
-    border: 1.5px solid #d44a4a;
-}
-
-.btn-danger:active {
-    background: #ffe8e8;
-}
-
-.btn-secondary {
-    background: #efe8e0;
-    color: #7a6e66;
-}
-
-.btn-secondary:active {
-    background: #d5cdc5;
-}
-
-.btn-sm {
-    padding: 6px 14px;
-    font-size: 14px;
-    min-height: 34px;
-    width: auto;
-    display: inline-block;
-}
-
-.input-group {
-    margin-bottom: 14px;
-}
-
-.input-group label {
-    display: block;
-    font-size: 14px;
-    color: #7a6e66;
-    margin-bottom: 4px;
-}
-
-.input-group input,
-.input-group select {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #efe8e0;
-    border-radius: 12px;
-    font-size: 16px;
-    background: #faf6f0;
-    outline: none;
-}
-
-.input-group input:focus,
-.input-group select:focus {
-    border-color: #e8a87c;
-}
-
-.row {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid #efe8e0;
-}
-
-.row:last-child {
-    border-bottom: none;
-}
-
-.label {
-    color: #7a6e66;
-    font-size: 14px;
-}
-
-.value {
-    font-weight: 500;
-    font-size: 14px;
-}
-
-.tag {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    background: #f7e4d6;
-    color: #d4916b;
-    margin-right: 4px;
-}
-
-.tag-iron {
-    background: #e0f0e6;
-    color: #2d7a5a;
-}
-
-.tag-allergen {
-    background: #ffe8e8;
-    color: #c44a4a;
-}
-
-.tag-choking {
-    background: #fff3e0;
-    color: #b87333;
-}
-
-.tag-status {
-    background: #e8e8e8;
-    color: #555;
-}
-
-.product-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.product-card {
-    background: #faf6f0;
-    border-radius: 12px;
-    padding: 12px;
-    border: 1px solid #efe8e0;
-    transition: all 0.15s;
-}
-
-.product-card .name {
-    font-weight: 500;
-    font-size: 15px;
-}
-
-.product-card .meta {
-    margin-top: 6px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 4px;
-}
-
-.product-card .btn-sm {
-    font-size: 11px;
-    padding: 4px 8px;
-    min-height: 24px;
-}
-
-.product-card .btn-sm:active {
-    transform: scale(0.96);
-}
-
-.recipe-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-.recipe-card {
-    background: #faf6f0;
-    border-radius: 12px;
-    padding: 12px;
-    border: 1px solid #efe8e0;
-}
-
-.recipe-card .name {
-    font-weight: 500;
-    font-size: 15px;
-}
-
-.recipe-card .meta {
-    font-size: 13px;
-    color: #7a6e66;
-    margin-top: 4px;
-}
-
-.recipe-card .prep {
-    font-size: 13px;
-    color: #555;
-    margin-top: 6px;
-}
-
-.bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    background: #fff;
-    border-top: 1px solid #efe8e0;
-    padding: 8px 0;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.92);
-}
-
-.bottom-nav .tab {
-    background: none;
-    border: none;
-    font-size: 10px;
-    color: #b0a69e;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    cursor: pointer;
-    padding: 4px 0;
-    flex: 1;
-}
-
-.bottom-nav .tab.active {
-    color: #e8a87c;
-}
-
-.bottom-nav .tab .icon {
-    font-size: 22px;
-}
-
-.screen {
-    display: none;
-    animation: fadeIn 0.25s;
-}
-
-.screen.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(6px);
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    z-index: 999;
-}
-
-.modal-box {
-    background: #fff;
-    border-radius: 24px;
-    max-width: 400px;
-    width: 100%;
-    padding: 24px;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-box h2 {
-    font-size: 20px;
-    margin-bottom: 16px;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.emoji-big {
-    font-size: 56px;
-    margin-bottom: 12px;
-}
-
-.progress-bar {
-    height: 6px;
-    background: #efe8e0;
-    border-radius: 4px;
-    margin-top: 6px;
-    overflow: hidden;
-}
-
-.progress-bar .fill {
-    height: 100%;
-    background: #e8a87c;
-    border-radius: 4px;
-    transition: width 0.4s;
-}
-
-.diary-item {
-    padding: 10px 0;
-    border-bottom: 1px solid #efe8e0;
-}
-
-.diary-item:last-child {
-    border-bottom: none;
-}
-
-.diary-item .top {
-    display: flex;
-    justify-content: space-between;
-}
-
-.diary-item .product {
-    font-weight: 500;
-}
-
-.diary-item .date {
-    color: #b0a69e;
-    font-size: 13px;
-}
-
-.diary-item .reaction {
-    color: #7a6e66;
-    font-size: 14px;
-    margin-top: 4px;
-}
-
-.plan-item {
-    display: flex;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid #efe8e0;
-    align-items: center;
-}
-
-.plan-item:last-child {
-    border-bottom: none;
-}
-
-.plan-item .time {
-    font-weight: 500;
-    color: #7a6e66;
-    min-width: 70px;
-    font-size: 14px;
-}
-
-.plan-item .food {
-    flex: 1;
-    font-weight: 500;
-}
-
-.plan-item .desc {
-    color: #b0a69e;
-    font-size: 13px;
-}
-
-.plan-item .new-badge {
     background: #e8a87c;
     color: #fff;
-    padding: 0 8px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 600;
+    border: none;
+    box-shadow: 0 4px 12px rgba(232, 168, 124, 0.4);
 }
 
-.mt-8 {
-    margin-top: 8px;
+#addActionBtn:active {
+    background: #d4916b;
+    transform: scale(0.95);
 }
 
-.mt-12 {
+/* Action Sheet */
+#actionSheet .modal-box {
+    border-radius: 24px 24px 0 0;
+    padding: 20px 16px 30px;
+}
+
+#actionSheet .action-item {
+    margin-bottom: 8px;
+    text-align: left;
+    padding: 14px 16px;
+    font-size: 16px;
+}
+
+#actionSheet .btn-secondary {
     margin-top: 12px;
 }
 
-.stage-badge {
-    display: inline-block;
-    background: #e8a87c20;
-    color: #e8a87c;
-    padding: 2px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.onboarding {
-    text-align: center;
-    padding: 20px 0;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* ============================================================
-   Новые стили для опросника готовности и кнопок
-   ============================================================ */
-
-.readiness-question {
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #efe8e0;
-}
-
-.readiness-question p {
-    font-weight: 500;
-    margin-bottom: 6px;
-}
-
-.btn-group {
+/* Модалка кормления */
+#feedingModal .btn-group {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
-.btn-group .btn {
-    flex: 1;
+#feedingModal .btn-group .btn {
+    flex: 1 0 auto;
+    min-width: 60px;
+    padding: 6px 10px;
+    font-size: 13px;
 }
 
-.readiness-answer.active {
+#feedingModal .btn-group .btn.active {
     background: #e8a87c;
     color: #fff;
     border-color: #e8a87c;
 }
 
-@media (max-width: 380px) {
-    .product-grid {
-        grid-template-columns: 1fr;
-    }
+#storeFields {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #efe8e0;
+}
+
+#storeFields input {
+    margin-bottom: 6px;
+}
+
+/* План (неделя) */
+#weekDays {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 4px 0;
+}
+
+#weekDays .btn {
+    font-size: 12px;
+    padding: 4px 8px;
+    white-space: nowrap;
+    min-width: 50px;
+    flex: 1;
+}
+
+#weekDays .btn.active {
+    background: #e8a87c;
+    color: #fff;
+    border-color: #e8a87c;
+}
+
+#dailyPlanContent .plan-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0ebe6;
+}
+
+#dailyPlanContent .plan-item .time {
+    min-width: 70px;
+    font-weight: 500;
+    color: #7a6e66;
+    font-size: 14px;
+}
+
+#dailyPlanContent .plan-item .food {
+    flex: 1;
+}
+
+#dailyPlanContent .plan-item .desc {
+    color: #b0a69e;
+    font-size: 13px;
+}
+
+#dailyPlanContent .plan-item .new-badge {
+    background: #e8a87c;
+    color: #fff;
+    padding: 0 6px;
+    border-radius: 10px;
+    font-size: 10px;
+}
+
+#dailyPlanContent .mark-done {
+    font-size: 16px;
+    padding: 2px 10px;
+    min-width: 40px;
+    background: transparent;
+    border: 1px solid #ccc;
+    color: #555;
+}
+
+#dailyPlanContent .mark-done:active {
+    background: #e8a87c20;
 }
