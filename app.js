@@ -1,4 +1,4 @@
-// app.js — основная логика приложения
+// app.js — основная логика приложения (полная версия)
 
 // ================================================================
 // 1. ХРАНЕНИЕ ПРОФИЛЯ
@@ -32,13 +32,10 @@ function resetProfile() {
 // 2. DOM-ЭЛЕМЕНТЫ (создаём динамически)
 // ================================================================
 
-// Мы создаём всю структуру через JS, чтобы не перегружать index.html
-// Но вы можете оставить HTML-разметку и в index.html, тогда этот блок не нужен.
-// Однако для чистоты я создам всё через JS.
-
 function buildApp() {
     const app = document.getElementById('app');
     if (!app) return;
+    app.innerHTML = ''; // Очищаем
 
     // Контейнер
     const container = document.createElement('div');
@@ -77,6 +74,17 @@ function buildApp() {
     screensContainer.style.display = 'none';
     container.appendChild(screensContainer);
 
+    // Создаём все экраны
+    const screens = ['home', 'plan', 'products', 'diary', 'recipes', 'profile'];
+    const screenTitles = {
+        home: 'Главная',
+        plan: 'План',
+        products: 'Продукты',
+        diary: 'Дневник',
+        recipes: 'Рецепты',
+        profile: 'Профиль'
+    };
+
     // Главная
     const home = document.createElement('div');
     home.id = 'screen-home';
@@ -86,6 +94,7 @@ function buildApp() {
             <h2>👋 Привет, <span id="motherName">мама</span>!</h2>
             <div class="sub" id="babyInfo"></div>
             <div class="sub" id="stageInfo" style="margin-top:6px;"></div>
+            <button class="btn btn-outline mt-8" id="readinessBtn">🌸 Проверить готовность</button>
         </div>
         <div class="card" id="activeCard">
             <h2>🔍 Активный продукт</h2>
@@ -149,6 +158,28 @@ function buildApp() {
     `;
     screensContainer.appendChild(diary);
 
+    // Рецепты
+    const recipes = document.createElement('div');
+    recipes.id = 'screen-recipes';
+    recipes.className = 'screen';
+    recipes.innerHTML = `
+        <div class="card">
+            <h2>🍽 Рецепты</h2>
+            <div id="recipeFilter" style="margin-bottom:12px;">
+                <select id="recipeAgeFilter" style="width:100%; padding:8px 12px; border:1px solid #efe8e0; border-radius:10px; background:#faf6f0; font-size:14px;">
+                    <option value="all">Все возрасты</option>
+                    <option value="6">6+ мес</option>
+                    <option value="7">7+ мес</option>
+                    <option value="8">8+ мес</option>
+                    <option value="9">9+ мес</option>
+                    <option value="10">10+ мес</option>
+                </select>
+            </div>
+            <div id="recipeGrid" class="recipe-grid"></div>
+        </div>
+    `;
+    screensContainer.appendChild(recipes);
+
     // Профиль
     const profileScreen = document.createElement('div');
     profileScreen.id = 'screen-profile';
@@ -159,6 +190,7 @@ function buildApp() {
                 <div style="font-size:48px;">👶</div>
                 <div style="font-size:18px; font-weight:600;" id="profileName">—</div>
                 <div style="color:#7a6e66; font-size:14px;" id="profileAge">—</div>
+                <button class="btn btn-outline mt-8" id="readinessBtnProfile">🌸 Проверить готовность</button>
             </div>
             <div id="profileFields"></div>
             <button class="btn btn-outline mt-8" id="editProfileBtn">✏️ Редактировать</button>
@@ -168,7 +200,7 @@ function buildApp() {
     `;
     screensContainer.appendChild(profileScreen);
 
-    // Нижняя навигация
+    // Нижняя навигация (6 вкладок)
     const bottomNav = document.createElement('div');
     bottomNav.className = 'bottom-nav';
     bottomNav.id = 'bottomNav';
@@ -178,6 +210,7 @@ function buildApp() {
         <button class="tab" data-tab="plan"><span class="icon">📅</span>План</button>
         <button class="tab" data-tab="products"><span class="icon">🥕</span>Продукты</button>
         <button class="tab" data-tab="diary"><span class="icon">📖</span>Дневник</button>
+        <button class="tab" data-tab="recipes"><span class="icon">🍽</span>Рецепты</button>
         <button class="tab" data-tab="profile"><span class="icon">👶</span>Профиль</button>
     `;
     container.appendChild(bottomNav);
@@ -203,6 +236,57 @@ function buildApp() {
     `;
     container.appendChild(modal);
 
+    // Модалка готовности
+    const readinessModal = document.createElement('div');
+    readinessModal.id = 'readinessModal';
+    readinessModal.className = 'modal';
+    readinessModal.innerHTML = `
+        <div class="modal-box">
+            <h2>🌸 Проверка готовности</h2>
+            <div id="readinessQuestions">
+                <p style="color:#7a6e66; margin-bottom:12px;">Ответьте на 5 вопросов:</p>
+                <div class="readiness-question" data-q="1">
+                    <p>1. Ребёнок уверенно держит голову и шею?</p>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button>
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button>
+                    </div>
+                </div>
+                <div class="readiness-question" data-q="2">
+                    <p>2. Может сидеть с поддержкой или самостоятельно?</p>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button>
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button>
+                    </div>
+                </div>
+                <div class="readiness-question" data-q="3">
+                    <p>3. Проявляет интерес к еде (смотрит, тянется)?</p>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button>
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button>
+                    </div>
+                </div>
+                <div class="readiness-question" data-q="4">
+                    <p>4. Исчез рефлекс выталкивания ложки языком?</p>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button>
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button>
+                    </div>
+                </div>
+                <div class="readiness-question" data-q="5">
+                    <p>5. Может брать предметы и направлять их ко рту?</p>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button>
+                        <button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button>
+                    </div>
+                </div>
+                <div id="readinessResult" style="margin-top:12px; display:none;"></div>
+                <button class="btn mt-8" id="readinessSubmit" style="display:none;">Сохранить результат</button>
+            </div>
+        </div>
+    `;
+    container.appendChild(readinessModal);
+
     // Модалка дневника
     const diaryModal = document.createElement('div');
     diaryModal.id = 'diaryModal';
@@ -221,7 +305,7 @@ function buildApp() {
     `;
     container.appendChild(diaryModal);
 
-    // Сохраняем ссылки на элементы для быстрого доступа
+    // Сохраняем ссылки
     window._elements = {
         container,
         onboarding,
@@ -230,9 +314,11 @@ function buildApp() {
         plan,
         products,
         diary,
+        recipes,
         profileScreen,
         bottomNav,
         modal,
+        readinessModal,
         diaryModal
     };
 }
@@ -266,6 +352,9 @@ function setupEventListeners() {
     document.getElementById('modal')?.addEventListener('click', function(e) {
         if (e.target === this) this.style.display = 'none';
     });
+    document.getElementById('readinessModal')?.addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
     document.getElementById('diaryModal')?.addEventListener('click', function(e) {
         if (e.target === this) this.style.display = 'none';
     });
@@ -293,6 +382,67 @@ function setupEventListeners() {
 
     // Фильтр продуктов
     document.getElementById('categoryFilter')?.addEventListener('change', renderProducts);
+
+    // Фильтр рецептов
+    document.getElementById('recipeAgeFilter')?.addEventListener('change', renderRecipes);
+
+    // Опросник готовности (две кнопки)
+    document.getElementById('readinessBtn')?.addEventListener('click', openReadinessModal);
+    document.getElementById('readinessBtnProfile')?.addEventListener('click', openReadinessModal);
+
+    // Ответы на вопросы готовности
+    document.querySelectorAll('.readiness-answer').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const q = this.closest('.readiness-question');
+            const questionIndex = q.dataset.q;
+            const answer = this.dataset.answer;
+            // Отмечаем выбранный ответ
+            q.querySelectorAll('.readiness-answer').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            // Сохраняем в data
+            q.dataset.answer = answer;
+            // Проверяем, все ли вопросы отвечены
+            const allQuestions = document.querySelectorAll('.readiness-question');
+            let allAnswered = true;
+            allQuestions.forEach(q => {
+                if (!q.dataset.answer) allAnswered = false;
+            });
+            if (allAnswered) {
+                document.getElementById('readinessSubmit').style.display = 'block';
+            }
+        });
+    });
+
+    // Сохранение результата готовности
+    document.getElementById('readinessSubmit')?.addEventListener('click', function() {
+        const questions = document.querySelectorAll('.readiness-question');
+        let score = 0;
+        questions.forEach(q => {
+            if (q.dataset.answer === 'yes') score++;
+        });
+        // Сохраняем в профиль
+        if (!profile) profile = {};
+        profile.readiness_score = score;
+        profile.readiness_passed = score >= 4;
+        profile.readiness_date = new Date().toLocaleDateString('ru-RU');
+        saveProfile();
+        // Показываем результат
+        const resultDiv = document.getElementById('readinessResult');
+        resultDiv.style.display = 'block';
+        const verdict = score >= 4 ? '🟢 Готовность высокая! Можно начинать прикорм.' : '🟡 Признаков пока недостаточно. Попробуйте позже.';
+        resultDiv.innerHTML = `<div class="card"><p><strong>Результат: ${score}/5</strong></p><p>${verdict}</p></div>`;
+        document.getElementById('readinessSubmit').style.display = 'none';
+        // Закрыть модалку через 2 секунды
+        setTimeout(() => {
+            document.getElementById('readinessModal').style.display = 'none';
+            render();
+        }, 2000);
+    });
+
+    // Синхронизация с ботом (заглушка)
+    document.getElementById('syncFromBot')?.addEventListener('click', function() {
+        alert('Синхронизация с ботом будет доступна позже.');
+    });
 }
 
 // ================================================================
@@ -353,10 +503,23 @@ function saveProfileHandler() {
     profile.observation_days = profile.observation_days || 2;
     profile.loved_foods = profile.loved_foods || [];
     profile.disliked_foods = profile.disliked_foods || [];
+    profile.readiness_score = profile.readiness_score || 0;
+    profile.readiness_passed = profile.readiness_passed || false;
 
     saveProfile();
     document.getElementById('modal').style.display = 'none';
     render();
+}
+
+function openReadinessModal() {
+    // Сброс состояния
+    document.querySelectorAll('.readiness-question').forEach(q => {
+        q.dataset.answer = '';
+        q.querySelectorAll('.readiness-answer').forEach(b => b.classList.remove('active'));
+    });
+    document.getElementById('readinessResult').style.display = 'none';
+    document.getElementById('readinessSubmit').style.display = 'none';
+    document.getElementById('readinessModal').style.display = 'flex';
 }
 
 function openDiaryModal() {
@@ -507,6 +670,9 @@ function render() {
     // Дневник
     renderDiary();
 
+    // Рецепты
+    renderRecipes();
+
     // Профиль
     renderProfile();
 }
@@ -540,17 +706,125 @@ function renderProducts() {
             'new': 'рекомендуется'
         };
         const textureLabel = p.texture[age >= 10 ? 10 : age >= 8 ? 8 : 6] || '—';
+        const isIntroduced = profile.introduced_foods && profile.introduced_foods.includes(p.name);
+        const isLoved = profile.loved_foods && profile.loved_foods.includes(p.name);
+        const isDisliked = profile.disliked_foods && profile.disliked_foods.includes(p.name);
+        const isExcluded = profile.excluded_foods && profile.excluded_foods.includes(p.name);
+        const isAllergy = profile.allergies && profile.allergies.includes(p.name);
+
+        let buttons = '';
+        if (!isIntroduced && !isExcluded && !isAllergy) {
+            buttons = `<button class="btn btn-sm btn-outline introduce-btn" data-product="${p.name}">➕ Ввести</button>`;
+        }
+        if (isIntroduced && !isLoved && !isDisliked) {
+            buttons = `
+                <button class="btn btn-sm btn-outline love-btn" data-product="${p.name}">❤️ Любит</button>
+                <button class="btn btn-sm btn-outline dislike-btn" data-product="${p.name}">😐 Не нравится</button>
+            `;
+        }
+        if (isIntroduced && (isLoved || isDisliked)) {
+            buttons = `<span class="tag">${isLoved ? '❤️ любит' : '😐 не нравится'}</span>`;
+        }
+        if (isExcluded) {
+            buttons = `<span class="tag tag-status">🚫 исключён</span>`;
+        }
+        if (isAllergy) {
+            buttons = `<span class="tag tag-allergen">⚠️ аллергия</span>`;
+        }
+
         return `
-            <div class="product-card">
+            <div class="product-card" data-product="${p.name}">
                 <div class="name">${p.name}</div>
                 <div class="meta">
                     ${tags.map(t => `<span class="tag">${t}</span>`).join(' ')}
                     <span class="tag tag-status">${statusLabels[status] || status}</span>
                 </div>
                 <div style="font-size:12px; color:#b0a69e; margin-top:4px;">${textureLabel}</div>
+                <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;">
+                    ${buttons}
+                    ${!isExcluded && !isAllergy && isIntroduced ? `<button class="btn btn-sm btn-outline exclude-btn" data-product="${p.name}">🚫 Исключить</button>` : ''}
+                </div>
             </div>
         `;
     }).join('');
+
+    // Обработчики кнопок
+    grid.querySelectorAll('.introduce-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const product = this.dataset.product;
+            if (!profile.introduced_foods) profile.introduced_foods = [];
+            if (!profile.introduced_foods.includes(product)) {
+                profile.introduced_foods.push(product);
+                profile.active_product = product;
+                const info = PRODUCTS.find(p => p.name === product);
+                profile.observation_days = (info && info.allergen) ? 3 : 2;
+                profile.observation_start = new Date().toLocaleDateString('ru-RU');
+                // Добавляем в дневник
+                if (!profile.food_history) profile.food_history = [];
+                profile.food_history.push({
+                    product: product,
+                    date: new Date().toLocaleDateString('ru-RU'),
+                    reaction: 'Всё хорошо',
+                    notes: 'Введён через список продуктов'
+                });
+                saveProfile();
+                render();
+            }
+        });
+    });
+
+    grid.querySelectorAll('.love-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const product = this.dataset.product;
+            if (!profile.loved_foods) profile.loved_foods = [];
+            if (!profile.loved_foods.includes(product)) {
+                profile.loved_foods.push(product);
+                if (profile.disliked_foods && profile.disliked_foods.includes(product)) {
+                    profile.disliked_foods = profile.disliked_foods.filter(p => p !== product);
+                }
+                saveProfile();
+                render();
+            }
+        });
+    });
+
+    grid.querySelectorAll('.dislike-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const product = this.dataset.product;
+            if (!profile.disliked_foods) profile.disliked_foods = [];
+            if (!profile.disliked_foods.includes(product)) {
+                profile.disliked_foods.push(product);
+                if (profile.loved_foods && profile.loved_foods.includes(product)) {
+                    profile.loved_foods = profile.loved_foods.filter(p => p !== product);
+                }
+                saveProfile();
+                render();
+            }
+        });
+    });
+
+    grid.querySelectorAll('.exclude-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const product = this.dataset.product;
+            if (confirm(`Исключить ${product} из рациона?`)) {
+                if (!profile.excluded_foods) profile.excluded_foods = [];
+                if (!profile.excluded_foods.includes(product)) {
+                    profile.excluded_foods.push(product);
+                    if (profile.introduced_foods && profile.introduced_foods.includes(product)) {
+                        profile.introduced_foods = profile.introduced_foods.filter(p => p !== product);
+                    }
+                    if (profile.loved_foods && profile.loved_foods.includes(product)) {
+                        profile.loved_foods = profile.loved_foods.filter(p => p !== product);
+                    }
+                    if (profile.disliked_foods && profile.disliked_foods.includes(product)) {
+                        profile.disliked_foods = profile.disliked_foods.filter(p => p !== product);
+                    }
+                    saveProfile();
+                    render();
+                }
+            }
+        });
+    });
 }
 
 function renderDiary() {
@@ -568,10 +842,70 @@ function renderDiary() {
     `).join('');
 }
 
+function renderRecipes() {
+    const grid = document.getElementById('recipeGrid');
+    const age = profile.age_months || 0;
+    const filter = document.getElementById('recipeAgeFilter').value;
+
+    let recipes = RECIPES.filter(r => r.age <= age);
+    if (filter !== 'all') recipes = recipes.filter(r => r.age >= parseInt(filter));
+
+    if (recipes.length === 0) {
+        grid.innerHTML = '<span class="sub" style="grid-column:1/-1;">Нет рецептов для этого возраста</span>';
+        return;
+    }
+
+    // Добавляем стили для сетки рецептов, если их нет
+    if (!document.querySelector('.recipe-grid')) {
+        const style = document.createElement('style');
+        style.textContent = `
+            .recipe-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .recipe-card {
+                background: #faf6f0;
+                border-radius: 12px;
+                padding: 12px;
+                border: 1px solid #efe8e0;
+            }
+            .recipe-card .name {
+                font-weight: 500;
+                font-size: 15px;
+            }
+            .recipe-card .meta {
+                font-size: 13px;
+                color: #7a6e66;
+                margin-top: 4px;
+            }
+            .recipe-card .prep {
+                font-size: 13px;
+                color: #555;
+                margin-top: 6px;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    grid.innerHTML = recipes.map(r => `
+        <div class="recipe-card">
+            <div class="name">${r.name}</div>
+            <div class="meta">Возраст: ${r.age}+ мес | ${r.texture} | ${r.approach.join(', ')}</div>
+            <div class="prep"><strong>Ингредиенты:</strong> ${r.ingredients.join(', ')}</div>
+            <div class="prep"><strong>Приготовление:</strong> ${r.prep}</div>
+            ${r.storage ? `<div class="prep"><strong>Хранение:</strong> ${r.storage}</div>` : ''}
+            ${r.allergens && r.allergens.length ? `<div class="prep"><strong>⚠️ Аллергены:</strong> ${r.allergens.join(', ')}</div>` : ''}
+            ${r.iron ? '<div class="prep">🩸 Источник железа</div>' : ''}
+        </div>
+    `).join('');
+}
+
 function renderProfile() {
     document.getElementById('profileName').textContent = profile.baby_name || '—';
     const age = calcAge(profile.birth_date);
     document.getElementById('profileAge').textContent = `${age.months} мес. ${age.days} дн.`;
+    const readinessText = profile.readiness_passed ? `✅ Пройден (${profile.readiness_score}/5)` : '❌ Не пройден';
     const fields = [
         ['Мама', profile.mother_name || '—'],
         ['Дата рождения', profile.birth_date || '—'],
@@ -583,7 +917,8 @@ function renderProfile() {
         ['Прикорм начат', profile.prikorm_started ? `Да (с ${profile.prikorm_start_date || '—'})` : 'Нет'],
         ['Стратегия', profile.feeding_strategy || 'Комбинированный'],
         ['Введено продуктов', (profile.introduced_foods || []).length],
-        ['Аллергий', (profile.allergies || []).length]
+        ['Аллергий', (profile.allergies || []).length],
+        ['Готовность', readinessText]
     ];
     document.getElementById('profileFields').innerHTML = fields.map(([label, value]) => `
         <div class="row"><span class="label">${label}</span><span class="value">${value}</span></div>
@@ -594,7 +929,6 @@ function renderProfile() {
 // 7. ЗАПУСК
 // ================================================================
 
-// Дожидаемся загрузки DOM
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
