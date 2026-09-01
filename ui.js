@@ -2501,3 +2501,51 @@ window.loadingState =
 
 window.escapeHTML =
     escapeHTML;
+
+
+/* ============================================================
+   ДОПОЛНИТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ РЕНДЕРИНГА ПИКЕРА ПРОДУКТОВ
+   ============================================================ */
+
+function renderProductPicker(query) {
+    const container = document.getElementById('picker-products');
+    if (!container) return;
+    const products = PRODUCTS || [];
+    const q = (query || '').trim().toLowerCase();
+    const filtered = q ? products.filter(p => p.name.toLowerCase().includes(q)) : products;
+    if (!filtered.length) {
+        container.innerHTML = emptyState('🥑', 'Ничего не найдено', 'Попробуйте изменить запрос');
+        return;
+    }
+    container.innerHTML = filtered.map(p => `
+        <button class="picker-product" data-action="select-product" data-product-id="${p.id}" style="display:flex; align-items:center; gap:12px; width:100%; padding:12px; border:none; background:transparent; border-bottom:1px solid #eee; cursor:pointer; text-align:left;">
+            <span style="font-size:24px;">${p.emoji || '🥣'}</span>
+            <div style="flex:1;"><strong>${escapeHTML(p.name)}</strong><br><span style="font-size:13px; color:#888;">${p.cat || ''}</span></div>
+            <span>›</span>
+        </button>
+    `).join('');
+}
+
+
+/* ============================================================
+   ОБРАБОТЧИК ВЫБОРА ПРОДУКТА В ПИКЕРЕ
+   ============================================================ */
+
+document.addEventListener('click', function(e) {
+    const target = e.target.closest('[data-action="select-product"]');
+    if (!target) return;
+    const productId = target.dataset.productId;
+    if (!productId) return;
+    const product = (PRODUCTS || []).find(p => p.id === productId);
+    if (product) {
+        closeModal();
+        if (typeof openAddFoodModal === 'function') {
+            openAddFoodModal(product);
+        } else {
+            showToast('Выбран продукт: ' + product.name, 'success');
+        }
+    }
+});
+
+
+window.renderProductPicker = renderProductPicker;
