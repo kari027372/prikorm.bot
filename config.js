@@ -1034,4 +1034,4 @@ window.getAgeInMonths = getAgeInMonths;
 window.getAgeInDays = getAgeInDays;
 
 window.getFeedingStage = getFeedingStage;
-window.getReadinessChecklist = getReadinessChecklist;
+    window.getReadinessChecklist = getReadinessChecklist;
