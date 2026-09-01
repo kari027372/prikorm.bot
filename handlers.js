@@ -293,27 +293,50 @@ function handleDocumentClick(
 
 
         /* ------------------------------------------------------
-           TODAY
+           TODAY (ПЛАН)
            ------------------------------------------------------ */
 
         case "previous-day":
-
-            changeDay(-1);
-
+            if (typeof CURRENT_DATE !== 'undefined') {
+                CURRENT_DATE = new Date(CURRENT_DATE);
+                CURRENT_DATE.setDate(CURRENT_DATE.getDate() - 1);
+                render('today');
+            } else {
+                showToast('Ошибка: дата не определена', 'error');
+            }
             break;
 
 
         case "next-day":
-
-            changeDay(1);
-
+            if (typeof CURRENT_DATE !== 'undefined') {
+                CURRENT_DATE = new Date(CURRENT_DATE);
+                CURRENT_DATE.setDate(CURRENT_DATE.getDate() + 1);
+                render('today');
+            } else {
+                showToast('Ошибка: дата не определена', 'error');
+            }
             break;
 
 
         case "select-date":
-
             openDatePicker();
+            break;
 
+
+        case "add-meal":
+            showToast('Форма добавления приёма пищи откроется в следующем обновлении', 'default');
+            break;
+
+
+        case "remove-meal":
+            const idx = parseInt(target.dataset.index);
+            const dateStr = (typeof CURRENT_DATE !== 'undefined') ? CURRENT_DATE.toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+            if (!isNaN(idx) && typeof removeMealFromPlan === 'function') {
+                removeMealFromPlan(dateStr, idx);
+                render('today');
+            } else {
+                showToast('Ошибка удаления', 'error');
+            }
             break;
 
 
@@ -348,6 +371,30 @@ function handleDocumentClick(
 
             confirmReset();
 
+            break;
+
+
+        /* ------------------------------------------------------
+           SAVE BABY (из модалки)
+           ------------------------------------------------------ */
+
+        case "save-baby":
+            const name = document.getElementById('baby-name')?.value?.trim();
+            const birthDate = document.getElementById('baby-birth')?.value;
+            const feedingType = document.getElementById('baby-feeding')?.value;
+            if (name || birthDate || feedingType) {
+                const age = birthDate ? calcAge(birthDate) : { months:0, days:0 };
+                if (typeof updateBaby === 'function') {
+                    updateBaby({ name, birthDate, feedingType, ageMonths: age.months, ageDays: age.days });
+                    closeModal();
+                    render('baby');
+                    showToast('Профиль сохранён', 'success');
+                } else {
+                    showToast('Ошибка: updateBaby не найдена', 'error');
+                }
+            } else {
+                showToast('Заполните хотя бы одно поле', 'error');
+            }
             break;
 
 
@@ -1490,7 +1537,7 @@ function searchProductPicker(
 
 
 /* ============================================================
-   SELECT PRODUCT
+   SELECT PRODUCT (обработчик выбора продукта)
    ============================================================ */
 
 document.addEventListener(
@@ -1600,7 +1647,7 @@ function openDiaryCalendar() {
 
 
 /* ============================================================
-   TODAY
+   TODAY (ДАТА)
    ============================================================ */
 
 let CURRENT_DATE =
@@ -1980,7 +2027,7 @@ function openBabyEditModal() {
 
 
 /* ============================================================
-   SAVE BABY
+   SAVE BABY (уже есть обработчик в switch, но дублируем для надёжности)
    ============================================================ */
 
 document.addEventListener(
