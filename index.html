@@ -8,7 +8,6 @@
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Segoe UI',Roboto,sans-serif;background:#f5f0eb;display:flex;justify-content:center;padding:0;min-height:100vh}
         #app{max-width:480px;width:100%;background:#fff;min-height:100vh;padding:16px 16px 80px;position:relative;box-shadow:0 0 20px rgba(0,0,0,0.05)}
-        /* ===== ОНБОРДИНГ ===== */
         .onboarding{display:flex;flex-direction:column;justify-content:center;min-height:80vh;padding:0 16px;text-align:center;animation:fadeIn 0.5s}
         @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         .onboarding .step-indicators{display:flex;justify-content:center;gap:8px;margin:20px 0 30px}
@@ -32,8 +31,6 @@
         .onboarding .nav-buttons button.prev{background:#f0ebe7;color:#555}
         .onboarding .nav-buttons button.next{background:#d4a373;color:#fff}
         .onboarding .nav-buttons button.next:disabled{opacity:0.5;pointer-events:none}
-
-        /* ===== ГЛАВНЫЙ ЭКРАН ===== */
         .dashboard{display:block}
         .welcome-card{background:linear-gradient(135deg,#fdf6f0,#f5ebe3);border-radius:24px;padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.04)}
         .welcome-card .info h1{font-size:24px;font-weight:700;color:#2d1f14;margin:0}
@@ -43,12 +40,11 @@
         .status-card .row{display:flex;justify-content:space-between;align-items:center}
         .status-card .label{font-size:14px;color:#888}
         .status-card .value{font-size:16px;font-weight:600;color:#2d1f14}
-        .status-card .badge{background:#e8f0e8;padding:4px 12px;border-radius:30px;font-size:14px;color:#4a7a5a}
         .progress-card{background:#fff;border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04);border:1px solid #f0ebe7}
         .progress-card .header{display:flex;justify-content:space-between;margin-bottom:8px}
         .progress-card .header span{font-weight:600}
         .progress-card .track{background:#f0ebe7;height:8px;border-radius:10px;overflow:hidden}
-        .progress-card .track .fill{background:#d4a373;height:100%;border-radius:10px;width:0%;transition:width 0.4s}
+        .progress-card .track .fill{background:#d4a373;height:100%;border-radius:10px;transition:width 0.4s}
         .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
         .quick-card{background:#fff;border:1px solid #f0ebe7;border-radius:16px;padding:16px;text-align:center;cursor:pointer;transition:0.2s}
         .quick-card:active{transform:scale(0.96)}
@@ -62,15 +58,11 @@
         .recommendation-card .content h3{font-size:18px;margin:4px 0}
         .recommendation-card .content p{font-size:14px;color:#555}
         .recommendation-card .action{background:#d4a373;border:none;padding:8px 16px;border-radius:30px;color:#fff;font-weight:600;cursor:pointer;font-size:14px}
-
-        /* ===== ТАБЫ И СТРАНИЦЫ ===== */
         .tab-bar{display:flex;gap:10px;background:#fff;padding:10px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
         .tab-bar button{flex:1;padding:10px;border:none;border-radius:10px;background:#f0ebe7;cursor:pointer;font-weight:600;transition:0.2s}
         .tab-bar button.active{background:#d4a373;color:#fff}
         .page{display:none;padding-top:12px}
         .page.active{display:block}
-
-        /* ===== ПРОДУКТЫ ===== */
         .product-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
         .product-item{background:#fafafa;padding:12px;border-radius:8px;text-align:center;cursor:pointer;transition:0.2s;border:1px solid transparent}
         .product-item:active{transform:scale(0.96)}
@@ -78,22 +70,15 @@
         .product-item .name{font-size:14px;font-weight:600;margin-top:4px}
         .product-item .cat{font-size:12px;color:#888}
         .product-item.introduced{background:#e8f5e9;border-color:#a5d6a7}
-        .product-item.introduced .name::after{content:" ✅";font-size:12px}
-
-        /* ===== ДНЕВНИК ===== */
         .diary-entry{display:flex;align-items:center;background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px}
         .diary-entry .info{flex:1}
         .diary-entry .date{font-size:12px;color:#888}
-
-        /* ===== НАСТРОЙКИ ===== */
         .settings-row{display:flex;align-items:center;background:#fafafa;padding:12px;border-radius:8px;margin-bottom:6px;border:none;width:100%;text-align:left;cursor:pointer}
         .settings-row span:first-child{font-size:20px;margin-right:12px}
         .settings-row div{flex:1}
         .settings-row strong{display:block}
         .settings-row small{color:#888}
         .danger-button{background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:14px;width:100%;font-weight:700;cursor:pointer;margin:16px 0}
-
-        /* ===== МОДАЛКА ===== */
         .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;animation:fadeIn 0.2s}
         .modal{background:#fff;max-width:400px;width:90%;border-radius:24px;padding:24px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,0.2)}
         .modal h2{margin-bottom:16px}
@@ -107,23 +92,21 @@
         .modal .actions button{flex:1;padding:14px;border:none;border-radius:14px;font-weight:600;cursor:pointer}
         .modal .actions .cancel{background:#f0ebe7;color:#555}
         .modal .actions .save{background:#d4a373;color:#fff}
-        .modal .actions .save:disabled{opacity:0.5;pointer-events:none}
-
-        /* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */
-        .bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;display:flex;justify-content:space-around;background:#fff;padding:8px 0;border-top:1px solid #eee;box-shadow:0 -2px 10px rgba(0,0,0,0.04)}
-        .bottom-nav button{background:none;border:none;font-size:12px;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
-        .bottom-nav button.active{color:#d4a373;font-weight:700}
-        .bottom-nav button .nav-icon{font-size:24px}
-
         .empty-state{text-align:center;padding:40px 20px;color:#999}
         .empty-state .empty-icon{font-size:64px}
         .empty-state h3{font-size:18px;color:#555}
         .empty-state p{font-size:14px}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;display:flex;justify-content:space-around;background:#fff;padding:8px 0;border-top:1px solid #eee;box-shadow:0 -2px 10px rgba(0,0,0,0.04)}
+        .bottom-nav button{background:none;border:none;font-size:12px;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+        .bottom-nav button.active{color:#d4a373;font-weight:700}
+        .bottom-nav button .nav-icon{font-size:24px}
     </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
+console.log('Скрипт загружен');
+
 // ============================================================
 // 1. СОСТОЯНИЕ И ДАННЫЕ
 // ============================================================
@@ -150,7 +133,7 @@ function saveState() {
     localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
 }
 
-// ПРОДУКТЫ (здесь у вас полный список, я оставлю сокращённый для примера, замените на свой)
+// ПРОДУКТЫ (здесь ваш полный список, я оставлю сокращённый для примера)
 const PRODUCTS = [
     { id:'courgette', name:'Кабачок', cat:'овощ', min_age:4, emoji:'🥒' },
     { id:'broccoli', name:'Брокколи', cat:'овощ', min_age:4, emoji:'🥦' },
@@ -338,6 +321,8 @@ const RECIPES = [
     { name:'Рисовая каша с яблоком', products:['Рис','Яблоко'], age:6, desc:'Сварить рис, добавить тёртое яблоко.', emoji:'🍚' }
 ];
 
+console.log('Данные загружены, продуктов: ' + PRODUCTS.length);
+
 // ============================================================
 // 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================================
@@ -371,6 +356,7 @@ function getProgress() {
 // 3. ОНБОРДИНГ
 // ============================================================
 function renderOnboarding() {
+    console.log('renderOnboarding вызвана');
     const app = document.getElementById('app');
     if (!app) return;
     let step = 0;
@@ -463,7 +449,6 @@ function renderOnboarding() {
         // Обработчики
         document.querySelectorAll('[data-action="next-step"]').forEach(btn => {
             btn.addEventListener('click', () => {
-                // Сохраняем данные текущего шага
                 if (stepIndex === 0) {
                     const name = document.getElementById('onboarding-name')?.value.trim() || '';
                     STATE.baby.name = name;
@@ -543,16 +528,17 @@ function renderOnboarding() {
 // 4. МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ ПРОДУКТА
 // ============================================================
 function openAddModal(productId) {
+    console.log('openAddModal вызвана для id:', productId);
     const product = PRODUCTS.find(p => p.id === productId);
-    if (!product) return;
-
-    // Если уже введён – выходим
+    if (!product) {
+        alert('Продукт не найден');
+        return;
+    }
     if (isIntroduced(productId)) {
         alert('Этот продукт уже введён');
         return;
     }
 
-    // Создаём модалку
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.innerHTML = `
@@ -589,14 +575,12 @@ function openAddModal(productId) {
     `;
     document.body.appendChild(overlay);
 
-    // Логика показа поля бренда при выборе "Купила"
     const sourceSelect = document.getElementById('modal-source');
     const brandField = document.getElementById('brand-field');
     sourceSelect.addEventListener('change', function() {
         brandField.style.display = this.value === 'store' ? 'block' : 'none';
     });
 
-    // Выбор "Понравилось"
     const likedBtns = document.querySelectorAll('#modal-liked button');
     likedBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -605,7 +589,6 @@ function openAddModal(productId) {
         });
     });
 
-    // Закрытие
     document.getElementById('modal-cancel').addEventListener('click', function() {
         overlay.remove();
     });
@@ -613,7 +596,6 @@ function openAddModal(productId) {
         if (e.target === this) overlay.remove();
     });
 
-    // Сохранение
     document.getElementById('modal-save').addEventListener('click', function() {
         const likedBtn = document.querySelector('#modal-liked button.selected');
         const liked = likedBtn ? likedBtn.dataset.value : null;
@@ -621,7 +603,6 @@ function openAddModal(productId) {
         const brand = document.getElementById('modal-brand').value.trim();
         const note = document.getElementById('modal-note').value.trim();
 
-        // Добавляем продукт
         STATE.introduced.push(product.id);
         STATE.diary.push({
             product: product.id,
@@ -633,7 +614,7 @@ function openAddModal(productId) {
         });
         saveState();
         overlay.remove();
-        renderApp(); // перерисовываем
+        renderApp();
     });
 }
 
@@ -641,183 +622,195 @@ function openAddModal(productId) {
 // 5. ОСНОВНОЙ РЕНДЕРИНГ ПРИЛОЖЕНИЯ
 // ============================================================
 function renderApp() {
-    const app = document.getElementById('app');
-    if (!app) return;
+    console.log('renderApp вызвана');
+    try {
+        const app = document.getElementById('app');
+        if (!app) {
+            console.error('app не найден');
+            return;
+        }
 
-    // Если онбординг не завершён – показываем его
-    if (!STATE.onboardingCompleted || !STATE.baby.birthDate) {
-        renderOnboarding();
-        return;
-    }
+        // Если онбординг не завершён – показываем его
+        if (!STATE.onboardingCompleted || !STATE.baby.birthDate) {
+            renderOnboarding();
+            return;
+        }
 
-    const age = calcAge(STATE.baby.birthDate);
-    const nextProduct = getNextProduct();
-    const progress = getProgress();
-    const diaryCount = STATE.diary.length;
+        const age = calcAge(STATE.baby.birthDate);
+        const nextProduct = getNextProduct();
+        const progress = getProgress();
+        const diaryCount = STATE.diary.length;
 
-    let html = `
-        <div class="dashboard">
-            <!-- Welcome card -->
-            <div class="welcome-card">
-                <div class="info">
-                    <h1>🌸 Привет, ${STATE.baby.name || 'Малыш'}!</h1>
-                    <p>${age.months} мес. · ${STATE.baby.feedingType}</p>
+        let html = `
+            <div class="dashboard">
+                <!-- Welcome card -->
+                <div class="welcome-card">
+                    <div class="info">
+                        <h1>🌸 Привет, ${STATE.baby.name || 'Малыш'}!</h1>
+                        <p>${age.months} мес. · ${STATE.baby.feedingType}</p>
+                    </div>
+                    <div class="avatar">👶</div>
                 </div>
-                <div class="avatar">👶</div>
+
+                <!-- Status card -->
+                <div class="status-card">
+                    <div class="row">
+                        <span class="label">Статус прикорма</span>
+                        <span class="value">${STATE.baby.feedingStarted ? '🌱 Активно' : '⏳ Ещё не начат'}</span>
+                    </div>
+                    ${STATE.baby.feedingStarted && STATE.baby.feedingStartDate ? `
+                    <div class="row" style="margin-top:4px;">
+                        <span class="label">Начало</span>
+                        <span class="value">${STATE.baby.feedingStartDate}</span>
+                    </div>` : ''}
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-card">
+                    <div class="header">
+                        <span>Прогресс</span>
+                        <span>${STATE.introduced.length} из ${PRODUCTS.length} продуктов</span>
+                    </div>
+                    <div class="track"><div class="fill" style="width:${progress}%;"></div></div>
+                </div>
+
+                <!-- Quick actions -->
+                <div class="quick-grid">
+                    <div class="quick-card" data-action="add-product">
+                        <span class="icon">🥣</span>
+                        <div class="label">Добавить продукт</div>
+                        <div class="desc">В дневник</div>
+                    </div>
+                    <div class="quick-card" data-action="products">
+                        <span class="icon">🥑</span>
+                        <div class="label">Продукты</div>
+                        <div class="desc">Смотреть базу</div>
+                    </div>
+                    <div class="quick-card" data-action="diary">
+                        <span class="icon">📖</span>
+                        <div class="label">Дневник</div>
+                        <div class="desc">${diaryCount} записей</div>
+                    </div>
+                    <div class="quick-card" data-action="recipes">
+                        <span class="icon">🍲</span>
+                        <div class="label">Рецепты</div>
+                        <div class="desc">Идеи</div>
+                    </div>
+                </div>
+
+                <!-- Recommendation -->
+                ${nextProduct ? `
+                <div class="recommendation-card">
+                    <div class="icon">🌱</div>
+                    <div class="content">
+                        <div class="tag">Следующий шаг</div>
+                        <h3>Попробуйте ${nextProduct.name}</h3>
+                        <p>${nextProduct.cat}, с ${nextProduct.min_age} мес.</p>
+                    </div>
+                    <button class="action" data-action="add-specific" data-id="${nextProduct.id}">➕ Добавить</button>
+                </div>` : `
+                <div class="recommendation-card">
+                    <div class="icon">🎉</div>
+                    <div class="content">
+                        <div class="tag">Отлично!</div>
+                        <h3>Все продукты введены</h3>
+                        <p>Поздравляем! Можно расширять рацион.</p>
+                    </div>
+                </div>`}
+
+                <!-- Вкладки -->
+                <div class="tab-bar">
+                    <button class="active" data-tab="home">Главная</button>
+                    <button data-tab="products">Продукты</button>
+                    <button data-tab="diary">Дневник</button>
+                    <button data-tab="recipes">Рецепты</button>
+                    <button data-tab="baby">Малыш</button>
+                </div>
+
+                <div id="page-home" class="page active">
+                    <div style="background:#fafafa;padding:16px;border-radius:12px;margin-top:8px;">
+                        <p style="font-size:14px;color:#555;">Здесь будет подробная информация о сегодняшнем дне, рекомендации и календарь.</p>
+                    </div>
+                </div>
+                <div id="page-products" class="page">${renderProductsHTML()}</div>
+                <div id="page-diary" class="page">${renderDiaryHTML()}</div>
+                <div id="page-recipes" class="page">${renderRecipesHTML()}</div>
+                <div id="page-baby" class="page">${renderBabyHTML()}</div>
             </div>
+        `;
 
-            <!-- Status card -->
-            <div class="status-card">
-                <div class="row">
-                    <span class="label">Статус прикорма</span>
-                    <span class="value">${STATE.baby.feedingStarted ? '🌱 Активно' : '⏳ Ещё не начат'}</span>
-                </div>
-                ${STATE.baby.feedingStarted && STATE.baby.feedingStartDate ? `
-                <div class="row" style="margin-top:4px;">
-                    <span class="label">Начало</span>
-                    <span class="value">${STATE.baby.feedingStartDate}</span>
-                </div>` : ''}
-            </div>
+        app.innerHTML = html;
 
-            <!-- Progress -->
-            <div class="progress-card">
-                <div class="header">
-                    <span>Прогресс</span>
-                    <span>${STATE.introduced.length} из ${PRODUCTS.length} продуктов</span>
-                </div>
-                <div class="track"><div class="fill" style="width:${progress}%;"></div></div>
-            </div>
-
-            <!-- Quick actions -->
-            <div class="quick-grid">
-                <div class="quick-card" data-action="add-product">
-                    <span class="icon">🥣</span>
-                    <div class="label">Добавить продукт</div>
-                    <div class="desc">В дневник</div>
-                </div>
-                <div class="quick-card" data-action="products">
-                    <span class="icon">🥑</span>
-                    <div class="label">Продукты</div>
-                    <div class="desc">Смотреть базу</div>
-                </div>
-                <div class="quick-card" data-action="diary">
-                    <span class="icon">📖</span>
-                    <div class="label">Дневник</div>
-                    <div class="desc">${diaryCount} записей</div>
-                </div>
-                <div class="quick-card" data-action="recipes">
-                    <span class="icon">🍲</span>
-                    <div class="label">Рецепты</div>
-                    <div class="desc">Идеи</div>
-                </div>
-            </div>
-
-            <!-- Recommendation -->
-            ${nextProduct ? `
-            <div class="recommendation-card">
-                <div class="icon">🌱</div>
-                <div class="content">
-                    <div class="tag">Следующий шаг</div>
-                    <h3>Попробуйте ${nextProduct.name}</h3>
-                    <p>${nextProduct.cat}, с ${nextProduct.min_age} мес.</p>
-                </div>
-                <button class="action" data-action="add-specific" data-id="${nextProduct.id}">➕ Добавить</button>
-            </div>` : `
-            <div class="recommendation-card">
-                <div class="icon">🎉</div>
-                <div class="content">
-                    <div class="tag">Отлично!</div>
-                    <h3>Все продукты введены</h3>
-                    <p>Поздравляем! Можно расширять рацион.</p>
-                </div>
-            </div>`}
-
-            <!-- Вкладки -->
-            <div class="tab-bar">
-                <button class="active" data-tab="home">Главная</button>
-                <button data-tab="products">Продукты</button>
-                <button data-tab="diary">Дневник</button>
-                <button data-tab="recipes">Рецепты</button>
-                <button data-tab="baby">Малыш</button>
-            </div>
-
-            <div id="page-home" class="page active">
-                <div style="background:#fafafa;padding:16px;border-radius:12px;margin-top:8px;">
-                    <p style="font-size:14px;color:#555;">Здесь будет подробная информация о сегодняшнем дне, рекомендации и календарь.</p>
-                </div>
-            </div>
-            <div id="page-products" class="page">${renderProductsHTML()}</div>
-            <div id="page-diary" class="page">${renderDiaryHTML()}</div>
-            <div id="page-recipes" class="page">${renderRecipesHTML()}</div>
-            <div id="page-baby" class="page">${renderBabyHTML()}</div>
-        </div>
-    `;
-
-    app.innerHTML = html;
-
-    // Обработчики для табов
-    document.querySelectorAll('.tab-bar button').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tab = this.dataset.tab;
-            document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            const page = document.getElementById('page-' + tab);
-            if (page) page.classList.add('active');
+        // Обработчики для табов
+        document.querySelectorAll('.tab-bar button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                const page = document.getElementById('page-' + tab);
+                if (page) page.classList.add('active');
+            });
         });
-    });
 
-    // Обработчики быстрых действий
-    document.querySelectorAll('[data-action="add-product"]').forEach(el => {
-        el.addEventListener('click', () => {
-            // Находим первый доступный продукт (не введённый) и открываем модалку
-            const firstAvailable = PRODUCTS.find(p => !isIntroduced(p.id));
-            if (firstAvailable) openAddModal(firstAvailable.id);
-            else alert('Все продукты уже введены!');
+        // Обработчики быстрых действий
+        document.querySelectorAll('[data-action="add-product"]').forEach(el => {
+            el.addEventListener('click', () => {
+                const firstAvailable = PRODUCTS.find(p => !isIntroduced(p.id));
+                if (firstAvailable) openAddModal(firstAvailable.id);
+                else alert('Все продукты уже введены!');
+            });
         });
-    });
-    document.querySelectorAll('[data-action="products"]').forEach(el => {
-        el.addEventListener('click', () => {
-            document.querySelector('[data-tab="products"]').click();
+        document.querySelectorAll('[data-action="products"]').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelector('[data-tab="products"]').click();
+            });
         });
-    });
-    document.querySelectorAll('[data-action="diary"]').forEach(el => {
-        el.addEventListener('click', () => {
-            document.querySelector('[data-tab="diary"]').click();
+        document.querySelectorAll('[data-action="diary"]').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelector('[data-tab="diary"]').click();
+            });
         });
-    });
-    document.querySelectorAll('[data-action="recipes"]').forEach(el => {
-        el.addEventListener('click', () => {
-            document.querySelector('[data-tab="recipes"]').click();
+        document.querySelectorAll('[data-action="recipes"]').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelector('[data-tab="recipes"]').click();
+            });
         });
-    });
-    document.querySelectorAll('[data-action="add-specific"]').forEach(el => {
-        el.addEventListener('click', function() {
-            const id = this.dataset.id;
-            if (id) openAddModal(id);
+        document.querySelectorAll('[data-action="add-specific"]').forEach(el => {
+            el.addEventListener('click', function() {
+                const id = this.dataset.id;
+                if (id) openAddModal(id);
+            });
         });
-    });
 
-    // Обработчики для клика по продукту в списке (открытие модалки)
-    document.querySelectorAll('.product-item').forEach(el => {
-        el.addEventListener('click', function() {
-            const id = this.dataset.id;
-            if (id) {
-                if (isIntroduced(id)) {
-                    alert('Этот продукт уже введён');
-                } else {
-                    openAddModal(id);
+        // Обработчики для клика по продукту в списке
+        document.querySelectorAll('.product-item').forEach(el => {
+            el.addEventListener('click', function() {
+                const id = this.dataset.id;
+                if (id) {
+                    if (isIntroduced(id)) {
+                        alert('Этот продукт уже введён');
+                    } else {
+                        openAddModal(id);
+                    }
                 }
-            }
+            });
         });
-    });
 
-    // Обработчик для сброса онбординга (кнопка в профиле)
-    document.querySelector('[data-action="reset-onboarding"]')?.addEventListener('click', function() {
-        STATE.onboardingCompleted = false;
-        saveState();
-        renderApp();
-    });
+        // Обработчик сброса онбординга
+        document.querySelector('[data-action="reset-onboarding"]')?.addEventListener('click', function() {
+            STATE.onboardingCompleted = false;
+            saveState();
+            renderApp();
+        });
+
+    } catch (e) {
+        console.error('Ошибка в renderApp:', e);
+        const app = document.getElementById('app');
+        if (app) {
+            app.innerHTML = `<div style="padding:20px;color:red;background:#ffe0e0;border-radius:12px;">Ошибка: ${e.message}<br>Проверьте консоль.</div>`;
+        }
+    }
 }
 
 // ============================================================
