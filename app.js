@@ -1,5 +1,5 @@
 // ================================================================
-// app.js — ПОЛНАЯ РАБОЧАЯ ВЕРСИЯ (без загрузочного экрана)
+// app.js — ПОЛНАЯ РАБОЧАЯ ВЕРСИЯ (с кормлением, вкладками, темами)
 // ================================================================
 
 const STORAGE_KEY = 'prikorm_app_v3';
@@ -31,6 +31,10 @@ function setTheme(theme) {
     else if (theme === 'kids') document.body.classList.add('theme-kids');
     localStorage.setItem('prikorm_theme', theme);
 }
+
+// ============================================================
+// ПОСТРОЕНИЕ DOM (полное, со всеми модалками)
+// ============================================================
 
 function buildApp() {
     const app = document.getElementById('app');
@@ -208,7 +212,7 @@ function buildApp() {
     `;
     container.appendChild(bottomNav);
 
-    // Модалки (я даю их кратко, но все работают)
+    // Модалка онбординга
     const modal = document.createElement('div');
     modal.id = 'modal';
     modal.className = 'modal';
@@ -229,11 +233,157 @@ function buildApp() {
     `;
     container.appendChild(modal);
 
-    // (Модалки готовности, кормления, карточки продукта, action sheet — они есть в полной версии, но я их пропускаю для краткости, так как они не влияют на запуск. Если нужно — я пришлю полный код отдельно.)
+    // Модалка готовности
+    const readinessModal = document.createElement('div');
+    readinessModal.id = 'readinessModal';
+    readinessModal.className = 'modal';
+    readinessModal.innerHTML = `
+        <div class="modal-box">
+            <h2>🌸 Проверка готовности</h2>
+            <div id="readinessQuestions">
+                <p style="color:#7a6e66; margin-bottom:12px;">Ответьте на 5 вопросов:</p>
+                <div class="readiness-question" data-q="1">
+                    <p>1. Ребёнок уверенно держит голову и шею?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div class="readiness-question" data-q="2">
+                    <p>2. Может сидеть с поддержкой или самостоятельно?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div class="readiness-question" data-q="3">
+                    <p>3. Проявляет интерес к еде (смотрит, тянется)?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div class="readiness-question" data-q="4">
+                    <p>4. Исчез рефлекс выталкивания ложки языком?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div class="readiness-question" data-q="5">
+                    <p>5. Может брать предметы и направлять их ко рту?</p>
+                    <div class="btn-group"><button class="btn btn-sm btn-outline readiness-answer" data-answer="yes">Да</button><button class="btn btn-sm btn-outline readiness-answer" data-answer="no">Нет</button></div>
+                </div>
+                <div id="readinessResult" style="margin-top:12px; display:none;"></div>
+                <button class="btn mt-8" id="readinessSubmit" style="display:none;">Сохранить результат</button>
+            </div>
+        </div>
+    `;
+    container.appendChild(readinessModal);
 
-    // Сохраняем ссылки
-    window._elements = { container, onboarding, screensContainer, home, plan, products, diary, recipes, profileScreen, bottomNav, modal };
+    // Модалка кормления (полная)
+    const feedingModal = document.createElement('div');
+    feedingModal.id = 'feedingModal';
+    feedingModal.className = 'modal';
+    feedingModal.innerHTML = `
+        <div class="modal-box">
+            <h2>🍽 Добавить кормление</h2>
+            <div class="input-group">
+                <label>Продукт</label>
+                <input type="text" id="feedingProduct" placeholder="Введите название" style="width:100%;">
+                <div id="recentProducts" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;"></div>
+            </div>
+            <div class="input-group">
+                <label>Способ приготовления</label>
+                <div class="btn-group" id="prepMethodGroup">
+                    <button class="btn btn-sm btn-outline prep-method" data-method="Пар">Пар</button>
+                    <button class="btn btn-sm btn-outline prep-method" data-method="Варка">Варка</button>
+                    <button class="btn btn-sm btn-outline prep-method" data-method="Запекание">Запекание</button>
+                    <button class="btn btn-sm btn-outline prep-method" data-method="Тушение">Тушение</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Форма</label>
+                <div class="btn-group" id="formGroup">
+                    <button class="btn btn-sm btn-outline form-option" data-form="Пюре">Пюре</button>
+                    <button class="btn btn-sm btn-outline form-option" data-form="Размятое">Размятое</button>
+                    <button class="btn btn-sm btn-outline form-option" data-form="Мягкие кусочки">Кусочки</button>
+                    <button class="btn btn-sm btn-outline form-option" data-form="Finger food">Finger food</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Количество</label>
+                <div class="btn-group" id="amountGroup">
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Не измеряла">Не измеряла</button>
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Попробовал">Попробовал</button>
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Немного">Немного</button>
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Средняя порция">Средняя</button>
+                    <button class="btn btn-sm btn-outline amount-option" data-amount="Хорошо поел">Хорошо поел</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Приготовила сама или купила?</label>
+                <div class="btn-group" id="sourceGroup">
+                    <button class="btn btn-sm btn-outline source-option" data-source="home">🏠 Приготовила сама</button>
+                    <button class="btn btn-sm btn-outline source-option" data-source="store">🛒 Купила готовое</button>
+                </div>
+            </div>
+            <div class="input-group" id="storeFields" style="display:none;">
+                <label>Бренд</label><input type="text" id="storeBrand" placeholder="Бренд">
+                <label>Название</label><input type="text" id="storeName" placeholder="Название">
+            </div>
+            <div class="input-group"><label>Дата</label><input type="text" id="feedingDate" placeholder="ДД.ММ.ГГГГ"></div>
+            <div class="input-group"><label>Реакция</label>
+                <select id="feedingReaction"><option value="Всё хорошо">🟢 Всё хорошо</option><option value="Незначительные изменения">🟡 Незначительные изменения</option><option value="Подозрительная реакция">🟠 Подозрительная реакция</option><option value="Выраженная реакция">🔴 Выраженная реакция</option></select>
+            </div>
+            <div class="input-group"><label>Заметка</label><input type="text" id="feedingNotes" placeholder="Необязательно"></div>
+            <button class="btn" id="saveFeedingBtn">Сохранить кормление</button>
+        </div>
+    `;
+    container.appendChild(feedingModal);
+
+    // Карточка продукта
+    const productCardModal = document.createElement('div');
+    productCardModal.id = 'productCardModal';
+    productCardModal.className = 'modal';
+    productCardModal.innerHTML = `
+        <div class="modal-box">
+            <div id="productCardContent"></div>
+            <button class="btn btn-outline" id="closeProductCard" style="margin-top:8px;">Закрыть</button>
+        </div>
+    `;
+    container.appendChild(productCardModal);
+
+    // Action Sheet
+    const actionSheet = document.createElement('div');
+    actionSheet.id = 'actionSheet';
+    actionSheet.className = 'modal';
+    actionSheet.style.justifyContent = 'flex-end';
+    actionSheet.style.alignItems = 'stretch';
+    actionSheet.innerHTML = `
+        <div class="modal-box" style="max-width:100%; border-radius:24px 24px 0 0; margin-bottom:0; padding-bottom:env(safe-area-inset-bottom);">
+            <h2 style="text-align:center; font-size:18px; margin-bottom:12px;">Что добавить?</h2>
+            <button class="btn btn-outline action-item" data-action="feeding">🍽 Кормление</button>
+            <button class="btn btn-outline action-item" data-action="product">🥕 Новый продукт</button>
+            <button class="btn btn-outline action-item" data-action="water">💧 Вода</button>
+            <button class="btn btn-outline action-item" data-action="reaction">🌸 Реакция</button>
+            <button class="btn btn-outline action-item" data-action="photo">📷 Фото</button>
+            <button class="btn btn-outline action-item" data-action="note">📝 Заметка</button>
+            <button class="btn btn-secondary" id="closeActionSheet">Отмена</button>
+        </div>
+    `;
+    container.appendChild(actionSheet);
+
+    window._elements = {
+        container,
+        onboarding,
+        screensContainer,
+        home,
+        plan,
+        products,
+        diary,
+        recipes,
+        profileScreen,
+        bottomNav,
+        modal,
+        readinessModal,
+        feedingModal,
+        productCardModal,
+        actionSheet
+    };
 }
+
+// ============================================================
+// ИНИЦИАЛИЗАЦИЯ
+// ============================================================
 
 function init() {
     buildApp();
@@ -242,6 +392,10 @@ function init() {
     setupEventListeners();
     render();
 }
+
+// ============================================================
+// ОБРАБОТЧИКИ СОБЫТИЙ (полные)
+// ============================================================
 
 function setupEventListeners() {
     document.getElementById('startBtn')?.addEventListener('click', openModal);
@@ -253,6 +407,12 @@ function setupEventListeners() {
             if (e.target === this) this.style.display = 'none';
         });
     });
+    document.getElementById('closeProductCard')?.addEventListener('click', function() {
+        document.getElementById('productCardModal').style.display = 'none';
+    });
+
+    document.getElementById('addDiaryBtn')?.addEventListener('click', openDiaryModal);
+    document.getElementById('saveDiaryBtn')?.addEventListener('click', saveDiaryHandler);
 
     document.getElementById('resetData')?.addEventListener('click', function() {
         if (confirm('Удалить все данные?')) resetProfile();
@@ -274,6 +434,39 @@ function setupEventListeners() {
     document.getElementById('productSearch')?.addEventListener('input', render);
     document.getElementById('recipeAgeFilter')?.addEventListener('change', renderRecipes);
     document.getElementById('recipeSearch')?.addEventListener('input', renderRecipes);
+
+    document.getElementById('readinessBtn')?.addEventListener('click', openReadinessModal);
+    document.getElementById('readinessBtnProfile')?.addEventListener('click', openReadinessModal);
+
+    document.querySelectorAll('.readiness-answer').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const q = this.closest('.readiness-question');
+            q.dataset.answer = this.dataset.answer;
+            q.querySelectorAll('.readiness-answer').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const allQuestions = document.querySelectorAll('.readiness-question');
+            let allAnswered = true;
+            allQuestions.forEach(q => { if (!q.dataset.answer) allAnswered = false; });
+            if (allAnswered) document.getElementById('readinessSubmit').style.display = 'block';
+        });
+    });
+
+    document.getElementById('readinessSubmit')?.addEventListener('click', function() {
+        const questions = document.querySelectorAll('.readiness-question');
+        let score = 0;
+        questions.forEach(q => { if (q.dataset.answer === 'yes') score++; });
+        if (!profile) profile = {};
+        profile.readiness_score = score;
+        profile.readiness_passed = score >= 4;
+        profile.readiness_date = new Date().toLocaleDateString('ru-RU');
+        saveProfile();
+        const resultDiv = document.getElementById('readinessResult');
+        resultDiv.style.display = 'block';
+        const verdict = score >= 4 ? '🟢 Готовность высокая! Можно начинать прикорм.' : '🟡 Признаков пока недостаточно. Попробуйте позже.';
+        resultDiv.innerHTML = `<div class="card"><p><strong>Результат: ${score}/5</strong></p><p>${verdict}</p></div>`;
+        document.getElementById('readinessSubmit').style.display = 'none';
+        setTimeout(() => { document.getElementById('readinessModal').style.display = 'none'; render(); }, 2000);
+    });
 
     document.getElementById('addActionBtn')?.addEventListener('click', openActionSheet);
     document.querySelectorAll('.action-item').forEach(item => {
@@ -305,6 +498,74 @@ function setupEventListeners() {
         document.getElementById('actionSheet').style.display = 'none';
     });
 
+    // Поиск продукта в модалке кормления
+    document.getElementById('feedingProduct')?.addEventListener('input', function() {
+        const query = this.value.trim().toLowerCase();
+        const recentContainer = document.getElementById('recentProducts');
+        if (query.length < 2) { renderRecentProducts(); return; }
+        const matches = PRODUCTS.filter(p => p.name.toLowerCase().includes(query)).slice(0, 10);
+        recentContainer.innerHTML = matches.map(p => `
+            <button class="btn btn-sm btn-outline product-suggestion" data-product="${p.name}">${p.name}</button>
+        `).join('');
+        recentContainer.querySelectorAll('.product-suggestion').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('feedingProduct').value = this.dataset.product;
+                renderRecentProducts();
+            });
+        });
+    });
+
+    function renderRecentProducts() {
+        const recentContainer = document.getElementById('recentProducts');
+        const introduced = profile?.introduced_foods || [];
+        const recent = introduced.slice(-5).reverse();
+        if (recent.length === 0) {
+            recentContainer.innerHTML = '<span style="font-size:13px; color:#b0a69e;">Недавних продуктов нет</span>';
+            return;
+        }
+        recentContainer.innerHTML = recent.map(p => `
+            <button class="btn btn-sm btn-outline product-suggestion" data-product="${p}">${p}</button>
+        `).join('');
+        recentContainer.querySelectorAll('.product-suggestion').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('feedingProduct').value = this.dataset.product;
+                renderRecentProducts();
+            });
+        });
+    }
+
+    document.querySelectorAll('.prep-method').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.prep-method').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    document.querySelectorAll('.form-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.form-option').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    document.querySelectorAll('.amount-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.amount-option').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    document.querySelectorAll('.source-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.source-option').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            if (this.dataset.source === 'store') {
+                document.getElementById('storeFields').style.display = 'block';
+            } else {
+                document.getElementById('storeFields').style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('saveFeedingBtn')?.addEventListener('click', saveFeedingHandler);
+
     document.getElementById('prevWeek')?.addEventListener('click', function() { weekOffset--; renderWeek(); });
     document.getElementById('nextWeek')?.addEventListener('click', function() { weekOffset++; renderWeek(); });
 
@@ -312,6 +573,10 @@ function setupEventListeners() {
         alert('Синхронизация с ботом будет доступна позже.');
     });
 }
+
+// ============================================================
+// МОДАЛЬНЫЕ ОБРАБОТЧИКИ
+// ============================================================
 
 function openModal() {
     if (profile) {
@@ -373,14 +638,101 @@ function saveProfileHandler() {
     render();
 }
 
-function openActionSheet() {
-    document.getElementById('actionSheet').style.display = 'flex';
+function openReadinessModal() {
+    document.querySelectorAll('.readiness-question').forEach(q => {
+        q.dataset.answer = '';
+        q.querySelectorAll('.readiness-answer').forEach(b => b.classList.remove('active'));
+    });
+    document.getElementById('readinessResult').style.display = 'none';
+    document.getElementById('readinessSubmit').style.display = 'none';
+    document.getElementById('readinessModal').style.display = 'flex';
 }
 
-function openFeedingModal() {
-    // Заглушка, полная реализация уже была в предыдущей версии.
-    alert('Функция добавления кормления будет доступна позже.');
+function openDiaryModal() {
+    document.getElementById('diaryProduct').value = '';
+    document.getElementById('diaryDate').value = new Date().toLocaleDateString('ru-RU');
+    document.getElementById('diaryReaction').value = 'Всё хорошо';
+    document.getElementById('diaryNotes').value = '';
+    document.getElementById('diaryModal').style.display = 'flex';
 }
+
+function saveDiaryHandler() {
+    const product = document.getElementById('diaryProduct').value.trim();
+    const date = document.getElementById('diaryDate').value.trim();
+    const reaction = document.getElementById('diaryReaction').value;
+    const notes = document.getElementById('diaryNotes').value.trim();
+    if (!product || !date) { alert('Заполните продукт и дату'); return; }
+    if (!profile) return;
+    if (!profile.food_history) profile.food_history = [];
+    profile.food_history.push({ product, date, reaction, notes });
+    if (!profile.introduced_foods.includes(product)) {
+        profile.introduced_foods.push(product);
+        profile.active_product = product;
+        const info = PRODUCTS.find(p => p.name === product);
+        profile.observation_days = (info && info.allergen) ? 3 : 2;
+        profile.observation_start = date;
+    }
+    saveProfile();
+    document.getElementById('diaryModal').style.display = 'none';
+    render();
+}
+
+function openActionSheet() { document.getElementById('actionSheet').style.display = 'flex'; }
+
+function openFeedingModal() {
+    document.getElementById('feedingProduct').value = '';
+    document.getElementById('feedingDate').value = new Date().toLocaleDateString('ru-RU');
+    document.getElementById('feedingReaction').value = 'Всё хорошо';
+    document.getElementById('feedingNotes').value = '';
+    document.querySelectorAll('.prep-method').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.form-option').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.amount-option').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.source-option').forEach(b => b.classList.remove('active'));
+    document.getElementById('storeFields').style.display = 'none';
+    renderRecentProducts();
+    document.getElementById('feedingModal').style.display = 'flex';
+}
+
+function saveFeedingHandler() {
+    const product = document.getElementById('feedingProduct').value.trim();
+    const date = document.getElementById('feedingDate').value.trim();
+    const reaction = document.getElementById('feedingReaction').value;
+    const notes = document.getElementById('feedingNotes').value.trim();
+    if (!product || !date) { alert('Заполните продукт и дату'); return; }
+    if (!profile) return;
+
+    const prepMethod = document.querySelector('.prep-method.active')?.dataset.method || 'Не указано';
+    const form = document.querySelector('.form-option.active')?.dataset.form || 'Не указано';
+    const amount = document.querySelector('.amount-option.active')?.dataset.amount || 'Не указано';
+    const source = document.querySelector('.source-option.active')?.dataset.source || 'home';
+    const storeBrand = document.getElementById('storeBrand').value.trim();
+    const storeName = document.getElementById('storeName').value.trim();
+
+    if (!profile.food_history) profile.food_history = [];
+    profile.food_history.push({
+        product, date, reaction, notes,
+        prepMethod, form, amount, source,
+        storeBrand: source === 'store' ? storeBrand : '',
+        storeName: source === 'store' ? storeName : '',
+        timestamp: new Date().toISOString()
+    });
+
+    if (!profile.introduced_foods.includes(product)) {
+        profile.introduced_foods.push(product);
+        profile.active_product = product;
+        const info = PRODUCTS.find(p => p.name === product);
+        profile.observation_days = (info && info.allergen) ? 3 : 2;
+        profile.observation_start = date;
+    }
+
+    saveProfile();
+    document.getElementById('feedingModal').style.display = 'none';
+    render();
+}
+
+// ============================================================
+// РЕНДЕРИНГ (полный)
+// ============================================================
 
 function render() {
     if (!profile || !profile.baby_name) {
@@ -409,39 +761,79 @@ function render() {
     document.getElementById('babyInfo').textContent = `👶 ${profile.baby_name} — ${age.months} мес. ${age.days} дн. (${feeding})`;
     document.getElementById('stageInfo').innerHTML = `📌 Этап: <span class="stage-badge">${stage}</span>`;
 
-    // Активный продукт (упрощённо)
+    // Активный продукт
     const activeContent = document.getElementById('activeContent');
-    const active = profile.active_product;
-    if (active) {
-        activeContent.innerHTML = `<div><strong>${active}</strong></div>`;
+    const activeStatus = activeProductStatus(profile);
+    if (activeStatus) {
+        const { product, passed, left, finished } = activeStatus;
+        const days = profile.observation_days || 2;
+        const progress = Math.min(100, (passed / days) * 100);
+        activeContent.innerHTML = `
+            <div><strong>${product}</strong></div>
+            <div style="font-size:14px; color:#7a6e66;">День ${passed + 1} из ${days}</div>
+            <div class="progress-bar"><div class="fill" style="width:${progress}%;"></div></div>
+            ${finished ? '<div style="font-size:13px; color:#2d7a5a;">✅ Наблюдение завершено</div>' : `<div style="font-size:13px; color:#b0a69e;">Осталось ${left} дн.</div>`}
+        `;
     } else {
         activeContent.innerHTML = `<span class="sub">Нет активного продукта</span>`;
     }
 
+    // Рекомендация
     const recContent = document.getElementById('recommendContent');
     const nextProduct = getNextProduct(profile, PRODUCTS);
     if (nextProduct) {
-        recContent.innerHTML = `<div><strong>${nextProduct.name}</strong></div>`;
+        const tags = [];
+        if (nextProduct.iron) tags.push('🩸 железо');
+        if (nextProduct.allergen) tags.push('⚠️ аллерген');
+        if (nextProduct.choking) tags.push('🚫 риск удушья');
+        const textureLabel = nextProduct.texture[age.months >= 10 ? 10 : age.months >= 8 ? 8 : 6] || 'пюре';
+        recContent.innerHTML = `
+            <div><strong>${nextProduct.name}</strong> ${tags.map(t => `<span class="tag">${t}</span>`).join(' ')}</div>
+            <div style="font-size:14px; color:#7a6e66; margin-top:4px;">${nextProduct.desc || ''}</div>
+            <div style="font-size:13px; color:#b0a69e;">Текстура: ${textureLabel}</div>
+        `;
     } else {
         recContent.innerHTML = `<span class="sub">🌸 Все подходящие продукты уже введены!</span>`;
     }
 
+    // План на сегодня
     const planEl = document.getElementById('todayPlan');
     const dailyPlan = generateDailyPlan(profile, PRODUCTS);
     if (dailyPlan.length > 0) {
-        planEl.innerHTML = dailyPlan.map(meal => `
-            <div class="plan-item">
-                <span class="time">${meal.time}</span>
-                <span class="food">${meal.foods.join(' + ')} ${meal.isNew ? '<span class="new-badge">🆕</span>' : ''}</span>
-                <span class="desc">${meal.description}</span>
-            </div>
-        `).join('');
+        planEl.innerHTML = `
+            <div style="font-size:14px; color:#7a6e66; margin-bottom:6px;">🍼 ${feeding} — основное питание</div>
+            ${dailyPlan.map(meal => `
+                <div class="plan-item">
+                    <span class="time">${meal.time}</span>
+                    <span class="food">${meal.foods.join(' + ')} ${meal.isNew ? '<span class="new-badge">🆕</span>' : ''}</span>
+                    <span class="desc">${meal.description}</span>
+                </div>
+            `).join('')}
+            <div style="margin-top:8px;font-size:13px;color:#b0a69e;">💧 Предлагайте воду из чашки во время еды.</div>
+        `;
     } else {
         planEl.innerHTML = `<span class="sub">План формируется...</span>`;
     }
 
+    // Текстура
     document.getElementById('textureContent').innerHTML = `
         <div style="font-size:14px; color:#7a6e66;">Сейчас: <strong>${texture}</strong></div>
+        <div style="font-size:13px; color:#b0a69e; margin-top:4px;">Переход к более сложной текстуре по мере роста навыков.</div>
+    `;
+
+    // Полный план
+    const planFull = document.getElementById('planContent');
+    const stageDesc = STAGE_TIPS[stage] || '';
+    const nextProducts = getAvailableProducts(profile, PRODUCTS).slice(0, 5);
+    planFull.innerHTML = `
+        <div style="font-size:14px; color:#7a6e66;">Этап: <strong>${stage}</strong></div>
+        <div style="font-size:14px; margin:8px 0;">${stageDesc}</div>
+        <div style="font-size:13px; color:#b0a69e;">🍼 ${feeding} — продолжает быть важным источником питания.</div>
+        ${nextProducts.length > 0 ? `
+            <div style="margin-top:8px; font-weight:500;">Следующие продукты для введения:</div>
+            ${nextProducts.map(p => `<div class="plan-item"><span class="food">${p.name}</span><span class="desc">${p.texture[age.months >= 10 ? 10 : age.months >= 8 ? 8 : 6] || 'пюре'}</span></div>`).join('')}
+        ` : '<div class="sub">Все продукты введены.</div>'}
+        <div style="margin-top:8px;font-size:13px;color:#b0a69e;">💧 Вода предлагается во время еды.</div>
     `;
 
     renderProducts();
@@ -450,6 +842,10 @@ function render() {
     renderProfile();
     renderWeek();
 }
+
+// ============================================================
+// ПРОДУКТЫ
+// ============================================================
 
 function renderProducts() {
     const grid = document.getElementById('productGrid');
@@ -476,16 +872,213 @@ function renderProducts() {
             'allergy': '⚠️ аллергия',
             'new': 'рекомендуется'
         };
+        const tags = [];
+        if (p.iron) tags.push('🩸');
+        if (p.allergen) tags.push('⚠️');
+        if (p.choking) tags.push('🚫');
+        const textureLabel = p.texture[age >= 10 ? 10 : age >= 8 ? 8 : 6] || '—';
         return `
-            <div class="product-card">
-                <div class="name">${p.name}</div>
+            <div class="product-card" data-product="${p.name}">
+                <div class="name" style="cursor:pointer;">${p.name}</div>
                 <div class="meta">
+                    ${tags.map(t => `<span class="tag">${t}</span>`).join(' ')}
                     <span class="tag tag-status">${statusLabels[status] || status}</span>
+                </div>
+                <div style="font-size:12px; color:#b0a69e; margin-top:4px;">${textureLabel}</div>
+                <div style="margin-top:6px;">
+                    ${!profile.introduced_foods?.includes(p.name) ? `<button class="btn btn-sm btn-outline introduce-btn" data-product="${p.name}">➕ Ввести</button>` : ''}
+                    ${profile.introduced_foods?.includes(p.name) && !profile.loved_foods?.includes(p.name) && !profile.disliked_foods?.includes(p.name) ? `
+                        <button class="btn btn-sm btn-outline love-btn" data-product="${p.name}">❤️</button>
+                        <button class="btn btn-sm btn-outline dislike-btn" data-product="${p.name}">😐</button>
+                    ` : ''}
+                    <button class="btn btn-sm btn-outline detail-btn" data-product="${p.name}">📖</button>
                 </div>
             </div>
         `;
     }).join('');
+
+    grid.querySelectorAll('.introduce-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const product = this.dataset.product;
+            if (!profile.introduced_foods) profile.introduced_foods = [];
+            if (!profile.introduced_foods.includes(product)) {
+                profile.introduced_foods.push(product);
+                profile.active_product = product;
+                const info = PRODUCTS.find(p => p.name === product);
+                profile.observation_days = (info && info.allergen) ? 3 : 2;
+                profile.observation_start = new Date().toLocaleDateString('ru-RU');
+                if (!profile.food_history) profile.food_history = [];
+                profile.food_history.push({
+                    product: product,
+                    date: new Date().toLocaleDateString('ru-RU'),
+                    reaction: 'Всё хорошо',
+                    notes: 'Введён через список продуктов'
+                });
+                saveProfile();
+                render();
+            }
+        });
+    });
+
+    grid.querySelectorAll('.love-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const product = this.dataset.product;
+            if (!profile.loved_foods) profile.loved_foods = [];
+            if (!profile.loved_foods.includes(product)) {
+                profile.loved_foods.push(product);
+                if (profile.disliked_foods && profile.disliked_foods.includes(product)) {
+                    profile.disliked_foods = profile.disliked_foods.filter(p => p !== product);
+                }
+                saveProfile();
+                render();
+            }
+        });
+    });
+
+    grid.querySelectorAll('.dislike-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const product = this.dataset.product;
+            if (!profile.disliked_foods) profile.disliked_foods = [];
+            if (!profile.disliked_foods.includes(product)) {
+                profile.disliked_foods.push(product);
+                if (profile.loved_foods && profile.loved_foods.includes(product)) {
+                    profile.loved_foods = profile.loved_foods.filter(p => p !== product);
+                }
+                saveProfile();
+                render();
+            }
+        });
+    });
+
+    grid.querySelectorAll('.detail-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productName = this.dataset.product;
+            showProductCard(productName);
+        });
+    });
+    grid.querySelectorAll('.product-card .name').forEach(el => {
+        el.addEventListener('click', function() {
+            const productName = this.closest('.product-card').dataset.product;
+            showProductCard(productName);
+        });
+    });
 }
+
+function showProductCard(productName) {
+    const product = PRODUCTS.find(p => p.name === productName);
+    if (!product) return;
+    const container = document.getElementById('productCardContent');
+    const status = getProductStatus(profile, productName);
+    const statusEmoji = {
+        'introduced': '✅ Знаком',
+        'loved': '❤️ Любит',
+        'disliked': '😐 Не нравится',
+        'excluded': '🚫 Исключён',
+        'allergy': '⚠️ Аллергия',
+        'new': '🟡 Новый'
+    };
+    const tags = [];
+    if (product.iron) tags.push('🩸 Источник железа');
+    if (product.allergen) tags.push('⚠️ Аллерген');
+    if (product.choking) tags.push('🚫 Риск удушья');
+    const textureLabel = product.texture[profile.age_months >= 10 ? 10 : profile.age_months >= 8 ? 8 : 6] || 'пюре';
+
+    container.innerHTML = `
+        <div style="text-align:center;">
+            <div style="font-size:48px;">🥦</div>
+            <h2 style="font-size:22px; margin:4px 0;">${product.name}</h2>
+            <div style="font-size:16px; color:#7a6e66;">${statusEmoji[status] || 'Не пробовали'}</div>
+        </div>
+        <div style="margin:12px 0;">
+            ${tags.map(t => `<span class="tag">${t}</span>`).join(' ')}
+        </div>
+        <div style="font-size:14px; color:#555; margin-bottom:6px;"><strong>Категория:</strong> ${product.cat}</div>
+        <div style="font-size:14px; color:#555; margin-bottom:6px;"><strong>Минимальный возраст:</strong> ${product.min_age}+ мес.</div>
+        <div style="font-size:14px; color:#555; margin-bottom:6px;"><strong>Текстура:</strong> ${textureLabel}</div>
+        <div style="font-size:14px; color:#555; margin-bottom:6px;"><strong>Описание:</strong> ${product.desc || '—'}</div>
+        ${product.texture[6] ? `<div style="font-size:14px; color:#555; margin-bottom:6px;"><strong>6 мес:</strong> ${product.texture[6]}</div>` : ''}
+        ${product.texture[8] ? `<div style="font-size:14px; color:#555; margin-bottom:6px;"><strong>8 мес:</strong> ${product.texture[8]}</div>` : ''}
+        ${product.texture[10] ? `<div style="font-size:14px; color:#555; margin-bottom:6px;"><strong>10 мес:</strong> ${product.texture[10]}</div>` : ''}
+        ${getSafetyWarning(productName) ? `<div style="margin-top:8px; padding:8px; background:#fff3e0; border-radius:8px; font-size:14px;"><strong>⚠️ Безопасность:</strong> ${getSafetyWarning(productName)}</div>` : ''}
+        <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:6px;">
+            <button class="btn btn-sm btn-outline" id="productCardIntroduce" data-product="${productName}">➕ Ввести</button>
+            <button class="btn btn-sm btn-outline" id="productCardLove" data-product="${productName}">❤️ Любит</button>
+            <button class="btn btn-sm btn-outline" id="productCardDislike" data-product="${productName}">😐 Не нравится</button>
+            <button class="btn btn-sm btn-outline" id="productCardExclude" data-product="${productName}">🚫 Исключить</button>
+        </div>
+    `;
+    document.getElementById('productCardModal').style.display = 'flex';
+
+    document.getElementById('productCardIntroduce')?.addEventListener('click', function() {
+        const product = this.dataset.product;
+        if (!profile.introduced_foods) profile.introduced_foods = [];
+        if (!profile.introduced_foods.includes(product)) {
+            profile.introduced_foods.push(product);
+            profile.active_product = product;
+            const info = PRODUCTS.find(p => p.name === product);
+            profile.observation_days = (info && info.allergen) ? 3 : 2;
+            profile.observation_start = new Date().toLocaleDateString('ru-RU');
+            if (!profile.food_history) profile.food_history = [];
+            profile.food_history.push({ product, date: new Date().toLocaleDateString('ru-RU'), reaction: 'Всё хорошо', notes: '' });
+            saveProfile();
+            document.getElementById('productCardModal').style.display = 'none';
+            render();
+        } else {
+            alert('Продукт уже введён.');
+        }
+    });
+    document.getElementById('productCardLove')?.addEventListener('click', function() {
+        const product = this.dataset.product;
+        if (!profile.loved_foods) profile.loved_foods = [];
+        if (!profile.loved_foods.includes(product)) {
+            profile.loved_foods.push(product);
+            if (profile.disliked_foods && profile.disliked_foods.includes(product)) {
+                profile.disliked_foods = profile.disliked_foods.filter(p => p !== product);
+            }
+            saveProfile();
+            document.getElementById('productCardModal').style.display = 'none';
+            render();
+        }
+    });
+    document.getElementById('productCardDislike')?.addEventListener('click', function() {
+        const product = this.dataset.product;
+        if (!profile.disliked_foods) profile.disliked_foods = [];
+        if (!profile.disliked_foods.includes(product)) {
+            profile.disliked_foods.push(product);
+            if (profile.loved_foods && profile.loved_foods.includes(product)) {
+                profile.loved_foods = profile.loved_foods.filter(p => p !== product);
+            }
+            saveProfile();
+            document.getElementById('productCardModal').style.display = 'none';
+            render();
+        }
+    });
+    document.getElementById('productCardExclude')?.addEventListener('click', function() {
+        const product = this.dataset.product;
+        if (confirm(`Исключить ${product} из рациона?`)) {
+            if (!profile.excluded_foods) profile.excluded_foods = [];
+            if (!profile.excluded_foods.includes(product)) {
+                profile.excluded_foods.push(product);
+                if (profile.introduced_foods && profile.introduced_foods.includes(product)) {
+                    profile.introduced_foods = profile.introduced_foods.filter(p => p !== product);
+                }
+                if (profile.loved_foods && profile.loved_foods.includes(product)) {
+                    profile.loved_foods = profile.loved_foods.filter(p => p !== product);
+                }
+                if (profile.disliked_foods && profile.disliked_foods.includes(product)) {
+                    profile.disliked_foods = profile.disliked_foods.filter(p => p !== product);
+                }
+                saveProfile();
+                document.getElementById('productCardModal').style.display = 'none';
+                render();
+            }
+        }
+    });
+}
+
+// ============================================================
+// ДНЕВНИК, РЕЦЕПТЫ, ПРОФИЛЬ, ПЛАН
+// ============================================================
 
 function renderDiary() {
     const list = document.getElementById('diaryList');
@@ -497,6 +1090,7 @@ function renderDiary() {
     list.innerHTML = history.slice().reverse().map(item => `
         <div class="diary-item">
             <div class="top"><span class="product">${item.product}</span><span class="date">${item.date}</span></div>
+            <div class="reaction">${item.reaction || 'Реакция не указана'} ${item.notes ? '📝 ' + item.notes : ''}</div>
         </div>
     `).join('');
 }
@@ -519,7 +1113,12 @@ function renderRecipes() {
     grid.innerHTML = recipes.map(r => `
         <div class="recipe-card">
             <div class="name">${r.name}</div>
-            <div class="meta">Возраст: ${r.age}+ мес</div>
+            <div class="meta">Возраст: ${r.age}+ мес | ${r.texture} | ${r.approach.join(', ')}</div>
+            <div class="prep"><strong>Ингредиенты:</strong> ${r.ingredients.join(', ')}</div>
+            <div class="prep"><strong>Приготовление:</strong> ${r.prep}</div>
+            ${r.storage ? `<div class="prep"><strong>Хранение:</strong> ${r.storage}</div>` : ''}
+            ${r.allergens && r.allergens.length ? `<div class="prep"><strong>⚠️ Аллергены:</strong> ${r.allergens.join(', ')}</div>` : ''}
+            ${r.iron ? '<div class="prep">🩸 Источник железа</div>' : ''}
         </div>
     `).join('');
 }
@@ -528,19 +1127,21 @@ function renderProfile() {
     document.getElementById('profileName').textContent = profile.baby_name || '—';
     const age = calcAge(profile.birth_date);
     document.getElementById('profileAge').textContent = `${age.months} мес. ${age.days} дн.`;
+    const readinessText = profile.readiness_passed ? `✅ Пройден (${profile.readiness_score}/5)` : '❌ Не пройден';
     const fields = [
         ['Мама', profile.mother_name || '—'],
         ['Дата рождения', profile.birth_date || '—'],
         ['Пол', profile.gender || '—'],
+        ['Вес', profile.current_weight ? profile.current_weight + ' г' : '—'],
+        ['Рост', profile.current_length ? profile.current_length + ' см' : '—'],
         ['Тип вскармливания', profile.feeding_type || '—'],
+        ['Недоношенность', profile.prematurity || 'Доношенный'],
+        ['Прикорм начат', profile.prikorm_started ? `Да (с ${profile.prikorm_start_date || '—'})` : 'Нет'],
+        ['Стратегия', profile.feeding_strategy || 'Комбинированный'],
         ['Введено продуктов', (profile.introduced_foods || []).length],
-        ['Аллергий', (profile.allergies || []).length]
+        ['Аллергий', (profile.allergies || []).length],
+        ['Готовность', readinessText]
     ];
-    document.getElementById('profileFields').innerHTML = fields.map(([label, value]) => `
-        <div class="row"><span class="label">${label}</span><span class="value">${value}</span></div>
-    `).join('');
-
-    // Выбор тем
     const currentTheme = getTheme();
     const themes = [
         { id: 'light', label: '☀️ Светлая' },
@@ -557,7 +1158,9 @@ function renderProfile() {
             </div>
         </div>
     `;
-    document.getElementById('profileFields').innerHTML += themeHtml;
+    document.getElementById('profileFields').innerHTML = fields.map(([label, value]) => `
+        <div class="row"><span class="label">${label}</span><span class="value">${value}</span></div>
+    `).join('') + themeHtml;
 
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -615,9 +1218,17 @@ function renderDailyPlan(dateStr) {
                 <span class="time">${meal.time}</span>
                 <span class="food">${meal.foods.join(' + ')} ${meal.isNew ? '<span class="new-badge">🆕</span>' : ''}</span>
                 <span class="desc">${meal.description}</span>
+                <button class="btn btn-sm btn-outline mark-done" data-meal="${meal.time}">✅</button>
             </div>
         `).join('')}
     `;
+    container.querySelectorAll('.mark-done').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.textContent = '✅';
+            this.disabled = true;
+            this.style.opacity = 0.5;
+        });
+    });
 }
 
 // ============================================================
@@ -774,6 +1385,24 @@ function getProductStatus(profile, productName) {
         return 'introduced';
     }
     return 'new';
+}
+
+function activeProductStatus(profile) {
+    const product = profile.active_product;
+    if (!product) return null;
+    const start = profile.observation_start ? new Date(profile.observation_start.split('.').reverse().join('-')) : null;
+    const days = profile.observation_days || 2;
+    if (!start) return null;
+    const passed = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
+    const left = Math.max(0, days - passed);
+    const finished = left <= 0;
+    return { product, passed, left, finished };
+}
+
+function getSafetyWarning(productName) {
+    const rule = SAFETY_RULES[productName];
+    if (!rule) return null;
+    return rule.warning;
 }
 
 // ============================================================
