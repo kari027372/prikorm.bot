@@ -95,27 +95,35 @@ function normalizeState() {
     if (!Array.isArray(STATE.products.favorites)) STATE.products.favorites = [];
     if (!STATE.settings) STATE.settings = { notifications: true };
     if (!STATE.ui) STATE.ui = { screen: DEFAULT_SCREEN };
-    if (!STATE.onboarding) STATE.onboarding = {
-        readiness: {},
-        allergies: [],
-        diet: [],
-        favoriteFoods: [],
-        worries: [],
-        confidence: ''
-    };
+    // Гарантируем, что onboarding существует
+    if (!STATE.onboarding) {
+        STATE.onboarding = {
+            readiness: {},
+            allergies: [],
+            diet: [],
+            favoriteFoods: [],
+            worries: [],
+            confidence: ''
+        };
+    }
+    if (!STATE.onboarding.readiness) STATE.onboarding.readiness = {};
+    if (!Array.isArray(STATE.onboarding.allergies)) STATE.onboarding.allergies = [];
+    if (!Array.isArray(STATE.onboarding.diet)) STATE.onboarding.diet = [];
+    if (!Array.isArray(STATE.onboarding.favoriteFoods)) STATE.onboarding.favoriteFoods = [];
+    if (!Array.isArray(STATE.onboarding.worries)) STATE.onboarding.worries = [];
+    if (typeof STATE.onboarding.confidence !== 'string') STATE.onboarding.confidence = '';
     if (!Array.isArray(STATE.brands)) STATE.brands = [];
     if (!Array.isArray(STATE.notes)) STATE.notes = [];
     if (!Array.isArray(STATE.waterLog)) STATE.waterLog = [];
 }
 
 /* ============================================================
-   ОНБОРДИНГ (расширенный)
+   ОНБОРДИНГ (расширенный, 11 шагов)
    ============================================================ */
 function renderOnboarding() {
     const app = document.getElementById('app');
     if (!app) return;
     let step = 0;
-    // Общее количество шагов теперь 11 (было 5)
     const totalSteps = 11;
 
     const renderStep = (stepIndex) => {
@@ -126,10 +134,6 @@ function renderOnboarding() {
         }
         html += `</div>`;
 
-        // Содержимое шага – порядок: 
-        // 0 – имя, 1 – дата, 2 – вскармливание, 3 – начало прикорма, 4 – подход,
-        // 5 – признаки готовности (новый), 6 – аллергии (новый), 7 – диета (новый), 
-        // 8 – любимые продукты (новый), 9 – страхи (новый), 10 – уверенность (новый)
         switch (stepIndex) {
             case 0: // имя
                 html += `
@@ -186,7 +190,6 @@ function renderOnboarding() {
                     </div>
                 `;
                 break;
-            // НОВЫЕ ШАГИ
             case 5: // признаки готовности
                 const r = STATE.onboarding.readiness || {};
                 html += `
@@ -301,7 +304,6 @@ function renderOnboarding() {
                 break;
         }
 
-        // Кнопки навигации
         html += `<div class="nav-buttons">`;
         if (stepIndex > 0) html += `<button class="prev" data-action="prev-step">← Назад</button>`;
         else html += `<div></div>`;
@@ -326,7 +328,7 @@ function renderOnboarding() {
             });
         });
 
-        // Обработчики для выбора (кнопки, чекбоксы)
+        // Обработчики для кнопок выбора (вскармливание, начало прикорма, подход, уверенность)
         document.querySelectorAll('[data-value]').forEach(btn => {
             btn.addEventListener('click', function() {
                 const val = this.dataset.value;
@@ -449,7 +451,7 @@ function renderApp() {
     // Здесь остаётся ваш существующий рендеринг главного экрана
     // (можно оставить без изменений, так как он использует STATE и продукты)
     // Для краткости я показываю упрощённую версию, но вы можете оставить свою.
-    // Ниже пример, но можно использовать ваш код из предыдущих версий.
+    // Если у вас есть отдельные функции renderProductsHTML и т.д., они будут использованы.
     const age = calcAge(STATE.baby.birthDate);
     const nextProduct = getNextProduct ? getNextProduct() : null;
     const progress = getProgress ? getProgress() : 0;
@@ -504,10 +506,10 @@ function renderApp() {
                 <button data-tab="baby">Малыш</button>
             </div>
             <div id="page-home" class="page active"><div style="background:#fafafa;padding:16px;border-radius:12px;margin-top:8px;"><p style="font-size:14px;color:#555;">Здесь будет подробная информация о сегодняшнем дне.</p></div></div>
-            <div id="page-products" class="page">${renderProductsHTML ? renderProductsHTML() : '<p>Продукты</p>'}</div>
-            <div id="page-diary" class="page">${renderDiaryHTML ? renderDiaryHTML() : '<p>Дневник</p>'}</div>
-            <div id="page-recipes" class="page">${renderRecipesHTML ? renderRecipesHTML() : '<p>Рецепты</p>'}</div>
-            <div id="page-baby" class="page">${renderBabyHTML ? renderBabyHTML() : '<p>Профиль</p>'}</div>
+            <div id="page-products" class="page">${typeof renderProductsHTML === 'function' ? renderProductsHTML() : '<p>Продукты</p>'}</div>
+            <div id="page-diary" class="page">${typeof renderDiaryHTML === 'function' ? renderDiaryHTML() : '<p>Дневник</p>'}</div>
+            <div id="page-recipes" class="page">${typeof renderRecipesHTML === 'function' ? renderRecipesHTML() : '<p>Рецепты</p>'}</div>
+            <div id="page-baby" class="page">${typeof renderBabyHTML === 'function' ? renderBabyHTML() : '<p>Профиль</p>'}</div>
         </div>
     `;
 
@@ -527,11 +529,46 @@ function renderApp() {
 
     // Обработчики действий (добавление продуктов и т.д.) – оставить прежние
     // (здесь не дублирую для краткости, они должны быть из вашего кода)
+    // Но для базовой работы добавлю:
+    document.querySelectorAll('[data-action="add-product"]').forEach(el => {
+        el.addEventListener('click', () => {
+            const firstAvailable = (PRODUCTS || []).find(p => !isIntroduced(p.id));
+            if (firstAvailable) {
+                STATE.products.introduced.push(firstAvailable.id);
+                STATE.diary.push({ product: firstAvailable.id, date: new Date().toISOString().slice(0,10) });
+                saveState();
+                renderApp();
+            } else {
+                alert('Все продукты уже введены!');
+            }
+        });
+    });
+    document.querySelectorAll('[data-action="add-specific"]').forEach(el => {
+        el.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (id && !isIntroduced(id)) {
+                STATE.products.introduced.push(id);
+                STATE.diary.push({ product: id, date: new Date().toISOString().slice(0,10) });
+                saveState();
+                renderApp();
+            }
+        });
+    });
+    document.querySelectorAll('.product-item').forEach(el => {
+        el.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (id && !isIntroduced(id)) {
+                STATE.products.introduced.push(id);
+                STATE.diary.push({ product: id, date: new Date().toISOString().slice(0,10) });
+                saveState();
+                renderApp();
+            }
+        });
+    });
 }
 
 /* ============================================================
-   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (calcAge, isIntroduced, getNextProduct, getProgress)
-   должны быть определены ранее в utils или здесь
+   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (если не определены в utils)
    ============================================================ */
 function calcAge(birthDate) {
     if (!birthDate) return { months: 0 };
@@ -548,18 +585,15 @@ function isIntroduced(id) {
 
 function getNextProduct() {
     const age = STATE.baby.birthDate ? calcAge(STATE.baby.birthDate).months : 0;
-    const available = PRODUCTS.filter(p => p.min_age <= age && !isIntroduced(p.id));
+    const available = (PRODUCTS || []).filter(p => p.min_age <= age && !isIntroduced(p.id));
     return available.length ? available[0] : null;
 }
 
 function getProgress() {
-    const total = PRODUCTS.length;
+    const total = (PRODUCTS || []).length;
     const introduced = STATE.products.introduced ? STATE.products.introduced.length : 0;
     return total ? Math.round((introduced / total) * 100) : 0;
 }
-
-// (Остальные функции рендеринга страниц – renderProductsHTML, renderDiaryHTML и т.д. должны быть определены ранее)
-// Для совместимости добавьте их или используйте свои.
 
 /* ============================================================
    ЗАПУСК
