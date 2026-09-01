@@ -127,13 +127,41 @@ const DEFAULT_STATE = {
     onboardingCompleted: false
 };
 
-let STATE = JSON.parse(localStorage.getItem('prikorm_app_state')) || JSON.parse(JSON.stringify(DEFAULT_STATE));
+// Загрузка состояния с нормализацией
+let STATE;
+try {
+    const saved = localStorage.getItem('prikorm_app_state');
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        // Создаём глубокую копию DEFAULT_STATE и накладываем сохранённые данные
+        STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        // Обновляем только те поля, которые есть в parsed
+        for (const key in parsed) {
+            if (parsed.hasOwnProperty(key) && key !== 'baby') {
+                STATE[key] = parsed[key];
+            }
+        }
+        if (parsed.baby) {
+            STATE.baby = { ...STATE.baby, ...parsed.baby };
+        }
+        // Гарантируем, что массивы существуют
+        if (!Array.isArray(STATE.introduced)) STATE.introduced = [];
+        if (!Array.isArray(STATE.diary)) STATE.diary = [];
+        if (!Array.isArray(STATE.favorites)) STATE.favorites = [];
+        if (!Array.isArray(STATE.reactions)) STATE.reactions = [];
+    } else {
+        STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+} catch(e) {
+    console.error('Ошибка загрузки состояния:', e);
+    STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
 
 function saveState() {
     localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
 }
 
-// ПРОДУКТЫ (здесь ваш полный список, я оставлю сокращённый для примера)
+// ПРОДУКТЫ (полный список – вставьте свой)
 const PRODUCTS = [
     { id:'courgette', name:'Кабачок', cat:'овощ', min_age:4, emoji:'🥒' },
     { id:'broccoli', name:'Брокколи', cat:'овощ', min_age:4, emoji:'🥦' },
@@ -336,7 +364,7 @@ function calcAge(birthDate) {
 }
 
 function isIntroduced(id) {
-    return STATE.introduced.some(i => i === id);
+    return STATE.introduced && Array.isArray(STATE.introduced) && STATE.introduced.some(i => i === id);
 }
 
 function getNextProduct() {
@@ -348,7 +376,7 @@ function getNextProduct() {
 
 function getProgress() {
     const total = PRODUCTS.length;
-    const introduced = STATE.introduced.length;
+    const introduced = STATE.introduced ? STATE.introduced.length : 0;
     return total ? Math.round((introduced / total) * 100) : 0;
 }
 
