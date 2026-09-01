@@ -210,6 +210,32 @@ const DEFAULT_STATE = {
         activeCategory: "all",
 
         activeFilter: "all"
+    },
+
+
+    /* ----------------------------------------------------------
+       ОНБОРДИНГ (расширенные поля)
+       ---------------------------------------------------------- */
+
+    onboarding: {
+
+        readiness: {
+            sitSupport: false,
+            headControl: false,
+            reachesFood: false,
+            opensMouth: false,
+            notSure: false
+        },
+
+        allergies: [],
+
+        diet: [],
+
+        favoriteFoods: [],
+
+        worries: [],
+
+        confidence: ""
     }
 };
 
