@@ -1139,3 +1139,11 @@ window.openModal =
 
 window.closeModal =
     closeModal;
+    function updateState(updater) {
+    if (typeof updater === 'function') {
+        updater(STATE);
+        saveState();
+        emitStateChange();
+    }
+}
+window.updateState = updateState;
