@@ -8,14 +8,147 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Прикорм 🌸</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ===== ВЕСЬ CSS ВСТРОЕН ЗДЕСЬ ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f5f0eb; color: #2d1f14; padding: 0; margin: 0; min-height: 100vh; display: flex; justify-content: center; }
+        #app { max-width: 480px; width: 100%; min-height: 100vh; background: #f5f0eb; padding-bottom: 80px; position: relative; }
+        .screen { display: none; padding: 16px; animation: fadeIn 0.25s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 8px; }
+        .app-header .app-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #b0978a; font-weight: 600; }
+        .app-header h2 { font-size: 20px; font-weight: 700; margin-top: 2px; }
+        .header-button { background: none; border: none; font-size: 28px; cursor: pointer; padding: 0 8px; }
+        .welcome-card { background: #fff; border-radius: 20px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin: 8px 0 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+        .welcome-card .eyebrow { font-size: 11px; color: #b0978a; text-transform: uppercase; letter-spacing: 0.8px; }
+        .welcome-card h1 { font-size: 24px; font-weight: 700; margin: 4px 0; }
+        .welcome-card p { font-size: 14px; color: #888; }
+        .welcome-card .baby-avatar { font-size: 48px; }
+        .progress-card { background: #fff; border-radius: 20px; padding: 16px; margin: 12px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+        .progress-card .section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .progress-card .eyebrow { font-size: 11px; color: #b0978a; text-transform: uppercase; }
+        .progress-card h3 { font-size: 16px; font-weight: 600; }
+        .progress-number { font-size: 20px; font-weight: 700; color: #d4a373; }
+        .progress-track { background: #f0ebe7; height: 8px; border-radius: 10px; margin: 8px 0; overflow: hidden; }
+        .progress-fill { background: #d4a373; height: 100%; border-radius: 10px; transition: width 0.4s; }
+        .muted { color: #999; font-size: 14px; margin-top: 6px; }
+        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+        .quick-action { background: #fff; border: none; border-radius: 16px; padding: 16px; text-align: left; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.1s; }
+        .quick-action:active { transform: scale(0.96); }
+        .quick-action span:first-child { font-size: 28px; display: block; }
+        .quick-action strong { display: block; margin-top: 6px; font-size: 16px; }
+        .quick-action small { color: #999; font-size: 12px; }
+        .recommendation-card { background: #e8f0e8; border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 12px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .recommendation-card .recommendation-icon { font-size: 40px; }
+        .recommendation-card .eyebrow { font-size: 10px; text-transform: uppercase; color: #6a8a7a; letter-spacing: 0.5px; }
+        .recommendation-card h3 { font-size: 18px; margin: 2px 0; }
+        .recommendation-card p { font-size: 14px; color: #555; }
+        .small-button { background: #d4a373; border: none; padding: 6px 16px; border-radius: 30px; color: #fff; font-weight: 600; cursor: pointer; font-size: 13px; flex-shrink: 0; }
+        .info-card { background: #f0ebe7; border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+        .info-card .info-icon { font-size: 28px; }
+        .info-card strong { display: block; font-size: 15px; }
+        .info-card p { font-size: 14px; color: #555; }
+        .search-box { display: flex; align-items: center; background: #fff; border-radius: 12px; padding: 8px 14px; margin: 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .search-box input { flex: 1; border: none; background: transparent; font-size: 16px; outline: none; padding: 6px 0; }
+        .search-box input::placeholder { color: #bbb; }
+        .search-box span { font-size: 18px; margin-right: 8px; }
+        .tabs { display: flex; gap: 6px; margin: 12px 0; }
+        .tab-button { background: #f0ebe7; border: none; padding: 8px 16px; border-radius: 30px; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .tab-button.active { background: #d4a373; color: #fff; }
+        .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0 12px; -webkit-overflow-scrolling: touch; }
+        .category-chip { background: #f0ebe7; border: none; padding: 6px 14px; border-radius: 30px; font-size: 14px; white-space: nowrap; cursor: pointer; flex-shrink: 0; }
+        .category-chip.active { background: #d4a373; color: #fff; }
+        .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+        .product-card { background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; transition: 0.2s; position: relative; }
+        .product-card:active { transform: scale(0.96); }
+        .product-card .product-emoji { font-size: 32px; display: block; }
+        .product-card h3 { font-size: 16px; margin: 6px 0 4px; }
+        .product-tags { display: flex; flex-wrap: wrap; gap: 4px; font-size: 11px; }
+        .product-tags span { background: #f0ebe7; padding: 2px 10px; border-radius: 20px; }
+        .introduced-label { margin-top: 8px; font-size: 12px; color: #2e7d32; background: #e8f5e9; padding: 2px 10px; border-radius: 20px; display: inline-block; }
+        .favorite-button { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 22px; cursor: pointer; color: #ccc; }
+        .favorite-button.active { color: #e74c3c; }
+        .diary-entry { display: flex; align-items: center; background: #fff; padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .diary-entry-icon { font-size: 24px; margin-right: 12px; }
+        .diary-entry-content { flex: 1; }
+        .diary-entry-header { display: flex; justify-content: space-between; align-items: center; }
+        .diary-entry-header strong { font-size: 16px; }
+        .diary-entry-header span { font-size: 13px; color: #999; }
+        .diary-entry-meta { font-size: 13px; color: #888; margin-top: 2px; }
+        .baby-profile-card { display: flex; align-items: center; background: #fff; padding: 20px; border-radius: 16px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .baby-profile-card .baby-avatar { font-size: 48px; margin-right: 16px; }
+        .baby-profile-card h2 { font-size: 20px; }
+        .baby-profile-card p { color: #888; }
+        .settings-list { margin: 16px 0; }
+        .settings-row { display: flex; align-items: center; background: #fff; padding: 12px 16px; border-radius: 12px; margin-bottom: 6px; border: none; width: 100%; text-align: left; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
+        .settings-row > span:first-child { font-size: 20px; margin-right: 12px; }
+        .settings-row div { flex: 1; }
+        .settings-row strong { display: block; font-size: 15px; }
+        .settings-row small { color: #888; font-size: 13px; }
+        .settings-row.danger { color: #e74c3c; }
+        .settings-row.danger small { color: #e74c3c; }
+        .settings-row .settings-arrow { font-size: 18px; color: #ccc; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: flex-end; z-index: 200; }
+        .modal-sheet { background: #fff; width: 100%; max-width: 480px; max-height: 85vh; border-radius: 24px 24px 0 0; padding: 20px 20px 30px; overflow-y: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h2 { font-size: 20px; }
+        .modal-body { padding-bottom: 16px; }
+        .form-label { display: block; margin: 12px 0 6px; font-weight: 500; }
+        .form-label input, .form-label select, .form-label textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; background: #fafafa; margin-top: 4px; }
+        .form-label textarea { resize: vertical; }
+        .input-with-unit { display: flex; align-items: center; gap: 8px; }
+        .input-with-unit input { flex: 1; }
+        .segmented-control { display: flex; gap: 6px; margin: 8px 0; }
+        .segmented-control .segment { flex: 1; padding: 10px; background: #f0ebe7; border: none; border-radius: 10px; font-weight: 500; cursor: pointer; }
+        .segmented-control .segment.active { background: #d4a373; color: #fff; }
+        .like-selector { display: flex; gap: 12px; margin: 8px 0; }
+        .like-option { padding: 8px 16px; background: #f0ebe7; border: none; border-radius: 30px; cursor: pointer; }
+        .like-option.active { background: #d4a373; color: #fff; }
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin: 12px 0; font-size: 15px; }
+        .checkbox-row input[type="checkbox"] { width: 20px; height: 20px; }
+        .primary-button { background: #d4a373; color: #fff; border: none; border-radius: 12px; padding: 14px 20px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .primary-button:active { background: #c4956a; }
+        .primary-button.full-width { width: 100%; }
+        .danger-button { background: #e74c3c; color: #fff; border: none; border-radius: 12px; padding: 14px; width: 100%; margin: 16px 0; font-weight: 600; cursor: pointer; }
+        .secondary-button { background: #eee; border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; }
+        .icon-button { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px 8px; color: #555; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #999; }
+        .empty-state .empty-icon { font-size: 64px; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 18px; color: #555; }
+        .empty-state p { font-size: 14px; }
+        .bottom-navigation { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; display: flex; justify-content: space-around; background: #fff; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid #eee; z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .bottom-navigation .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 12px; color: #999; cursor: pointer; padding: 4px 12px; transition: color 0.2s; }
+        .bottom-navigation .nav-item.active { color: #d4a373; font-weight: 600; }
+        .bottom-navigation .nav-item span { font-size: 24px; line-height: 1.2; }
+        .bottom-navigation .nav-item small { font-size: 11px; margin-top: 2px; }
+        .toast-root { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 300; max-width: 90%; }
+        .toast { background: #333; color: #fff; padding: 12px 20px; border-radius: 30px; font-size: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: fadeInUp 0.3s ease; }
+        .toast-success { background: #2e7d32; }
+        .toast-error { background: #c62828; }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .date-navigation { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 12px; border-radius: 12px; margin: 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .date-navigation button { background: none; border: none; font-size: 20px; cursor: pointer; padding: 4px 12px; color: #555; }
+        .date-navigation span { font-size: 16px; font-weight: 600; }
+        /* темы */
+        body.theme-dark { background: #1a1a1a; color: #e8e0d8; }
+        body.theme-dark #app { background: #1a1a1a; }
+        body.theme-dark .welcome-card, body.theme-dark .progress-card, body.theme-dark .quick-action, body.theme-dark .product-card, body.theme-dark .diary-entry, body.theme-dark .baby-profile-card, body.theme-dark .settings-row, body.theme-dark .search-box, body.theme-dark .date-navigation, body.theme-dark .modal-sheet { background: #2a2a2a; color: #e8e0d8; }
+        body.theme-dark .info-card, body.theme-dark .recommendation-card { background: #2a2a2a; }
+        body.theme-dark .category-chip, body.theme-dark .tab-button, body.theme-dark .segment { background: #3a3a3a; color: #e8e0d8; }
+        body.theme-dark .product-tags span { background: #3a3a3a; color: #e8e0d8; }
+        body.theme-dark .bottom-navigation { background: #2a2a2a; border-top-color: #444; }
+        body.theme-dark .bottom-navigation .nav-item { color: #888; }
+        body.theme-dark .bottom-navigation .nav-item.active { color: #d4a373; }
+        body.theme-kids { background: #fff7f0; }
+        body.theme-kids #app { background: #fff7f0; }
+        body.theme-kids .welcome-card, body.theme-kids .progress-card, body.theme-kids .quick-action, body.theme-kids .product-card, body.theme-kids .diary-entry, body.theme-kids .baby-profile-card, body.theme-kids .settings-row, body.theme-kids .search-box, body.theme-kids .date-navigation { background: #ffffff; border-radius: 24px; }
+    </style>
 </head>
 <body>
     <div id="app"></div>
 
-    <!-- ============================================================
-         ВСЕ МОДУЛИ (порядок важен!)
-    ============================================================ -->
     <script src="config.js"></script>
     <script src="products.js"></script>
     <script src="recipes.js"></script>
@@ -30,12 +163,7 @@
     <script src="theme.js"></script>
     <script src="app.js"></script>
 
-    <!-- ============================================================
-         КОНСОЛЬ ДЛЯ ТЕЛЕФОНА (Eruda) – можно убрать, если не нужно
-    ============================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>
-        eruda.init();
-    </script>
+    <script>eruda.init();</script>
 </body>
 </html>
