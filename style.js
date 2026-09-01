@@ -1,6 +1,4 @@
-/* ============================================================
-   style.css — полный дизайн приложения
-   ============================================================ */
+/* style.css — полный дизайн приложения */
 
 * {
     box-sizing: border-box;
@@ -28,7 +26,6 @@ body {
     position: relative;
 }
 
-/* ===== ТЕМЫ (светлая / тёмная) ===== */
 body.theme-dark {
     background: #1a1a1a;
     color: #e8e0d8;
@@ -54,7 +51,6 @@ body.theme-kids #app {
     background: #fff7f0;
 }
 
-/* ===== ОБЩИЕ КОМПОНЕНТЫ ===== */
 .screen {
     display: none;
     padding: 16px;
@@ -69,7 +65,6 @@ body.theme-kids #app {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== ВЕРХНЯЯ НАВИГАЦИЯ (заголовок) ===== */
 .app-header {
     display: flex;
     justify-content: space-between;
@@ -97,7 +92,6 @@ body.theme-kids #app {
     padding: 0 8px;
 }
 
-/* ===== КАРТОЧКИ ===== */
 .card {
     background: #fff;
     border-radius: 16px;
@@ -134,7 +128,6 @@ body.theme-kids #app {
     font-size: 56px;
 }
 
-/* ===== ПРОГРЕСС ===== */
 .progress-card {
     background: #fff;
     border-radius: 16px;
@@ -181,7 +174,6 @@ body.theme-kids #app {
     margin-top: 6px;
 }
 
-/* ===== БЫСТРЫЕ ДЕЙСТВИЯ ===== */
 .quick-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -215,7 +207,6 @@ body.theme-kids #app {
     font-size: 12px;
 }
 
-/* ===== РЕКОМЕНДАЦИИ ===== */
 .recommendation-card {
     background: #e8f0e8;
     border-radius: 16px;
@@ -255,7 +246,6 @@ body.theme-kids #app {
     flex-shrink: 0;
 }
 
-/* ===== ИНФО-КАРТОЧКА ===== */
 .info-card {
     background: #f0ebe7;
     border-radius: 16px;
@@ -277,7 +267,6 @@ body.theme-kids #app {
     color: #555;
 }
 
-/* ===== ЭКРАН ПРОДУКТОВ ===== */
 .search-box {
     display: flex;
     align-items: center;
@@ -404,7 +393,6 @@ body.theme-kids #app {
     color: #e74c3c;
 }
 
-/* ===== ДНЕВНИК ===== */
 .diary-entry {
     display: flex;
     align-items: center;
@@ -439,7 +427,6 @@ body.theme-kids #app {
     margin-top: 2px;
 }
 
-/* ===== ПРОФИЛЬ ===== */
 .baby-profile-card {
     display: flex;
     align-items: center;
@@ -502,7 +489,6 @@ body.theme-kids #app {
     color: #ccc;
 }
 
-/* ===== МОДАЛКА ===== */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -542,7 +528,6 @@ body.theme-kids #app {
     padding-bottom: 16px;
 }
 
-/* ===== ФОРМЫ ===== */
 .form-label {
     display: block;
     margin: 12px 0 6px;
@@ -616,7 +601,6 @@ body.theme-kids #app {
     height: 20px;
 }
 
-/* ===== КНОПКИ ===== */
 .primary-button {
     background: #d4a373;
     color: #fff;
@@ -661,7 +645,6 @@ body.theme-kids #app {
     color: #555;
 }
 
-/* ===== ПУСТЫЕ СОСТОЯНИЯ ===== */
 .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -679,7 +662,6 @@ body.theme-kids #app {
     font-size: 14px;
 }
 
-/* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */
 .bottom-navigation {
     position: fixed;
     bottom: 0;
@@ -720,7 +702,6 @@ body.theme-kids #app {
     margin-top: 2px;
 }
 
-/* ===== TOAST ===== */
 .toast-root {
     position: fixed;
     bottom: 80px;
@@ -749,7 +730,6 @@ body.theme-kids #app {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== ДАТЫ ===== */
 .date-navigation {
     display: flex;
     justify-content: space-between;
