@@ -2,131 +2,231 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Прикорм</title>
-    <style>
-        body { font-family: sans-serif; background: #f5f0eb; margin: 0; padding: 20px; }
-        #app { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .screen { display: block; }
-        .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-bar button { flex: 1; padding: 10px; border: none; background: #eee; border-radius: 10px; cursor: pointer; }
-        .tab-bar button.active { background: #d4a373; color: white; }
-        .page { display: none; }
-        .page.active { display: block; }
-        .card { background: #fafafa; padding: 15px; border-radius: 12px; margin: 10px 0; }
-        .baby-card { display: flex; align-items: center; gap: 15px; }
-        .baby-avatar { font-size: 40px; }
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .product-item { background: #fafafa; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; }
-        .product-item .emoji { font-size: 30px; display: block; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #ddd; }
-        .bottom-nav button { background: none; border: none; font-size: 12px; color: #888; cursor: pointer; }
-        .bottom-nav button.active { color: #d4a373; font-weight: bold; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#F8F5F1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Прикорм 🌸</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app"></div>
+    <div id="app">
+        <h2>🌸 Прикорм</h2>
+        <div id="status">Загрузка...</div>
+        <div id="log"></div>
+    </div>
 
-<script>
-// ==================== ДАННЫЕ ====================
-const PRODUCTS = [
-    { id: '1', name: 'Кабачок', emoji: '🥒', cat: 'овощ' },
-    { id: '2', name: 'Брокколи', emoji: '🥦', cat: 'овощ' },
-    { id: '3', name: 'Яблоко', emoji: '🍎', cat: 'фрукт' },
-    { id: '4', name: 'Гречка', emoji: '🌾', cat: 'каша' },
-    { id: '5', name: 'Индейка', emoji: '🦃', cat: 'мясо' },
-];
+    <script>
+        // ============================================================
+        // 1. Показываем сообщения на экране
+        // ============================================================
+        function log(msg, type = 'info') {
+            const logDiv = document.getElementById('log');
+            if (!logDiv) return;
+            const p = document.createElement('div');
+            p.className = 'log';
+            p.style.color = type === 'error' ? 'red' : type === 'ok' ? 'green' : '#333';
+            p.textContent = msg;
+            logDiv.appendChild(p);
+            console.log(msg);
+        }
 
-const RECIPES = [
-    { name: 'Пюре из кабачка', desc: 'Отварить и измельчить' },
-    { name: 'Каша гречневая', desc: 'Сварить на воде' },
-];
+        function setStatus(msg, isError = false) {
+            const status = document.getElementById('status');
+            if (!status) return;
+            status.textContent = msg;
+            status.style.color = isError ? 'red' : 'green';
+        }
 
-// ==================== СОСТОЯНИЕ ====================
-let STATE = {
-    baby: { name: 'Малыш', age: '6 мес.' },
-    diary: [],
-    products: { introduced: [] },
-    ui: { screen: 'home' }
-};
+        // Перехват ошибок
+        window.onerror = function(message, source, line, col, error) {
+            log('❌ ОШИБКА: ' + message + ' (в ' + (source || 'неизвестно') + ' строка ' + line + ')', 'error');
+            setStatus('❌ Ошибка! Смотрите лог ниже.', true);
+            return true;
+        };
 
-// ==================== РЕНДЕРИНГ ====================
-function render(screen) {
-    const app = document.getElementById('app');
-    if (!app) return;
-    const s = screen || STATE.ui.screen || 'home';
+        log('🚀 Начинаем загрузку...', 'ok');
+        setStatus('Загрузка...');
+    </script>
 
-    let html = `
-        <div class="screen">
-            <div class="tab-bar">
-                <button class="${s === 'home' ? 'active' : ''}" data-screen="home">🏠</button>
-                <button class="${s === 'products' ? 'active' : ''}" data-screen="products">🥑</button>
-                <button class="${s === 'diary' ? 'active' : ''}" data-screen="diary">📖</button>
-                <button class="${s === 'baby' ? 'active' : ''}" data-screen="baby">👶</button>
-            </div>
-            <div id="page-home" class="page ${s === 'home' ? 'active' : ''}">
-                <div class="baby-card card">
-                    <div class="baby-avatar">👶</div>
-                    <div><strong>${STATE.baby.name}</strong><br>${STATE.baby.age}</div>
-                </div>
-                <div class="card">
-                    <h3>Сегодня</h3>
-                    <p>Записей: ${STATE.diary.length}</p>
-                </div>
-                <div class="card">
-                    <h4>Рекомендация</h4>
-                    <p>Попробуйте ввести новый продукт</p>
-                </div>
-            </div>
-            <div id="page-products" class="page ${s === 'products' ? 'active' : ''}">
-                <h2>Продукты</h2>
-                <div class="product-grid">
-                    ${PRODUCTS.map(p => `
-                        <div class="product-item" data-id="${p.id}">
-                            <span class="emoji">${p.emoji}</span>
-                            ${p.name}
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            <div id="page-diary" class="page ${s === 'diary' ? 'active' : ''}">
-                <h2>Дневник</h2>
-                ${STATE.diary.length === 0 ? '<p>Пока пусто</p>' : STATE.diary.map(e => `<div class="card">${e}</div>`).join('')}
-            </div>
-            <div id="page-baby" class="page ${s === 'baby' ? 'active' : ''}">
-                <h2>Профиль</h2>
-                <div class="card">Имя: ${STATE.baby.name}</div>
-                <div class="card">Возраст: ${STATE.baby.age}</div>
-                <button onclick="STATE.baby.name = prompt('Новое имя:', STATE.baby.name) || STATE.baby.name; render('baby');">Изменить имя</button>
-            </div>
-            <div class="bottom-nav">
-                <button class="${s === 'home' ? 'active' : ''}" data-screen="home">Главная</button>
-                <button class="${s === 'products' ? 'active' : ''}" data-screen="products">Продукты</button>
-                <button class="${s === 'diary' ? 'active' : ''}" data-screen="diary">Дневник</button>
-                <button class="${s === 'baby' ? 'active' : ''}" data-screen="baby">Малыш</button>
-            </div>
-        </div>
-    `;
-    app.innerHTML = html;
+    <!-- ============================================================
+         ЗАГРУЗКА ВСЕХ СКРИПТОВ С ОТЛОВОМ ОШИБОК
+    ============================================================ -->
 
-    // Обработчики кликов
-    app.querySelectorAll('[data-screen]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            STATE.ui.screen = this.dataset.screen;
-            render(this.dataset.screen);
-        });
-    });
-    app.querySelectorAll('.product-item').forEach(el => {
-        el.addEventListener('click', function() {
-            const name = this.textContent.trim();
-            STATE.diary.push(name + ' (попробовали)');
-            render(STATE.ui.screen);
-        });
-    });
-}
+    <script>
+        try {
+            log('📁 Загружаем config.js...');
+            var s1 = document.createElement('script');
+            s1.src = 'config.js';
+            s1.onload = function() { log('✅ config.js загружен', 'ok'); };
+            s1.onerror = function() { log('❌ config.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s1);
+        } catch(e) { log('❌ Ошибка config.js: ' + e.message, 'error'); }
+    </script>
 
-// ==================== ЗАПУСК ====================
-render('home');
-</script>
+    <script>
+        try {
+            log('📁 Загружаем products.js...');
+            var s2 = document.createElement('script');
+            s2.src = 'products.js';
+            s2.onload = function() { 
+                log('✅ products.js загружен, продуктов: ' + (typeof PRODUCTS !== 'undefined' ? PRODUCTS.length : 'НЕТ'), 'ok');
+            };
+            s2.onerror = function() { log('❌ products.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s2);
+        } catch(e) { log('❌ Ошибка products.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем recipes.js...');
+            var s3 = document.createElement('script');
+            s3.src = 'recipes.js';
+            s3.onload = function() { log('✅ recipes.js загружен', 'ok'); };
+            s3.onerror = function() { log('❌ recipes.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s3);
+        } catch(e) { log('❌ Ошибка recipes.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем diary.js...');
+            var s4 = document.createElement('script');
+            s4.src = 'diary.js';
+            s4.onload = function() { log('✅ diary.js загружен', 'ok'); };
+            s4.onerror = function() { log('❌ diary.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s4);
+        } catch(e) { log('❌ Ошибка diary.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем safety.js...');
+            var s5 = document.createElement('script');
+            s5.src = 'safety.js';
+            s5.onload = function() { log('✅ safety.js загружен', 'ok'); };
+            s5.onerror = function() { log('❌ safety.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s5);
+        } catch(e) { log('❌ Ошибка safety.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем recommendations.js...');
+            var s6 = document.createElement('script');
+            s6.src = 'recommendations.js';
+            s6.onload = function() { log('✅ recommendations.js загружен', 'ok'); };
+            s6.onerror = function() { log('❌ recommendations.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s6);
+        } catch(e) { log('❌ Ошибка recommendations.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем utils.js...');
+            var s7 = document.createElement('script');
+            s7.src = 'utils.js';
+            s7.onload = function() { log('✅ utils.js загружен', 'ok'); };
+            s7.onerror = function() { log('❌ utils.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s7);
+        } catch(e) { log('❌ Ошибка utils.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем state.js...');
+            var s8 = document.createElement('script');
+            s8.src = 'state.js';
+            s8.onload = function() { 
+                log('✅ state.js загружен, STATE = ' + (typeof STATE !== 'undefined' ? 'ОПРЕДЕЛЁН' : 'НЕ ОПРЕДЕЛЁН'), 'ok');
+            };
+            s8.onerror = function() { log('❌ state.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s8);
+        } catch(e) { log('❌ Ошибка state.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем ui.js...');
+            var s9 = document.createElement('script');
+            s9.src = 'ui.js';
+            s9.onload = function() { log('✅ ui.js загружен', 'ok'); };
+            s9.onerror = function() { log('❌ ui.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s9);
+        } catch(e) { log('❌ Ошибка ui.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем rendering.js...');
+            var s10 = document.createElement('script');
+            s10.src = 'rendering.js';
+            s10.onload = function() { log('✅ rendering.js загружен', 'ok'); };
+            s10.onerror = function() { log('❌ rendering.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s10);
+        } catch(e) { log('❌ Ошибка rendering.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем handlers.js...');
+            var s11 = document.createElement('script');
+            s11.src = 'handlers.js';
+            s11.onload = function() { log('✅ handlers.js загружен', 'ok'); };
+            s11.onerror = function() { log('❌ handlers.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s11);
+        } catch(e) { log('❌ Ошибка handlers.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем theme.js...');
+            var s12 = document.createElement('script');
+            s12.src = 'theme.js';
+            s12.onload = function() { log('✅ theme.js загружен', 'ok'); };
+            s12.onerror = function() { log('❌ theme.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s12);
+        } catch(e) { log('❌ Ошибка theme.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        try {
+            log('📁 Загружаем app.js...');
+            var s13 = document.createElement('script');
+            s13.src = 'app.js';
+            s13.onload = function() { 
+                log('✅ app.js загружен', 'ok');
+                if (typeof initApp === 'function') {
+                    log('🚀 Запускаем initApp()...', 'ok');
+                    try { initApp(); } catch(e) { log('❌ Ошибка в initApp(): ' + e.message, 'error'); }
+                } else {
+                    log('❌ Функция initApp не найдена!', 'error');
+                }
+            };
+            s13.onerror = function() { log('❌ app.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
+            document.head.appendChild(s13);
+        } catch(e) { log('❌ Ошибка app.js: ' + e.message, 'error'); }
+    </script>
+
+    <script>
+        // Финальное сообщение
+        setTimeout(function() {
+            log('⏳ Загрузка завершена. Проверьте ошибки выше.', 'ok');
+            setStatus('✅ Страница загружена!');
+        }, 3000);
+    </script>
+
+    <!-- Консоль Eruda (для телефона) -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+        try {
+            eruda.init();
+            log('✅ Eruda загружена! Нажмите на кружок в правом нижнем углу.', 'ok');
+        } catch(e) {
+            log('❌ Eruda не загрузилась: ' + e.message, 'error');
+        }
+    </script>
+
 </body>
 </html>
