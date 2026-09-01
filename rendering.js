@@ -1,1986 +1,222 @@
 /* ============================================================
    rendering.js
-   Отрисовка экранов приложения
-   ============================================================ */
-
-
-/* ============================================================
-   ОСНОВНОЙ RENDER
+   Отрисовка экранов приложения (исправлен для работы с #app-content)
    ============================================================ */
 
 function render(screen) {
-
-    const app =
-        document.getElementById("app");
-
-    if (!app) return;
-
-
-    switch (screen) {
-
-        case "home":
-            renderHome();
-            break;
-
-        case "products":
-            renderProducts();
-            break;
-
-        case "diary":
-            renderDiary();
-            break;
-
-        case "recipes":
-            renderRecipes();
-            break;
-
-        case "today":
-            renderToday();
-            break;
-
-        case "baby":
-            renderBaby();
-            break;
-
-        case "settings":
-            renderSettings();
-            break;
-
-        default:
-            renderHome();
+    screen = screen || STATE?.ui?.screen || 'home';
+    const content = document.getElementById('app-content');
+    if (!content) return;
+    let html = '';
+    switch(screen) {
+        case 'home': html = renderHome(); break;
+        case 'products': html = renderProducts(); break;
+        case 'diary': html = renderDiary(); break;
+        case 'recipes': html = renderRecipes(); break;
+        case 'today': html = renderToday(); break;
+        case 'baby': html = renderBaby(); break;
+        case 'settings': html = renderSettings(); break;
+        default: html = renderHome();
     }
-
-
-    updateProfileUI();
+    content.innerHTML = html + renderBottomNavigation(screen);
+    // Сохраняем текущий экран в STATE
+    if (screen !== STATE?.ui?.screen) {
+        if (!STATE.ui) STATE.ui = {};
+        STATE.ui.screen = screen;
+        saveState();
+    }
 }
 
-
-/* ============================================================
-   HOME
-   ============================================================ */
-
+// ----- HOME -----
 function renderHome() {
-
-    const app =
-        document.getElementById("app");
-
-    const baby =
-        STATE.baby || {};
-
-    const age =
-        getBabyAgeText();
-
-
-    app.innerHTML = `
-
-        <div class="screen home-screen">
-
-            ${renderHeader()}
-
-
-            <main class="page-content">
-
-                <section class="welcome-card">
-
-                    <div>
-
-                        <span class="eyebrow">
-                            ПРИКОРМ
-                        </span>
-
-                        <h1>
-                            ${escapeHTML(
-                                baby.name ||
-                                "Малыш"
-                            )}
-                        </h1>
-
-                        <p>
-                            ${age}
-                        </p>
-
-                    </div>
-
-                    <div class="baby-avatar">
-                        🐣
-                    </div>
-
-                </section>
-
-
-                ${renderTodayProgress()}
-
-
-                <section class="quick-actions">
-
-                    <button
-                        class="quick-action"
-                        data-action="add-food">
-
-                        <span>🥣</span>
-
-                        <strong>
-                            Добавить продукт
-                        </strong>
-
-                        <small>
-                            Записать в дневник
-                        </small>
-
-                    </button>
-
-
-                    <button
-                        class="quick-action"
-                        data-action="navigate"
-                        data-screen="products">
-
-                        <span>🥑</span>
-
-                        <strong>
-                            Продукты
-                        </strong>
-
-                        <small>
-                            Смотреть базу
-                        </small>
-
-                    </button>
-
-
-                    <button
-                        class="quick-action"
-                        data-action="navigate"
-                        data-screen="recipes">
-
-                        <span>🍲</span>
-
-                        <strong>
-                            Рецепты
-                        </strong>
-
-                        <small>
-                            По возрасту малыша
-                        </small>
-
-                    </button>
-
-
-                    <button
-                        class="quick-action"
-                        data-action="navigate"
-                        data-screen="diary">
-
-                        <span>📖</span>
-
-                        <strong>
-                            Дневник
-                        </strong>
-
-                        <small>
-                            История прикорма
-                        </small>
-
-                    </button>
-
-                </section>
-
-
-                ${renderNextProductCard()}
-
-
-                ${renderRecommendationCard()}
-
-            </main>
-
-
-            ${renderBottomNavigation("home")}
-
+    const baby = STATE?.baby || {};
+    const age = baby.ageMonths ? `${baby.ageMonths} мес.` : 'Возраст не указан';
+    const diaryCount = STATE?.diary?.length || 0;
+    return `
+        <div class="screen active">
+            <div class="page-header"><h1>🌸 Прикорм</h1><button class="icon-button" data-action="navigate" data-screen="settings">⚙️</button></div>
+            <div class="baby-profile-card">
+                <div class="baby-avatar">👶</div>
+                <div><strong>${baby.name || 'Малыш'}</strong><br><span class="muted">${age}</span></div>
+                <button class="icon-button" data-action="navigate" data-screen="baby">✏️</button>
+            </div>
+            <div class="progress-card">
+                <div class="section-heading"><span>Дневник</span><span>${diaryCount} записей</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:${Math.min(diaryCount*10,100)}%"></div></div>
+            </div>
+            <div class="quick-actions">
+                <button class="quick-action" data-action="add-food"><span>🥣</span><strong>Добавить продукт</strong><small>Записать в дневник</small></button>
+                <button class="quick-action" data-action="navigate" data-screen="products"><span>🥑</span><strong>Продукты</strong><small>База продуктов</small></button>
+                <button class="quick-action" data-action="navigate" data-screen="diary"><span>📖</span><strong>Дневник</strong><small>История</small></button>
+                <button class="quick-action" data-action="navigate" data-screen="recipes"><span>🍲</span><strong>Рецепты</strong><small>Идеи</small></button>
+            </div>
         </div>
     `;
 }
 
-
-/* ============================================================
-   HEADER
-   ============================================================ */
-
-function renderHeader() {
-
-    return `
-
-        <header class="app-header">
-
-            <div>
-
-                <span class="app-kicker">
-                    🌸 ПРИКОРМ
-                </span>
-
-                <h2>
-                    Каждый день — маленький шаг
-                </h2>
-
-            </div>
-
-
-            <button
-                class="header-button"
-                data-action="navigate"
-                data-screen="settings">
-
-                ⚙️
-
-            </button>
-
-        </header>
-    `;
-}
-
-
-/* ============================================================
-   TODAY PROGRESS
-   ============================================================ */
-
-function renderTodayProgress() {
-
-    const diary =
-        STATE.diary || [];
-
-    const today =
-        new Date()
-            .toISOString()
-            .slice(0, 10);
-
-
-    const todayEntries =
-        diary.filter(
-            item =>
-                item.date === today
-        );
-
-
-    const count =
-        todayEntries.length;
-
-
-    return `
-
-        <section class="progress-card">
-
-            <div class="section-heading">
-
-                <div>
-
-                    <span class="eyebrow">
-                        СЕГОДНЯ
-                    </span>
-
-                    <h3>
-                        Прикорм
-                    </h3>
-
-                </div>
-
-                <span class="progress-number">
-                    ${count}
-                </span>
-
-            </div>
-
-
-            <div class="progress-track">
-
-                <div
-                    class="progress-fill"
-                    style="width:${Math.min(
-                        count * 33,
-                        100
-                    )}%">
-                </div>
-
-            </div>
-
-
-            <p class="muted">
-                ${
-                    count === 0
-                        ? "Пока ничего не записано"
-                        : `Записей сегодня: ${count}`
-                }
-            </p>
-
-        </section>
-    `;
-}
-
-
-/* ============================================================
-   NEXT PRODUCT
-   ============================================================ */
-
-function renderNextProductCard() {
-
-    if (
-        typeof getNextProduct !==
-        "function" ||
-        typeof PRODUCTS ===
-        "undefined"
-    ) {
-        return "";
-    }
-
-
-    const product =
-        getNextProduct(
-            STATE.baby,
-            PRODUCTS
-        );
-
-
-    if (!product) {
-        return "";
-    }
-
-
-    return `
-
-        <section class="recommendation-card">
-
-            <div class="recommendation-icon">
-                ${product.emoji || "🥑"}
-            </div>
-
-
-            <div class="recommendation-content">
-
-                <span class="eyebrow">
-                    МОЖНО ПОПРОБОВАТЬ
-                </span>
-
-                <h3>
-                    ${escapeHTML(
-                        product.name
-                    )}
-                </h3>
-
-                <p>
-                    ${escapeHTML(
-                        product.desc ||
-                        "Подходит для следующего знакомства."
-                    )}
-                </p>
-
-            </div>
-
-
-            <button
-                class="small-button"
-                data-action="open-product"
-                data-product-id="${escapeHTML(
-                    product.id
-                )}">
-
-                Подробнее
-
-            </button>
-
-        </section>
-    `;
-}
-
-
-/* ============================================================
-   RECOMMENDATION
-   ============================================================ */
-
-function renderRecommendationCard() {
-
-    const baby =
-        STATE.baby || {};
-
-
-    const age =
-        Number(
-            baby.ageMonths || 0
-        );
-
-
-    let text =
-        "Следите за признаками готовности малыша.";
-
-
-    if (age >= 6) {
-
-        text =
-            "В этом возрасте особенно важно постепенно расширять разнообразие продуктов и текстур.";
-    }
-
-
-    if (age >= 8) {
-
-        text =
-            "Постепенно увеличивайте разнообразие текстур и продуктов, подходящих малышу.";
-    }
-
-
-    return `
-
-        <section class="info-card">
-
-            <span class="info-icon">
-                💡
-            </span>
-
-            <div>
-
-                <strong>
-                    Совет на сегодня
-                </strong>
-
-                <p>
-                    ${text}
-                </p>
-
-            </div>
-
-        </section>
-    `;
-}
-
-
-/* ============================================================
-   PRODUCTS
-   ============================================================ */
-
+// ----- PRODUCTS -----
 function renderProducts() {
-
-    const app =
-        document.getElementById("app");
-
-    if (!app) return;
-
-
-    let products =
-        typeof PRODUCTS !== "undefined"
-            ? [...PRODUCTS]
-            : [];
-
-
-    /*
-       Поиск
-    */
-
-    if (
-        typeof CURRENT_PRODUCT_SEARCH !==
-        "undefined" &&
-        CURRENT_PRODUCT_SEARCH
-    ) {
-
-        products =
-            products.filter(
-                product =>
-                    String(
-                        product.name || ""
-                    )
-                        .toLowerCase()
-                        .includes(
-                            CURRENT_PRODUCT_SEARCH
-                        )
-            );
-    }
-
-
-    /*
-       Категория
-    */
-
-    if (
-        typeof CURRENT_PRODUCT_CATEGORY !==
-        "undefined" &&
-        CURRENT_PRODUCT_CATEGORY !== "all"
-    ) {
-
-        products =
-            products.filter(
-                product =>
-                    product.cat ===
-                    CURRENT_PRODUCT_CATEGORY ||
-                    product.category ===
-                    CURRENT_PRODUCT_CATEGORY
-            );
-    }
-
-
-    /*
-       Избранные
-    */
-
-    if (
-        typeof CURRENT_PRODUCTS_TAB !==
-        "undefined" &&
-        CURRENT_PRODUCTS_TAB ===
-        "favorites"
-    ) {
-
-        products =
-            products.filter(
-                product =>
-                    STATE.products.favorites
-                        .includes(
-                            product.id
-                        )
-            );
-    }
-
-
-    /*
-       Уже пробовали
-    */
-
-    if (
-        typeof CURRENT_PRODUCTS_TAB !==
-        "undefined" &&
-        CURRENT_PRODUCTS_TAB ===
-        "introduced"
-    ) {
-
-        products =
-            products.filter(
-                product =>
-                    STATE.products.introduced
-                        .some(
-                            item =>
-                                (
-                                    typeof item ===
-                                    "object"
-                                        ? item.id
-                                        : item
-                                ) ===
-                                product.id
-                        )
-            );
-    }
-
-
-    app.innerHTML = `
-
-        <div class="screen products-screen">
-
-            ${renderPageHeader(
-                "Продукты",
-                "Вся база продуктов для прикорма"
-            )}
-
-
-            <main class="page-content">
-
-                <div class="search-box">
-
-                    🔎
-
-                    <input
-                        id="product-search"
-                        type="search"
-                        placeholder="Найти продукт..."
-                        value="${escapeHTML(
-                            typeof CURRENT_PRODUCT_SEARCH !==
-                            "undefined"
-                                ? CURRENT_PRODUCT_SEARCH
-                                : ""
-                        )}"
-                    />
-
-                </div>
-
-
-                <div class="tabs">
-
-                    ${renderTab(
-                        "all",
-                        "Все"
-                    )}
-
-                    ${renderTab(
-                        "favorites",
-                        "❤️ Любимые"
-                    )}
-
-                    ${renderTab(
-                        "introduced",
-                        "✓ Пробовали"
-                    )}
-
-                </div>
-
-
-                <div class="category-scroll">
-
-                    ${renderProductCategory(
-                        "all",
-                        "Все"
-                    )}
-
-                    ${renderProductCategory(
-                        "овощ",
-                        "🥕 Овощи"
-                    )}
-
-                    ${renderProductCategory(
-                        "фрукт",
-                        "🍎 Фрукты"
-                    )}
-
-                    ${renderProductCategory(
-                        "каша",
-                        "🥣 Каши"
-                    )}
-
-                    ${renderProductCategory(
-                        "мясо",
-                        "🥩 Мясо"
-                    )}
-
-                    ${renderProductCategory(
-                        "рыба",
-                        "🐟 Рыба"
-                    )}
-
-                    ${renderProductCategory(
-                        "яйцо",
-                        "🥚 Яйцо"
-                    )}
-
-                    ${renderProductCategory(
-                        "молочное",
-                        "🥛 Молочное"
-                    )}
-
-                </div>
-
-
-                <div class="products-grid">
-
-                    ${
-                        products.length
-                            ? products
-                                .map(
-                                    product =>
-                                        renderProductCard(
-                                            product
-                                        )
-                                )
-                                .join("")
-                            : emptyState(
-                                "🥑",
-                                "Ничего не нашли",
-                                "Попробуйте изменить поиск или категорию."
-                            )
-                    }
-
-                </div>
-
-            </main>
-
-
-            ${renderBottomNavigation(
-                "products"
-            )}
-
+    const products = PRODUCTS || [];
+    const search = window.CURRENT_PRODUCT_SEARCH || '';
+    let filtered = products;
+    if (search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search));
+    const cats = ['овощ','фрукт','каша','мясо','рыба','яйцо','молочное','бобовые','орехи'];
+    const currentCat = window.CURRENT_PRODUCT_CATEGORY || 'all';
+    if (currentCat !== 'all') filtered = filtered.filter(p => p.cat === currentCat);
+    const html = `
+        <div class="screen active">
+            <div class="page-header"><h1>Продукты</h1></div>
+            <div class="search-box">🔎 <input id="product-search" type="search" placeholder="Найти продукт..." value="${search}"></div>
+            <div class="category-scroll" style="display:flex; gap:8px; overflow-x:auto; padding:8px 0;">
+                <button class="category-chip ${currentCat==='all'?'active':''}" data-action="product-category" data-category="all">Все</button>
+                ${cats.map(c => `<button class="category-chip ${currentCat===c?'active':''}" data-action="product-category" data-category="${c}">${c}</button>`).join('')}
+            </div>
+            <div class="products-grid">
+                ${filtered.map(p => `
+                    <div class="product-card" data-action="open-product" data-product-id="${p.id}">
+                        <span class="product-emoji">${p.emoji || '🥣'}</span>
+                        <h3>${p.name}</h3>
+                        <div class="product-tags"><span>${p.min_age}+ мес.</span>${p.iron ? '<span>🩸 Железо</span>' : ''}${p.allergen ? '<span>⚠️ Аллерген</span>' : ''}</div>
+                        ${isProductIntroduced(p.id) ? '<div class="introduced-label">✓ Уже пробовали</div>' : ''}
+                    </div>
+                `).join('')}
+            </div>
         </div>
     `;
+    return html;
 }
 
-
-/* ============================================================
-   PRODUCT CARD
-   ============================================================ */
-
-function renderProductCard(
-    product
-) {
-
-    const isFavorite =
-        STATE.products.favorites
-            .includes(
-                product.id
-            );
-
-
-    const introduced =
-        STATE.products.introduced
-            .some(
-                item =>
-                    (
-                        typeof item ===
-                        "object"
-                            ? item.id
-                            : item
-                    ) ===
-                    product.id
-            );
-
-
-    return `
-
-        <article
-            class="product-card"
-            data-action="open-product"
-            data-product-id="${escapeHTML(
-                product.id
-            )}">
-
-            <div class="product-card-top">
-
-                <span class="product-emoji">
-                    ${product.emoji || "🥣"}
-                </span>
-
-
-                <button
-                    type="button"
-                    class="favorite-button ${
-                        isFavorite
-                            ? "active"
-                            : ""
-                    }"
-                    data-action="toggle-favorite"
-                    data-product-id="${escapeHTML(
-                        product.id
-                    )}"
-                    onclick="event.stopPropagation()">
-
-                    ${
-                        isFavorite
-                            ? "♥"
-                            : "♡"
-                    }
-
-                </button>
-
-            </div>
-
-
-            <h3>
-                ${escapeHTML(
-                    product.name
-                )}
-            </h3>
-
-
-            <div class="product-tags">
-
-                ${
-                    product.min_age
-                        ? `
-                            <span>
-                                ${product.min_age}+ мес.
-                            </span>
-                          `
-                        : ""
-                }
-
-
-                ${
-                    product.iron
-                        ? `
-                            <span>
-                                🩸 Железо
-                            </span>
-                          `
-                        : ""
-                }
-
-
-                ${
-                    product.allergen
-                        ? `
-                            <span>
-                                ⚠️ Аллерген
-                            </span>
-                          `
-                        : ""
-                }
-
-            </div>
-
-
-            ${
-                introduced
-                    ? `
-                        <div class="introduced-label">
-                            ✓ Уже пробовали
-                        </div>
-                      `
-                    : ""
-            }
-
-        </article>
-    `;
-}
-
-
-/* ============================================================
-   PRODUCT TABS
-   ============================================================ */
-
-function renderTab(
-    tab,
-    label
-) {
-
-    const active =
-        (
-            typeof CURRENT_PRODUCTS_TAB !==
-            "undefined"
-                ? CURRENT_PRODUCTS_TAB
-                : "all"
-        ) === tab;
-
-
-    return `
-
-        <button
-            type="button"
-            class="tab-button ${
-                active
-                    ? "active"
-                    : ""
-            }"
-            data-action="products-tab"
-            data-tab="${tab}">
-
-            ${label}
-
-        </button>
-    `;
-}
-
-
-/* ============================================================
-   PRODUCT CATEGORY
-   ============================================================ */
-
-function renderProductCategory(
-    category,
-    label
-) {
-
-    const active =
-        (
-            typeof CURRENT_PRODUCT_CATEGORY !==
-            "undefined"
-                ? CURRENT_PRODUCT_CATEGORY
-                : "all"
-        ) === category;
-
-
-    return `
-
-        <button
-            type="button"
-            class="category-chip ${
-                active
-                    ? "active"
-                    : ""
-            }"
-            data-action="product-category"
-            data-category="${category}">
-
-            ${label}
-
-        </button>
-    `;
-}
-
-
-/* ============================================================
-   DIARY
-   ============================================================ */
-
+// ----- DIARY -----
 function renderDiary() {
-
-    const app =
-        document.getElementById("app");
-
-
-    const diary =
-        [...(
-            STATE.diary || []
-        )]
-        .sort(
-            (a, b) =>
-                String(b.date)
-                    .localeCompare(
-                        String(a.date)
-                    )
-        );
-
-
-    app.innerHTML = `
-
-        <div class="screen diary-screen">
-
-            ${renderPageHeader(
-                "Дневник",
-                "История питания малыша"
-            )}
-
-
-            <main class="page-content">
-
-                <button
-                    class="primary-button full-width"
-                    data-action="add-diary">
-
-                    + Добавить продукт
-
-                </button>
-
-
-                <div class="diary-toolbar">
-
-                    <button
-                        data-action="diary-calendar">
-
-                        📅 Календарь
-
-                    </button>
-
-
-                    <button
-                        data-action="diary-filter">
-
-                        ⚙ Фильтр
-
-                    </button>
-
+    const diary = [...(STATE?.diary || [])].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    const stats = getDiaryStats ? getDiaryStats() : { totalEntries: diary.length, uniqueProducts: new Set(diary.map(e=>e.productId)).size };
+    return `
+        <div class="screen active">
+            <div class="page-header"><h1>Дневник</h1><button class="icon-button" data-action="add-diary">➕</button></div>
+            <div style="display:flex; gap:16px; background:#fff; padding:12px; border-radius:12px; margin-bottom:16px;">
+                <div><strong>${stats.totalEntries}</strong> записей</div>
+                <div><strong>${stats.uniqueProducts}</strong> продуктов</div>
+            </div>
+            ${diary.length ? diary.map(e => `
+                <div class="diary-entry">
+                    <div class="diary-entry-icon">${e.source === 'store' ? '🛒' : '🥣'}</div>
+                    <div class="diary-entry-content">
+                        <div class="diary-entry-header"><strong>${e.productName || 'Продукт'}</strong><span>${e.time || ''}</span></div>
+                        <div class="diary-entry-meta">${e.amount ? e.amount+' г' : ''} ${e.preparation || ''} ${e.liked === true ? '❤️' : e.liked === false ? '🤍' : ''}</div>
+                    </div>
+                    <button class="icon-button" data-action="edit-diary" data-entry-id="${e.id}">⋯</button>
                 </div>
-
-
-                ${
-                    diary.length
-                        ? renderDiaryEntries(
-                            diary
-                        )
-                        : emptyState(
-                            "📖",
-                            "Дневник пока пуст",
-                            "Добавьте первый продукт малыша."
-                        )
-                }
-
-            </main>
-
-
-            ${renderBottomNavigation(
-                "diary"
-            )}
-
+            `).join('') : '<div class="empty-state"><div class="empty-icon">📖</div><h3>Дневник пуст</h3><p>Добавьте первый приём пищи.</p></div>'}
         </div>
     `;
 }
 
-
-/* ============================================================
-   DIARY ENTRIES
-   ============================================================ */
-
-function renderDiaryEntries(
-    entries
-) {
-
-    return `
-
-        <div class="diary-list">
-
-            ${entries
-                .map(
-                    entry =>
-                        renderDiaryEntry(
-                            entry
-                        )
-                )
-                .join("")
-            }
-
-        </div>
-    `;
-}
-
-
-function renderDiaryEntry(
-    entry
-) {
-
-    return `
-
-        <article
-            class="diary-entry">
-
-            <div class="diary-entry-icon">
-                ${entry.source === "store"
-                    ? "🛒"
-                    : "🥣"}
-            </div>
-
-
-            <div class="diary-entry-content">
-
-                <div
-                    class="diary-entry-header">
-
-                    <strong>
-                        ${escapeHTML(
-                            entry.productName ||
-                            "Продукт"
-                        )}
-                    </strong>
-
-                    <span>
-                        ${escapeHTML(
-                            entry.time || ""
-                        )}
-                    </span>
-
-                </div>
-
-
-                ${
-                    entry.brand
-                        ? `
-                            <small>
-                                ${escapeHTML(
-                                    entry.brand
-                                )}
-                            </small>
-                          `
-                        : ""
-                }
-
-
-                <div
-                    class="diary-entry-meta">
-
-                    ${
-                        entry.amount
-                            ? `${entry.amount} г`
-                            : ""
-                    }
-
-
-                    ${
-                        entry.preparation
-                            ? ` · ${escapeHTML(
-                                entry.preparation
-                            )}`
-                            : ""
-                    }
-
-
-                    ${
-                        entry.liked === true
-                            ? " · ❤️ понравилось"
-                            : entry.liked === false
-                                ? " · 🤍 не понравилось"
-                                : ""
-                    }
-
-                </div>
-
-            </div>
-
-
-            <button
-                class="icon-button"
-                data-action="edit-diary"
-                data-entry-id="${escapeHTML(
-                    entry.id
-                )}">
-
-                ⋯
-
-            </button>
-
-        </article>
-    `;
-}
-
-
-/* ============================================================
-   RECIPES
-   ============================================================ */
-
+// ----- RECIPES -----
 function renderRecipes() {
-
-    const app =
-        document.getElementById("app");
-
-
-    let recipes =
-        typeof RECIPES !== "undefined"
-            ? [...RECIPES]
-            : [];
-
-
-    const search =
-        window.CURRENT_RECIPE_SEARCH ||
-        "";
-
-
-    if (search) {
-
-        recipes =
-            recipes.filter(
-                recipe =>
-                    String(
-                        recipe.name || ""
-                    )
-                        .toLowerCase()
-                        .includes(
-                            search
-                        )
-            );
-    }
-
-
-    app.innerHTML = `
-
-        <div class="screen recipes-screen">
-
-            ${renderPageHeader(
-                "Рецепты",
-                "Идеи блюд по возрасту"
-            )}
-
-
-            <main class="page-content">
-
-                <div class="search-box">
-
-                    🔎
-
-                    <input
-                        id="recipe-search"
-                        type="search"
-                        placeholder="Найти рецепт..."
-                        value="${escapeHTML(
-                            search
-                        )}"
-                    />
-
+    const recipes = RECIPES || [];
+    return `
+        <div class="screen active">
+            <div class="page-header"><h1>Рецепты</h1></div>
+            ${recipes.map(r => `
+                <div class="product-card" style="margin-bottom:8px;">
+                    <h3>${r.name}</h3>
+                    <p style="font-size:14px;color:#666;">${r.desc || ''}</p>
+                    <div style="font-size:13px;color:#888;">с ${r.age} мес.</div>
                 </div>
-
-
-                <div class="category-scroll">
-
-                    <button
-                        class="category-chip active"
-                        data-action="recipe-category"
-                        data-category="all">
-
-                        Все
-
-                    </button>
-
-                </div>
-
-
-                <div class="recipes-grid">
-
-                    ${
-                        recipes.length
-                            ? recipes
-                                .map(
-                                    recipe =>
-                                        renderRecipeCard(
-                                            recipe
-                                        )
-                                )
-                                .join("")
-                            : emptyState(
-                                "🍲",
-                                "Рецептов пока нет",
-                                "Добавим полноценную базу рецептов следующим этапом."
-                            )
-                    }
-
-                </div>
-
-            </main>
-
-
-            ${renderBottomNavigation(
-                "recipes"
-            )}
-
+            `).join('')}
         </div>
     `;
 }
 
-
-/* ============================================================
-   RECIPE CARD
-   ============================================================ */
-
-function renderRecipeCard(
-    recipe
-) {
-
-    return `
-
-        <article class="recipe-card">
-
-            <div class="recipe-image">
-                ${recipe.emoji || "🍲"}
-            </div>
-
-
-            <div class="recipe-body">
-
-                <h3>
-                    ${escapeHTML(
-                        recipe.name ||
-                        "Рецепт"
-                    )}
-                </h3>
-
-
-                ${
-                    recipe.age
-                        ? `
-                            <span>
-                                ${escapeHTML(
-                                    String(
-                                        recipe.age
-                                    )
-                                )}
-                            </span>
-                          `
-                        : ""
-                }
-
-
-                ${
-                    recipe.desc
-                        ? `
-                            <p>
-                                ${escapeHTML(
-                                    recipe.desc
-                                )}
-                            </p>
-                          `
-                        : ""
-                }
-
-            </div>
-
-        </article>
-    `;
-}
-
-
-/* ============================================================
-   TODAY
-   ============================================================ */
-
+// ----- TODAY (ПЛАН) -----
 function renderToday() {
-
-    const app =
-        document.getElementById("app");
-
-
-    app.innerHTML = `
-
-        <div class="screen today-screen">
-
-            ${renderPageHeader(
-                "Сегодня",
-                "План прикорма"
-            )}
-
-
-            <main class="page-content">
-
-                <div class="date-navigation">
-
-                    <button
-                        data-action="previous-day">
-
-                        ‹
-
-                    </button>
-
-
-                    <button
-                        data-action="select-date">
-
-                        📅
-
-                        <span id="today-date">
-                            Сегодня
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        data-action="next-day">
-
-                        ›
-
-                    </button>
-
+    const dateStr = new Date().toISOString().slice(0,10);
+    const plan = getPlanForDate(dateStr);
+    const meals = Array.isArray(plan) ? plan : [];
+    let mealsHtml = '';
+    if (meals.length) {
+        mealsHtml = meals.map((meal, index) => `
+            <div class="meal-item" style="background:#f9f6f2; border-radius:12px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong>${meal.name || 'Приём пищи'}</strong>
+                    <span style="font-size:14px; color:#888; display:block;">${meal.products ? meal.products.join(', ') : '—'}</span>
                 </div>
-
-
-                <div
-                    id="daily-plan-container">
-
-                    ${
-                        typeof renderDailyPlan ===
-                        "function"
-                            ? renderDailyPlan(
-                                formatDate(
-                                    new Date()
-                                )
-                            )
-                            : `
-                                ${emptyState(
-                                    "🌸",
-                                    "План пока не сформирован",
-                                    "Добавьте профиль малыша."
-                                )}
-                              `
-                    }
-
-                </div>
-
-            </main>
-
-
-            ${renderBottomNavigation(
-                "today"
-            )}
-
+                <button class="icon-button" data-action="remove-meal" data-index="${index}">✕</button>
+            </div>
+        `).join('');
+    } else {
+        mealsHtml = '<div class="empty-state"><div class="empty-icon">📅</div><h3>Ничего не запланировано</h3><p>Добавьте приём пищи на сегодня.</p></div>';
+    }
+    return `
+        <div class="screen active">
+            <div class="page-header"><h1>Сегодня</h1></div>
+            <div class="date-navigation">
+                <button data-action="previous-day">‹</button>
+                <span id="today-date">Сегодня</span>
+                <button data-action="next-day">›</button>
+            </div>
+            <div class="daily-plan">
+                ${mealsHtml}
+                <button class="primary-button full-width" data-action="add-meal" style="margin-top:8px;">➕ Добавить приём пищи</button>
+            </div>
         </div>
     `;
 }
 
-
-/* ============================================================
-   BABY
-   ============================================================ */
-
+// ----- BABY -----
 function renderBaby() {
-
-    const app =
-        document.getElementById("app");
-
-
-    const baby =
-        STATE.baby || {};
-
-
-    app.innerHTML = `
-
-        <div class="screen baby-screen">
-
-            ${renderPageHeader(
-                "Малыш",
-                "Профиль и настройки прикорма"
-            )}
-
-
-            <main class="page-content">
-
-                <section class="baby-profile-card">
-
-                    <div class="baby-avatar large">
-                        🐣
-                    </div>
-
-
-                    <div>
-
-                        <h2>
-                            ${escapeHTML(
-                                baby.name ||
-                                "Малыш"
-                            )}
-                        </h2>
-
-                        <p>
-                            ${getBabyAgeText()}
-                        </p>
-
-                    </div>
-
-
-                    <button
-                        class="icon-button"
-                        data-action="edit-baby">
-
-                        ✏️
-
-                    </button>
-
-                </section>
-
-
-                <section class="settings-list">
-
-                    <button
-                        class="settings-row"
-                        data-action="settings"
-                        data-setting="feeding-type">
-
-                        <span>
-                            🍼
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                Тип кормления
-                            </strong>
-
-                            <small>
-                                ${escapeHTML(
-                                    baby.feedingType ||
-                                    "Не указан"
-                                )}
-                            </small>
-
-                        </div>
-
-                        <span>
-                            ›
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        class="settings-row"
-                        data-action="settings"
-                        data-setting="prikorm-start">
-
-                        <span>
-                            📅
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                Начало прикорма
-                            </strong>
-
-                            <small>
-                                ${escapeHTML(
-                                    baby.prikormStart ||
-                                    "Не указано"
-                                )}
-                            </small>
-
-                        </div>
-
-                        <span>
-                            ›
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        class="settings-row"
-                        data-action="settings"
-                        data-setting="approach">
-
-                        <span>
-                            🥄
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                Подход к прикорму
-                            </strong>
-
-                            <small>
-                                Можно настроить
-                            </small>
-
-                        </div>
-
-                        <span>
-                            ›
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        class="settings-row"
-                        data-action="settings"
-                        data-setting="readiness">
-
-                        <span>
-                            ✓
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                Готовность к прикорму
-                            </strong>
-
-                            <small>
-                                Проверить признаки готовности
-                            </small>
-
-                        </div>
-
-                        <span>
-                            ›
-                        </span>
-
-                    </button>
-
-                </section>
-
-            </main>
-
-
-            ${renderBottomNavigation(
-                "baby"
-            )}
-
+    const baby = STATE?.baby || {};
+    return `
+        <div class="screen active">
+            <div class="page-header"><h1>Малыш</h1></div>
+            <div class="baby-profile-card">
+                <div class="baby-avatar">👶</div>
+                <div><strong>${baby.name || 'Имя не указано'}</strong><br><span class="muted">${baby.ageMonths ? baby.ageMonths+' мес.' : 'Возраст не указан'}</span></div>
+                <button class="icon-button" data-action="edit-baby">✏️</button>
+            </div>
+            <div class="settings-list">
+                <button class="settings-row" data-action="settings" data-setting="feeding-type"><span>🍼</span><div><strong>Тип кормления</strong><small>${baby.feedingType || 'Не указан'}</small></div><span>›</span></button>
+                <button class="settings-row" data-action="settings" data-setting="prikorm-start"><span>📅</span><div><strong>Начало прикорма</strong><small>${baby.prikormStartDate || 'Не указано'}</small></div><span>›</span></button>
+                <button class="settings-row" data-action="settings" data-setting="approach"><span>🥄</span><div><strong>Подход</strong><small>Можно настроить</small></div><span>›</span></button>
+            </div>
+            <button class="danger-button" data-action="reset-data">Сбросить все данные</button>
         </div>
     `;
 }
 
-
-/* ============================================================
-   SETTINGS
-   ============================================================ */
-
+// ----- SETTINGS -----
 function renderSettings() {
-
-    const app =
-        document.getElementById("app");
-
-
-    app.innerHTML = `
-
-        <div class="screen settings-screen">
-
-            ${renderPageHeader(
-                "Настройки",
-                "Приложение и данные"
-            )}
-
-
-            <main class="page-content">
-
-                <section class="settings-list">
-
-                    <button
-                        class="settings-row"
-                        data-action="settings"
-                        data-setting="notifications">
-
-                        <span>🔔</span>
-
-                        <div>
-
-                            <strong>
-                                Уведомления
-                            </strong>
-
-                            <small>
-                                Напоминания о прикорме
-                            </small>
-
-                        </div>
-
-                        <span>
-                            ›
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        class="settings-row"
-                        data-action="settings"
-                        data-setting="theme">
-
-                        <span>🎨</span>
-
-                        <div>
-
-                            <strong>
-                                Оформление
-                            </strong>
-
-                            <small>
-                                Светлая / тёмная тема
-                            </small>
-
-                        </div>
-
-                        <span>
-                            ›
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        class="settings-row danger"
-                        data-action="reset-data">
-
-                        <span>🗑️</span>
-
-                        <div>
-
-                            <strong>
-                                Сбросить данные
-                            </strong>
-
-                            <small>
-                                Удалить данные прикорма
-                            </small>
-
-                        </div>
-
-                    </button>
-
-                </section>
-
-            </main>
-
-
-            ${renderBottomNavigation(
-                "settings"
-            )}
-
+    return `
+        <div class="screen active">
+            <div class="page-header"><h1>Настройки</h1><button class="icon-button" data-action="navigate" data-screen="home">⌂</button></div>
+            <div class="settings-list">
+                <button class="settings-row" data-action="settings" data-setting="notifications"><span>🔔</span><div><strong>Уведомления</strong><small>Напоминания</small></div><span>›</span></button>
+                <button class="settings-row" data-action="settings" data-setting="theme"><span>🎨</span><div><strong>Тема</strong><small>Светлая / тёмная</small></div><span>›</span></button>
+            </div>
+            <button class="danger-button" data-action="reset-data">Сбросить данные</button>
         </div>
     `;
 }
 
-
-/* ============================================================
-   PAGE HEADER
-   ============================================================ */
-
-function renderPageHeader(
-    title,
-    subtitle
-) {
-
-    return `
-
-        <header class="page-header">
-
-            <div>
-
-                <h1>
-                    ${escapeHTML(
-                        title
-                    )}
-                </h1>
-
-                <p>
-                    ${escapeHTML(
-                        subtitle
-                    )}
-                </p>
-
-            </div>
-
-
-            <button
-                class="icon-button"
-                data-action="navigate"
-                data-screen="home">
-
-                ←
-
-            </button>
-
-        </header>
-    `;
-}
-
-
-/* ============================================================
-   BOTTOM NAVIGATION
-   ============================================================ */
-
-function renderBottomNavigation(
-    active
-) {
-
+// ----- НИЖНЯЯ НАВИГАЦИЯ -----
+function renderBottomNavigation(active) {
     const items = [
-
-        {
-            id: "home",
-            icon: "⌂",
-            label: "Главная"
-        },
-
-        {
-            id: "products",
-            icon: "🥑",
-            label: "Продукты"
-        },
-
-        {
-            id: "today",
-            icon: "📅",
-            label: "Сегодня"
-        },
-
-        {
-            id: "diary",
-            icon: "📖",
-            label: "Дневник"
-        },
-
-        {
-            id: "baby",
-            icon: "🐣",
-            label: "Малыш"
-        }
-
+        { id:'home', icon:'⌂', label:'Главная' },
+        { id:'products', icon:'🥑', label:'Продукты' },
+        { id:'today', icon:'📅', label:'Сегодня' },
+        { id:'diary', icon:'📖', label:'Дневник' },
+        { id:'baby', icon:'👶', label:'Малыш' }
     ];
-
-
-    return `
-
-        <nav class="bottom-navigation">
-
-            ${items
-                .map(
-                    item => `
-
-                        <button
-                            class="nav-item ${
-                                active === item.id
-                                    ? "active"
-                                    : ""
-                            }"
-                            data-action="navigate"
-                            data-screen="${item.id}">
-
-                            <span>
-                                ${item.icon}
-                            </span>
-
-                            <small>
-                                ${item.label}
-                            </small>
-
-                        </button>
-
-                    `
-                )
-                .join("")
-            }
-
-        </nav>
-    `;
+    return `<nav class="bottom-navigation">${items.map(it => `<button class="nav-item ${active===it.id?'active':''}" data-action="navigate" data-screen="${it.id}"><span>${it.icon}</span><small>${it.label}</small></button>`).join('')}</nav>`;
 }
 
-
-/* ============================================================
-   EMPTY STATE
-   ============================================================ */
-
-function emptyState(
-    icon,
-    title,
-    text
-) {
-
-    return `
-
-        <div class="empty-state">
-
-            <div class="empty-icon">
-                ${icon}
-            </div>
-
-            <h3>
-                ${escapeHTML(
-                    title
-                )}
-            </h3>
-
-            <p>
-                ${escapeHTML(
-                    text
-                )}
-            </p>
-
-        </div>
-    `;
-}
-
-
-/* ============================================================
-   BABY AGE
-   ============================================================ */
-
-function getBabyAgeText() {
-
-    const baby =
-        STATE.baby || {};
-
-
-    if (
-        baby.ageMonths !==
-        undefined
-    ) {
-
-        const months =
-            Number(
-                baby.ageMonths || 0
-            );
-
-
-        const days =
-            Number(
-                baby.ageDays || 0
-            );
-
-
-        if (months) {
-
-            return `${months} мес.${
-                days
-                    ? ` ${days} дн.`
-                    : ""
-            }`;
-        }
-    }
-
-
-    if (
-        baby.birthDate &&
-        typeof calcAge ===
-        "function"
-    ) {
-
-        const age =
-            calcAge(
-                baby.birthDate
-            );
-
-
-        return `${age.months || 0} мес.${
-            age.days
-                ? ` ${age.days} дн.`
-                : ""
-        }`;
-    }
-
-
-    return "Возраст не указан";
-}
-
-
-/* ============================================================
-   PROFILE UI
-   ============================================================ */
-
-function updateProfileUI() {
-
-    /*
-       Эта функция намеренно безопасная.
-       Она не ломает приложение,
-       если конкретного элемента пока нет.
-    */
-
-    const nameElements =
-        document.querySelectorAll(
-            "[data-baby-name]"
-        );
-
-
-    nameElements.forEach(
-        element => {
-
-            element.textContent =
-                STATE.baby?.name ||
-                "Малыш";
-        }
-    );
-}
-
-
-/* ============================================================
-   EXPORT
-   ============================================================ */
-
-window.render =
-    render;
-
-window.renderHome =
-    renderHome;
-
-window.renderProducts =
-    renderProducts;
-
-window.renderProductCard =
-    renderProductCard;
-
-window.renderDiary =
-    renderDiary;
-
-window.renderRecipes =
-    renderRecipes;
-
-window.renderToday =
-    renderToday;
-
-window.renderBaby =
-    renderBaby;
-
-window.renderSettings =
-    renderSettings;
-
-window.renderBottomNavigation =
-    renderBottomNavigation;
-
-
-/* ============================================================
-   ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ПЛАНА (добавлено)
-   ============================================================ */
-
-// Глобальная переменная для текущей даты (если ещё не определена)
-if (typeof CURRENT_DATE === 'undefined') {
-    window.CURRENT_DATE = new Date();
-}
-
-/**
- * Получить план на указанную дату
- * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
- * @returns {Array} массив приёмов пищи
- */
+// ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ПЛАНА -----
 function getPlanForDate(dateStr) {
     if (!STATE.plan) STATE.plan = { days: {} };
     if (!STATE.plan.days) STATE.plan.days = {};
     return STATE.plan.days[dateStr] || [];
 }
 
-/**
- * Сохранить план на указанную дату
- * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
- * @param {Array} meals - массив приёмов пищи
- */
 function setPlanForDate(dateStr, meals) {
     if (!STATE.plan) STATE.plan = { days: {} };
     if (!STATE.plan.days) STATE.plan.days = {};
@@ -1989,22 +225,12 @@ function setPlanForDate(dateStr, meals) {
     emitStateChange();
 }
 
-/**
- * Добавить приём пищи в план на указанную дату
- * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
- * @param {Object} meal - объект с данными о приёме пищи
- */
 function addMealToPlan(dateStr, meal) {
     const plan = getPlanForDate(dateStr);
     plan.push(meal);
     setPlanForDate(dateStr, plan);
 }
 
-/**
- * Удалить приём пищи из плана по индексу
- * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
- * @param {number} index - индекс удаляемого элемента
- */
 function removeMealFromPlan(dateStr, index) {
     const plan = getPlanForDate(dateStr);
     if (index >= 0 && index < plan.length) {
@@ -2013,19 +239,28 @@ function removeMealFromPlan(dateStr, index) {
     }
 }
 
-/**
- * Перерисовать блок плана (вызывается при смене даты)
- * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
- */
 function renderDailyPlan(dateStr) {
-    // Просто перерисовываем весь экран "Сегодня"
     render('today');
 }
 
-// Экспортируем новые функции в глобальную область
+// ЭКСПОРТ
+window.render = render;
+window.renderHome = renderHome;
+window.renderProducts = renderProducts;
+window.renderDiary = renderDiary;
+window.renderRecipes = renderRecipes;
+window.renderToday = renderToday;
+window.renderBaby = renderBaby;
+window.renderSettings = renderSettings;
+window.renderBottomNavigation = renderBottomNavigation;
+window.renderDailyPlan = renderDailyPlan;
 window.getPlanForDate = getPlanForDate;
 window.setPlanForDate = setPlanForDate;
 window.addMealToPlan = addMealToPlan;
 window.removeMealFromPlan = removeMealFromPlan;
-window.renderDailyPlan = renderDailyPlan;
-window.CURRENT_DATE = CURRENT_DATE;
+
+// Функция для проверки, введён ли продукт
+function isProductIntroduced(productId) {
+    return STATE?.products?.introduced?.some(i => (i.id || i) === productId) || false;
+}
+window.isProductIntroduced = isProductIntroduced;
