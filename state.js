@@ -416,31 +416,6 @@ function setState(path, value) {
 
 
 /* ============================================================
-   UPDATE OBJECT
-   ============================================================ */
-
-function updateState(path, updates) {
-
-    const current =
-        getStateValue(path);
-
-    const updated = {
-
-        ...(current || {}),
-
-        ...updates
-    };
-
-    setState(
-        path,
-        updated
-    );
-
-    return updated;
-}
-
-
-/* ============================================================
    GET VALUE BY PATH
    ============================================================ */
 
@@ -1055,6 +1030,13 @@ window.getState = getState;
 
 window.setState = setState;
 
+function updateState(updater) {
+    if (typeof updater === 'function') {
+        updater(STATE);
+        saveState();
+        emitStateChange();
+    }
+}
 window.updateState = updateState;
 
 window.getStateValue = getStateValue;
@@ -1139,11 +1121,3 @@ window.openModal =
 
 window.closeModal =
     closeModal;
-    function updateState(updater) {
-    if (typeof updater === 'function') {
-        updater(STATE);
-        saveState();
-        emitStateChange();
-    }
-}
-window.updateState = updateState;
