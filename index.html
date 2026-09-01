@@ -45,12 +45,12 @@
 <div id="app"></div>
 <script>
 // ============================================================
-// ВСЕ ДАННЫЕ И ЛОГИКА В ОДНОМ ФАЙЛЕ
+// ВСЕ ДАННЫЕ И ЛОГИКА В ОДНОМ ФАЙЛЕ (без внешних зависимостей)
 // ============================================================
 
 // 1. ПРОДУКТЫ (162)
 const PRODUCTS = [
-    // Овощи (40+)
+    // Овощи
     { id:'courgette', name:'Кабачок', cat:'овощ', min_age:4, emoji:'🥒' },
     { id:'broccoli', name:'Брокколи', cat:'овощ', min_age:4, emoji:'🥦' },
     { id:'cauliflower', name:'Цветная капуста', cat:'овощ', min_age:4, emoji:'🥦' },
@@ -86,7 +86,7 @@ const PRODUCTS = [
     { id:'malanga', name:'Маланга', cat:'овощ', min_age:6, emoji:'🥔' },
     { id:'kohlrabi', name:'Кольраби', cat:'овощ', min_age:6, emoji:'🥬' },
     { id:'celeriac', name:'Сельдерей корневой', cat:'овощ', min_age:6, emoji:'🌿' },
-    // Фрукты (40+)
+    // Фрукты
     { id:'apple', name:'Яблоко', cat:'фрукт', min_age:6, emoji:'🍎' },
     { id:'pear', name:'Груша', cat:'фрукт', min_age:6, emoji:'🍐' },
     { id:'banana', name:'Банан', cat:'фрукт', min_age:6, emoji:'🍌' },
@@ -109,7 +109,7 @@ const PRODUCTS = [
     { id:'passion_fruit', name:'Маракуйя', cat:'фрукт', min_age:8, emoji:'🟡' },
     { id:'jackfruit', name:'Джекфрут', cat:'фрукт', min_age:8, emoji:'🟢' },
     { id:'dragon_fruit', name:'Питахайя', cat:'фрукт', min_age:8, emoji:'🟣' },
-    // Ягоды (20+)
+    // Ягоды
     { id:'strawberry', name:'Клубника', cat:'ягода', min_age:6, emoji:'🍓' },
     { id:'raspberry', name:'Малина', cat:'ягода', min_age:6, emoji:'🫐' },
     { id:'blueberry', name:'Голубика', cat:'ягода', min_age:6, emoji:'🫐' },
@@ -120,7 +120,7 @@ const PRODUCTS = [
     { id:'currant', name:'Смородина', cat:'ягода', min_age:8, emoji:'🔴' },
     { id:'lingonberry', name:'Брусника', cat:'ягода', min_age:8, emoji:'🔴' },
     { id:'cloudberry', name:'Морошка', cat:'ягода', min_age:8, emoji:'🟠' },
-    // Каши и злаки (25+)
+    // Каши и злаки
     { id:'buckwheat', name:'Гречка', cat:'каша', min_age:4, emoji:'🌾' },
     { id:'rice', name:'Рис', cat:'каша', min_age:4, emoji:'🍚' },
     { id:'corn', name:'Кукурузная крупа', cat:'каша', min_age:4, emoji:'🌽' },
@@ -137,7 +137,7 @@ const PRODUCTS = [
     { id:'teff', name:'Теф', cat:'злаки', min_age:6, emoji:'🌾' },
     { id:'rice_flakes', name:'Рисовые хлопья', cat:'злаки', min_age:4, emoji:'🍚' },
     { id:'oat_flakes', name:'Овсяные хлопья', cat:'злаки', min_age:4, emoji:'🌾' },
-    // Мясо (20+)
+    // Мясо
     { id:'turkey', name:'Индейка', cat:'мясо', min_age:6, emoji:'🦃' },
     { id:'chicken', name:'Курица', cat:'мясо', min_age:6, emoji:'🐔' },
     { id:'beef', name:'Говядина', cat:'мясо', min_age:6, emoji:'🥩' },
@@ -151,7 +151,7 @@ const PRODUCTS = [
     { id:'goat', name:'Козлятина', cat:'мясо', min_age:7, emoji:'🐐' },
     { id:'liver_beef', name:'Печень говяжья', cat:'мясо', min_age:7, emoji:'🫀' },
     { id:'liver_chicken', name:'Печень куриная', cat:'мясо', min_age:7, emoji:'🫀' },
-    // Рыба и морепродукты (20+)
+    // Рыба
     { id:'cod', name:'Треска', cat:'рыба', min_age:8, emoji:'🐟' },
     { id:'hake', name:'Хек', cat:'рыба', min_age:8, emoji:'🐟' },
     { id:'salmon', name:'Лосось', cat:'рыба', min_age:8, emoji:'🐠' },
@@ -170,7 +170,7 @@ const PRODUCTS = [
     // Яйцо
     { id:'egg', name:'Яйцо куриное', cat:'яйцо', min_age:6, emoji:'🥚' },
     { id:'quail_egg', name:'Яйцо перепелиное', cat:'яйцо', min_age:6, emoji:'🥚' },
-    // Молочные продукты (15+)
+    // Молочные
     { id:'yogurt', name:'Натуральный йогурт', cat:'молочное', min_age:6, emoji:'🥛' },
     { id:'cottage_cheese', name:'Творог', cat:'молочное', min_age:6, emoji:'🧀' },
     { id:'kefir', name:'Кефир', cat:'молочное', min_age:7, emoji:'🥛' },
@@ -180,7 +180,7 @@ const PRODUCTS = [
     { id:'ricotta', name:'Рикотта', cat:'молочное', min_age:6, emoji:'🧀' },
     { id:'cream', name:'Сливки', cat:'молочное', min_age:8, emoji:'🥛' },
     { id:'butter', name:'Сливочное масло', cat:'жиры', min_age:6, emoji:'🧈' },
-    // Бобовые (12+)
+    // Бобовые
     { id:'lentil', name:'Красная чечевица', cat:'бобовые', min_age:7, emoji:'🫘' },
     { id:'chickpea', name:'Нут', cat:'бобовые', min_age:7, emoji:'🫘' },
     { id:'beans', name:'Фасоль белая', cat:'бобовые', min_age:8, emoji:'🫘' },
@@ -188,7 +188,7 @@ const PRODUCTS = [
     { id:'tofu', name:'Тофу', cat:'бобовые', min_age:6, emoji:'🫘' },
     { id:'edamame', name:'Эдамаме', cat:'бобовые', min_age:8, emoji:'🫘' },
     { id:'black_beans', name:'Чёрная фасоль', cat:'бобовые', min_age:8, emoji:'🫘' },
-    // Орехи и семена (20+)
+    // Орехи и семена
     { id:'peanut', name:'Арахис', cat:'орехи', min_age:6, emoji:'🥜' },
     { id:'almond', name:'Миндаль', cat:'орехи', min_age:6, emoji:'🥜' },
     { id:'cashew', name:'Кешью', cat:'орехи', min_age:6, emoji:'🥜' },
@@ -201,12 +201,12 @@ const PRODUCTS = [
     { id:'hemp_seeds', name:'Семена конопли', cat:'семена', min_age:8, emoji:'🌱' },
     { id:'pumpkin_seeds', name:'Тыквенные семечки', cat:'семена', min_age:8, emoji:'🌱' },
     { id:'sunflower_seeds', name:'Семена подсолнечника', cat:'семена', min_age:8, emoji:'🌱' },
-    // Масла и жиры (8+)
+    // Масла
     { id:'olive_oil', name:'Оливковое масло', cat:'жиры', min_age:6, emoji:'🫒' },
     { id:'rapeseed_oil', name:'Рапсовое масло', cat:'жиры', min_age:6, emoji:'🫒' },
     { id:'sunflower_oil', name:'Подсолнечное масло', cat:'жиры', min_age:6, emoji:'🫒' },
     { id:'coconut_oil', name:'Кокосовое масло', cat:'жиры', min_age:6, emoji:'🥥' },
-    // Травы и специи (15+)
+    // Травы и специи
     { id:'cinnamon', name:'Корица', cat:'специи', min_age:6, emoji:'🟤' },
     { id:'turmeric', name:'Куркума', cat:'специи', min_age:6, emoji:'🟡' },
     { id:'ginger', name:'Имбирь', cat:'специи', min_age:8, emoji:'🟤' },
