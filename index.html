@@ -2,231 +2,40 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#F8F5F1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Прикорм 🌸</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; background: #f8f4f0; }
-        #app { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 16px; }
-        .error { color: red; background: #ffe0e0; padding: 10px; border-radius: 8px; margin: 10px 0; }
-        .ok { color: green; }
-        .log { background: #f0f0f0; padding: 8px; border-radius: 6px; margin: 4px 0; font-size: 14px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-        <h2>🌸 Прикорм</h2>
-        <div id="status">Загрузка...</div>
-        <div id="log"></div>
-    </div>
-
-    <script>
-        // ============================================================
-        // 1. Показываем сообщения на экране
-        // ============================================================
-        function log(msg, type = 'info') {
-            const logDiv = document.getElementById('log');
-            const p = document.createElement('div');
-            p.className = 'log';
-            p.style.color = type === 'error' ? 'red' : type === 'ok' ? 'green' : '#333';
-            p.textContent = msg;
-            logDiv.appendChild(p);
-            console.log(msg);
-        }
-
-        function setStatus(msg, isError = false) {
-            const status = document.getElementById('status');
-            status.textContent = msg;
-            status.style.color = isError ? 'red' : 'green';
-        }
-
-        // Перехват ошибок
-        window.onerror = function(message, source, line, col, error) {
-            log('❌ ОШИБКА: ' + message + ' (в ' + (source || 'неизвестно') + ' строка ' + line + ')', 'error');
-            setStatus('❌ Ошибка! Смотрите лог ниже.', true);
-            return true;
-        };
-
-        log('🚀 Начинаем загрузку...', 'ok');
-        setStatus('Загрузка...');
-    </script>
+    <div id="app"></div>
 
     <!-- ============================================================
-         ЗАГРУЗКА ВСЕХ СКРИПТОВ С ОТЛОВОМ ОШИБОК
+         ПОДКЛЮЧЕНИЕ ВСЕХ МОДУЛЕЙ (порядок важен!)
     ============================================================ -->
+    <script src="config.js"></script>
+    <script src="products.js"></script>
+    <script src="recipes.js"></script>
+    <script src="diary.js"></script>
+    <script src="safety.js"></script>
+    <script src="recommendations.js"></script>
+    <script src="utils.js"></script>
+    <script src="state.js"></script>
+    <script src="ui.js"></script>
+    <script src="rendering.js"></script>
+    <script src="handlers.js"></script>
+    <script src="theme.js"></script>
+    <script src="app.js"></script>
 
-    <script>
-        try {
-            log('📁 Загружаем config.js...');
-            var s1 = document.createElement('script');
-            s1.src = 'config.js';
-            s1.onload = function() { log('✅ config.js загружен', 'ok'); };
-            s1.onerror = function() { log('❌ config.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s1);
-        } catch(e) { log('❌ Ошибка config.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем products.js...');
-            var s2 = document.createElement('script');
-            s2.src = 'products.js';
-            s2.onload = function() { 
-                log('✅ products.js загружен, продуктов: ' + (typeof PRODUCTS !== 'undefined' ? PRODUCTS.length : 'НЕТ'), 'ok');
-            };
-            s2.onerror = function() { log('❌ products.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s2);
-        } catch(e) { log('❌ Ошибка products.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем recipes.js...');
-            var s3 = document.createElement('script');
-            s3.src = 'recipes.js';
-            s3.onload = function() { log('✅ recipes.js загружен', 'ok'); };
-            s3.onerror = function() { log('❌ recipes.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s3);
-        } catch(e) { log('❌ Ошибка recipes.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем diary.js...');
-            var s4 = document.createElement('script');
-            s4.src = 'diary.js';
-            s4.onload = function() { log('✅ diary.js загружен', 'ok'); };
-            s4.onerror = function() { log('❌ diary.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s4);
-        } catch(e) { log('❌ Ошибка diary.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем safety.js...');
-            var s5 = document.createElement('script');
-            s5.src = 'safety.js';
-            s5.onload = function() { log('✅ safety.js загружен', 'ok'); };
-            s5.onerror = function() { log('❌ safety.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s5);
-        } catch(e) { log('❌ Ошибка safety.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем recommendations.js...');
-            var s6 = document.createElement('script');
-            s6.src = 'recommendations.js';
-            s6.onload = function() { log('✅ recommendations.js загружен', 'ok'); };
-            s6.onerror = function() { log('❌ recommendations.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s6);
-        } catch(e) { log('❌ Ошибка recommendations.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем utils.js...');
-            var s7 = document.createElement('script');
-            s7.src = 'utils.js';
-            s7.onload = function() { log('✅ utils.js загружен', 'ok'); };
-            s7.onerror = function() { log('❌ utils.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s7);
-        } catch(e) { log('❌ Ошибка utils.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем state.js...');
-            var s8 = document.createElement('script');
-            s8.src = 'state.js';
-            s8.onload = function() { 
-                log('✅ state.js загружен, STATE = ' + (typeof STATE !== 'undefined' ? 'ОПРЕДЕЛЁН' : 'НЕ ОПРЕДЕЛЁН'), 'ok');
-            };
-            s8.onerror = function() { log('❌ state.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s8);
-        } catch(e) { log('❌ Ошибка state.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем ui.js...');
-            var s9 = document.createElement('script');
-            s9.src = 'ui.js';
-            s9.onload = function() { log('✅ ui.js загружен', 'ok'); };
-            s9.onerror = function() { log('❌ ui.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s9);
-        } catch(e) { log('❌ Ошибка ui.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем rendering.js...');
-            var s10 = document.createElement('script');
-            s10.src = 'rendering.js';
-            s10.onload = function() { log('✅ rendering.js загружен', 'ok'); };
-            s10.onerror = function() { log('❌ rendering.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s10);
-        } catch(e) { log('❌ Ошибка rendering.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем handlers.js...');
-            var s11 = document.createElement('script');
-            s11.src = 'handlers.js';
-            s11.onload = function() { log('✅ handlers.js загружен', 'ok'); };
-            s11.onerror = function() { log('❌ handlers.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s11);
-        } catch(e) { log('❌ Ошибка handlers.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем theme.js...');
-            var s12 = document.createElement('script');
-            s12.src = 'theme.js';
-            s12.onload = function() { log('✅ theme.js загружен', 'ok'); };
-            s12.onerror = function() { log('❌ theme.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s12);
-        } catch(e) { log('❌ Ошибка theme.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        try {
-            log('📁 Загружаем app.js...');
-            var s13 = document.createElement('script');
-            s13.src = 'app.js';
-            s13.onload = function() { 
-                log('✅ app.js загружен', 'ok');
-                if (typeof initApp === 'function') {
-                    log('🚀 Запускаем initApp()...', 'ok');
-                    try { initApp(); } catch(e) { log('❌ Ошибка в initApp(): ' + e.message, 'error'); }
-                } else {
-                    log('❌ Функция initApp не найдена!', 'error');
-                }
-            };
-            s13.onerror = function() { log('❌ app.js НЕ ЗАГРУЗИЛСЯ (404)', 'error'); };
-            document.head.appendChild(s13);
-        } catch(e) { log('❌ Ошибка app.js: ' + e.message, 'error'); }
-    </script>
-
-    <script>
-        // Финальное сообщение
-        setTimeout(function() {
-            log('⏳ Загрузка завершена. Проверьте ошибки выше.', 'ok');
-            setStatus('✅ Страница загружена!');
-        }, 3000);
-    </script>
-
-    <!-- Консоль Eruda (для телефона) -->
+    <!-- ============================================================
+         КОНСОЛЬ ДЛЯ ТЕЛЕФОНА (Eruda) – можно убрать, если не нужно
+    ============================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>
-        try {
-            eruda.init();
-            log('✅ Eruda загружена! Нажмите на кружок в правом нижнем углу.', 'ok');
-        } catch(e) {
-            log('❌ Eruda не загрузилась: ' + e.message, 'error');
-        }
+        eruda.init();
     </script>
-
 </body>
 </html>
