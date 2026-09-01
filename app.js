@@ -3,21 +3,9 @@
    Главная точка запуска приложения
    ============================================================ */
 
-
-/* ============================================================
-   APPLICATION
-   ============================================================ */
-
-// Используем глобальный APP_CONFIG из config.js, если он там есть, иначе создаём свой
-if (typeof APP_CONFIG === 'undefined' && typeof window.APP_CONFIG !== 'undefined') {
-    var APP_CONFIG = window.APP_CONFIG;
-} else if (typeof APP_CONFIG === 'undefined') {
-    var APP_CONFIG = {
-        name: "Прикорм",
-        version: "4.0.0",
-        defaultScreen: "home"
-    };
-}
+// Используем глобальный APP_CONFIG из config.js.
+// В нём нет поля defaultScreen, поэтому определим свою константу.
+const DEFAULT_SCREEN = "home";
 
 
 /* ============================================================
@@ -46,8 +34,9 @@ if (typeof buildApp === 'undefined') {
 
 function initApp() {
 
+    // Используем APP_CONFIG из глобальной области (config.js)
     console.log(
-        `🌸 ${APP_CONFIG.name} v${APP_CONFIG.version}`
+        `🌸 ${APP_CONFIG.app.name} v${APP_CONFIG.app.version}`
     );
 
 
@@ -127,7 +116,7 @@ function initApp() {
     const screen =
         (typeof STATE !== 'undefined' && STATE.ui && STATE.ui.screen)
             ? STATE.ui.screen
-            : APP_CONFIG.defaultScreen;
+            : DEFAULT_SCREEN;
 
 
     if (typeof showScreen === 'function') {
@@ -195,8 +184,7 @@ function initializeState() {
                     notifications: true
                 },
                 ui: {
-                    screen:
-                        APP_CONFIG.defaultScreen
+                    screen: DEFAULT_SCREEN
                 }
             };
         }
@@ -285,8 +273,7 @@ function normalizeState() {
 
     if (!STATE.ui.screen) {
 
-        STATE.ui.screen =
-            APP_CONFIG.defaultScreen;
+        STATE.ui.screen = DEFAULT_SCREEN;
     }
 
 
@@ -406,8 +393,7 @@ function showScreen(
         )
     ) {
 
-        screen =
-            APP_CONFIG.defaultScreen;
+        screen = DEFAULT_SCREEN;
     }
 
 
@@ -757,7 +743,7 @@ function resetState() {
 
         ui: {
 
-            screen: "home"
+            screen: DEFAULT_SCREEN
 
         }
 
@@ -1121,7 +1107,7 @@ function startApplication() {
 
         render(
             STATE.ui?.screen ||
-            APP_CONFIG.defaultScreen
+            DEFAULT_SCREEN
         );
     }
 }
