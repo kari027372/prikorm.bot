@@ -1144,3 +1144,4 @@ window.resetState =
 
 window.migrateLegacyProfile =
     migrateLegacyProfile;
+    
