@@ -1954,3 +1954,78 @@ window.renderSettings =
 
 window.renderBottomNavigation =
     renderBottomNavigation;
+
+
+/* ============================================================
+   ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ПЛАНА (добавлено)
+   ============================================================ */
+
+// Глобальная переменная для текущей даты (если ещё не определена)
+if (typeof CURRENT_DATE === 'undefined') {
+    window.CURRENT_DATE = new Date();
+}
+
+/**
+ * Получить план на указанную дату
+ * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
+ * @returns {Array} массив приёмов пищи
+ */
+function getPlanForDate(dateStr) {
+    if (!STATE.plan) STATE.plan = { days: {} };
+    if (!STATE.plan.days) STATE.plan.days = {};
+    return STATE.plan.days[dateStr] || [];
+}
+
+/**
+ * Сохранить план на указанную дату
+ * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
+ * @param {Array} meals - массив приёмов пищи
+ */
+function setPlanForDate(dateStr, meals) {
+    if (!STATE.plan) STATE.plan = { days: {} };
+    if (!STATE.plan.days) STATE.plan.days = {};
+    STATE.plan.days[dateStr] = Array.isArray(meals) ? meals : [];
+    saveState();
+    emitStateChange();
+}
+
+/**
+ * Добавить приём пищи в план на указанную дату
+ * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
+ * @param {Object} meal - объект с данными о приёме пищи
+ */
+function addMealToPlan(dateStr, meal) {
+    const plan = getPlanForDate(dateStr);
+    plan.push(meal);
+    setPlanForDate(dateStr, plan);
+}
+
+/**
+ * Удалить приём пищи из плана по индексу
+ * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
+ * @param {number} index - индекс удаляемого элемента
+ */
+function removeMealFromPlan(dateStr, index) {
+    const plan = getPlanForDate(dateStr);
+    if (index >= 0 && index < plan.length) {
+        plan.splice(index, 1);
+        setPlanForDate(dateStr, plan);
+    }
+}
+
+/**
+ * Перерисовать блок плана (вызывается при смене даты)
+ * @param {string} dateStr - дата в формате ГГГГ-ММ-ДД
+ */
+function renderDailyPlan(dateStr) {
+    // Просто перерисовываем весь экран "Сегодня"
+    render('today');
+}
+
+// Экспортируем новые функции в глобальную область
+window.getPlanForDate = getPlanForDate;
+window.setPlanForDate = setPlanForDate;
+window.addMealToPlan = addMealToPlan;
+window.removeMealFromPlan = removeMealFromPlan;
+window.renderDailyPlan = renderDailyPlan;
+window.CURRENT_DATE = CURRENT_DATE;
