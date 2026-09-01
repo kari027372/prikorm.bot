@@ -1,66 +1,109 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Прикорм — отладка</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:sans-serif;background:#f5f0eb;display:flex;justify-content:center;padding:10px}
-#app{max-width:480px;width:100%;background:#fff;border-radius:20px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,0.1)}
-.error-box{background:#ffe0e0;border-left:4px solid #c00;padding:12px;margin:12px 0;border-radius:8px}
-.error-box strong{color:#c00}
-.log-box{background:#f0f0f0;padding:12px;border-radius:8px;font-size:13px;max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-all}
-button{padding:12px 20px;border:none;border-radius:12px;background:#d4a373;color:#fff;font-weight:600;cursor:pointer;margin:8px 0;width:100%}
-button.danger{background:#c62828}
-h2{margin:16px 0 8px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Прикорм 🌸</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI',Roboto,sans-serif;background:#f5f0eb;display:flex;justify-content:center;padding:0;min-height:100vh}
+        #app{max-width:480px;width:100%;background:#fff;min-height:100vh;padding:16px 16px 80px;position:relative;box-shadow:0 0 20px rgba(0,0,0,0.05)}
+        .onboarding{display:flex;flex-direction:column;justify-content:center;min-height:80vh;padding:0 16px;text-align:center;animation:fadeIn 0.5s}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .onboarding .step-indicators{display:flex;justify-content:center;gap:8px;margin:20px 0 30px}
+        .onboarding .step-indicators span{width:10px;height:10px;border-radius:50%;background:#ddd;transition:0.3s}
+        .onboarding .step-indicators span.active{background:#d4a373;width:24px;border-radius:12px}
+        .onboarding .emoji-big{font-size:72px;margin-bottom:16px}
+        .onboarding h1{font-size:28px;font-weight:700;color:#2d1f14;margin-bottom:8px}
+        .onboarding p{font-size:16px;color:#777;margin-bottom:24px;line-height:1.5}
+        .onboarding .btn-group{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+        .onboarding .btn-group button{padding:16px;border:none;border-radius:16px;font-size:18px;font-weight:600;background:#f0ebe7;cursor:pointer;transition:all 0.2s}
+        .onboarding .btn-group button:active{transform:scale(0.96)}
+        .onboarding .btn-group button.primary{background:#d4a373;color:#fff}
+        .onboarding .btn-group button.primary:hover{background:#c4956a}
+        .onboarding .btn-group button.secondary{background:transparent;color:#888;font-weight:400}
+        .onboarding input[type="date"], .onboarding input[type="text"]{width:100%;padding:16px;border:2px solid #e8e0d8;border-radius:16px;font-size:18px;text-align:center;margin:12px 0;background:#fafafa;transition:border 0.2s}
+        .onboarding input:focus{outline:none;border-color:#d4a373}
+        .onboarding .skip{color:#999;font-size:14px;margin-top:16px;background:none;border:none;text-decoration:underline;cursor:pointer}
+        .onboarding .nav-buttons{display:flex;justify-content:space-between;margin-top:24px;gap:12px}
+        .onboarding .nav-buttons button{flex:1;padding:14px;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;transition:0.2s}
+        .onboarding .nav-buttons button:active{transform:scale(0.96)}
+        .onboarding .nav-buttons button.prev{background:#f0ebe7;color:#555}
+        .onboarding .nav-buttons button.next{background:#d4a373;color:#fff}
+        .onboarding .nav-buttons button.next:disabled{opacity:0.5;pointer-events:none}
+        .dashboard{display:block}
+        .welcome-card{background:linear-gradient(135deg,#fdf6f0,#f5ebe3);border-radius:24px;padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.04)}
+        .welcome-card .info h1{font-size:24px;font-weight:700;color:#2d1f14;margin:0}
+        .welcome-card .info p{font-size:16px;color:#777;margin:4px 0 0}
+        .welcome-card .avatar{font-size:56px}
+        .status-card{background:#fff;border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04);border:1px solid #f0ebe7}
+        .status-card .row{display:flex;justify-content:space-between;align-items:center}
+        .status-card .label{font-size:14px;color:#888}
+        .status-card .value{font-size:16px;font-weight:600;color:#2d1f14}
+        .progress-card{background:#fff;border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04);border:1px solid #f0ebe7}
+        .progress-card .header{display:flex;justify-content:space-between;margin-bottom:8px}
+        .progress-card .header span{font-weight:600}
+        .progress-card .track{background:#f0ebe7;height:8px;border-radius:10px;overflow:hidden}
+        .progress-card .track .fill{background:#d4a373;height:100%;border-radius:10px;transition:width 0.4s}
+        .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+        .quick-card{background:#fff;border:1px solid #f0ebe7;border-radius:16px;padding:16px;text-align:center;cursor:pointer;transition:0.2s}
+        .quick-card:active{transform:scale(0.96)}
+        .quick-card .icon{font-size:32px;display:block;margin-bottom:6px}
+        .quick-card .label{font-size:14px;font-weight:600;color:#2d1f14}
+        .quick-card .desc{font-size:12px;color:#888}
+        .recommendation-card{background:#f5faf5;border-radius:20px;padding:16px;margin:16px 0;display:flex;align-items:center;gap:12px;border:1px solid #e0f0e0}
+        .recommendation-card .icon{font-size:40px}
+        .recommendation-card .content{flex:1}
+        .recommendation-card .content .tag{font-size:12px;text-transform:uppercase;color:#6a8a7a;letter-spacing:0.5px}
+        .recommendation-card .content h3{font-size:18px;margin:4px 0}
+        .recommendation-card .content p{font-size:14px;color:#555}
+        .recommendation-card .action{background:#d4a373;border:none;padding:8px 16px;border-radius:30px;color:#fff;font-weight:600;cursor:pointer;font-size:14px}
+        .tab-bar{display:flex;gap:10px;background:#fff;padding:10px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+        .tab-bar button{flex:1;padding:10px;border:none;border-radius:10px;background:#f0ebe7;cursor:pointer;font-weight:600;transition:0.2s}
+        .tab-bar button.active{background:#d4a373;color:#fff}
+        .page{display:none;padding-top:12px}
+        .page.active{display:block}
+        .product-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+        .product-item{background:#fafafa;padding:12px;border-radius:8px;text-align:center;cursor:pointer;transition:0.2s;border:1px solid transparent}
+        .product-item:active{transform:scale(0.96)}
+        .product-item .emoji{font-size:30px;display:block}
+        .product-item .name{font-size:14px;font-weight:600;margin-top:4px}
+        .product-item .cat{font-size:12px;color:#888}
+        .product-item.introduced{background:#e8f5e9;border-color:#a5d6a7}
+        .diary-entry{display:flex;align-items:center;background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px}
+        .diary-entry .info{flex:1}
+        .diary-entry .date{font-size:12px;color:#888}
+        .settings-row{display:flex;align-items:center;background:#fafafa;padding:12px;border-radius:8px;margin-bottom:6px;border:none;width:100%;text-align:left;cursor:pointer}
+        .settings-row span:first-child{font-size:20px;margin-right:12px}
+        .settings-row div{flex:1}
+        .settings-row strong{display:block}
+        .settings-row small{color:#888}
+        .danger-button{background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:14px;width:100%;font-weight:700;cursor:pointer;margin:16px 0}
+        .empty-state{text-align:center;padding:40px 20px;color:#999}
+        .empty-state .empty-icon{font-size:64px}
+        .empty-state h3{font-size:18px;color:#555}
+        .empty-state p{font-size:14px}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;display:flex;justify-content:space-around;background:#fff;padding:8px 0;border-top:1px solid #eee;box-shadow:0 -2px 10px rgba(0,0,0,0.04)}
+        .bottom-nav button{background:none;border:none;font-size:12px;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+        .bottom-nav button.active{color:#d4a373;font-weight:700}
+        .bottom-nav button .nav-icon{font-size:24px}
+    </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
 // ============================================================
-// ОТЛАДОЧНАЯ СТРАНИЦА – ПОКАЗЫВАЕТ ОШИБКИ И СОСТОЯНИЕ
-// ============================================================
-
-const app = document.getElementById('app');
-
-// Перехват всех ошибок
-window.onerror = function(msg, source, line, col, error) {
-    showError(msg + (error ? ' (подробнее в консоли)' : ''));
-    return true;
-};
-
-// Функция показа ошибки на экране
-function showError(msg) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-box';
-    errorDiv.innerHTML = `<strong>⚠️ Ошибка:</strong> ${msg}`;
-    app.prepend(errorDiv);
-}
-
-// Функция вывода лога
-function log(msg, type = 'info') {
-    const logDiv = document.getElementById('log');
-    if (!logDiv) return;
-    const p = document.createElement('div');
-    p.style.color = type === 'error' ? 'red' : type === 'ok' ? 'green' : '#333';
-    p.textContent = msg;
-    logDiv.appendChild(p);
-    console.log(msg);
-}
-
-// Функция принудительной очистки
-function resetAndReload() {
-    localStorage.removeItem('prikorm_app_state');
-    location.reload();
-}
-
-// ============================================================
-// ЗАГРУЗКА СОСТОЯНИЯ С НОРМАЛИЗАЦИЕЙ
+// 1. СОСТОЯНИЕ И ДАННЫЕ
 // ============================================================
 const DEFAULT_STATE = {
-    baby: { name: '', birthDate: '', feedingType: 'ГВ', feedingStarted: false, feedingStartDate: '', approach: 'mixed' },
+    baby: {
+        name: '',
+        birthDate: '',
+        feedingType: 'ГВ',
+        feedingStarted: false,
+        feedingStartDate: '',
+        approach: 'mixed'
+    },
     diary: [],
     introduced: [],
     favorites: [],
@@ -69,94 +112,584 @@ const DEFAULT_STATE = {
     onboardingCompleted: false
 };
 
-let STATE;
-try {
-    const saved = localStorage.getItem('prikorm_app_state');
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
-        // Копируем только существующие поля
-        for (const key in parsed) {
-            if (key !== 'baby' && DEFAULT_STATE.hasOwnProperty(key)) {
-                STATE[key] = parsed[key];
-            }
-        }
-        if (parsed.baby) {
-            STATE.baby = { ...STATE.baby, ...parsed.baby };
-        }
-        // Гарантируем массивы
-        if (!Array.isArray(STATE.introduced)) STATE.introduced = [];
-        if (!Array.isArray(STATE.diary)) STATE.diary = [];
-        if (!Array.isArray(STATE.favorites)) STATE.favorites = [];
-        if (!Array.isArray(STATE.reactions)) STATE.reactions = [];
-    } else {
-        STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
-    }
-} catch(e) {
-    showError('Ошибка чтения сохранённых данных: ' + e.message);
-    STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
-}
+let STATE = JSON.parse(localStorage.getItem('prikorm_app_state')) || JSON.parse(JSON.stringify(DEFAULT_STATE));
 
-// Функция сохранения
 function saveState() {
-    try {
-        localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
-    } catch(e) {
-        showError('Ошибка сохранения: ' + e.message);
-    }
+    localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
+}
+
+// ПРОДУКТЫ (полный список – вставьте свой)
+const PRODUCTS = [
+    { id:'courgette', name:'Кабачок', cat:'овощ', min_age:4, emoji:'🥒' },
+    { id:'broccoli', name:'Брокколи', cat:'овощ', min_age:4, emoji:'🥦' },
+    { id:'cauliflower', name:'Цветная капуста', cat:'овощ', min_age:4, emoji:'🥦' },
+    { id:'pumpkin', name:'Тыква', cat:'овощ', min_age:5, emoji:'🎃' },
+    { id:'carrot', name:'Морковь', cat:'овощ', min_age:5, emoji:'🥕' },
+    { id:'potato', name:'Картофель', cat:'овощ', min_age:5, emoji:'🥔' },
+    { id:'sweet_potato', name:'Батат', cat:'овощ', min_age:6, emoji:'🍠' },
+    { id:'beetroot', name:'Свёкла', cat:'овощ', min_age:6, emoji:'🟣' },
+    { id:'cucumber', name:'Огурец', cat:'овощ', min_age:6, emoji:'🥒' },
+    { id:'tomato', name:'Помидор', cat:'овощ', min_age:6, emoji:'🍅' },
+    { id:'pepper', name:'Сладкий перец', cat:'овощ', min_age:6, emoji:'🫑' },
+    { id:'peas', name:'Зелёный горошек', cat:'овощ', min_age:6, emoji:'🟢' },
+    { id:'green_beans', name:'Стручковая фасоль', cat:'овощ', min_age:6, emoji:'🫘' },
+    { id:'spinach', name:'Шпинат', cat:'овощ', min_age:6, emoji:'🌿' },
+    { id:'jerusalem_artichoke', name:'Топинамбур', cat:'овощ', min_age:6, emoji:'🌰' },
+    { id:'parsnip', name:'Пастернак', cat:'овощ', min_age:6, emoji:'🥕' },
+    { id:'celery', name:'Сельдерей', cat:'овощ', min_age:6, emoji:'🌿' },
+    { id:'turnip', name:'Репа', cat:'овощ', min_age:6, emoji:'🥔' },
+    { id:'radish', name:'Редис', cat:'овощ', min_age:8, emoji:'🫚' },
+    { id:'fennel', name:'Фенхель', cat:'овощ', min_age:6, emoji:'🌿' },
+    { id:'leek', name:'Лук-порей', cat:'овощ', min_age:7, emoji:'🧅' },
+    { id:'asparagus', name:'Спаржа', cat:'овощ', min_age:8, emoji:'🌿' },
+    { id:'artichoke', name:'Артишок', cat:'овощ', min_age:8, emoji:'🌿' },
+    { id:'kale', name:'Кале', cat:'овощ', min_age:6, emoji:'🥬' },
+    { id:'swiss_chard', name:'Мангольд', cat:'овощ', min_age:6, emoji:'🥬' },
+    { id:'endive', name:'Эндивий', cat:'овощ', min_age:8, emoji:'🥬' },
+    { id:'radicchio', name:'Радиккио', cat:'овощ', min_age:8, emoji:'🥬' },
+    { id:'bok_choy', name:'Пак-чой', cat:'овощ', min_age:6, emoji:'🥬' },
+    { id:'chinese_cabbage', name:'Пекинская капуста', cat:'овощ', min_age:6, emoji:'🥬' },
+    { id:'daikon', name:'Дайкон', cat:'овощ', min_age:8, emoji:'🫚' },
+    { id:'plantain', name:'Плантан', cat:'овощ', min_age:6, emoji:'🍌' },
+    { id:'yuca', name:'Юка', cat:'овощ', min_age:6, emoji:'🥔' },
+    { id:'malanga', name:'Маланга', cat:'овощ', min_age:6, emoji:'🥔' },
+    { id:'kohlrabi', name:'Кольраби', cat:'овощ', min_age:6, emoji:'🥬' },
+    { id:'celeriac', name:'Сельдерей корневой', cat:'овощ', min_age:6, emoji:'🌿' },
+    // Фрукты
+    { id:'apple', name:'Яблоко', cat:'фрукт', min_age:6, emoji:'🍎' },
+    { id:'pear', name:'Груша', cat:'фрукт', min_age:6, emoji:'🍐' },
+    { id:'banana', name:'Банан', cat:'фрукт', min_age:6, emoji:'🍌' },
+    { id:'peach', name:'Персик', cat:'фрукт', min_age:6, emoji:'🍑' },
+    { id:'apricot', name:'Абрикос', cat:'фрукт', min_age:6, emoji:'🍑' },
+    { id:'plum', name:'Слива', cat:'фрукт', min_age:6, emoji:'🫐' },
+    { id:'mango', name:'Манго', cat:'фрукт', min_age:6, emoji:'🥭' },
+    { id:'avocado', name:'Авокадо', cat:'фрукт', min_age:6, emoji:'🥑' },
+    { id:'kiwi', name:'Киви', cat:'фрукт', min_age:6, emoji:'🥝' },
+    { id:'grapefruit', name:'Грейпфрут', cat:'фрукт', min_age:8, emoji:'🍊' },
+    { id:'lime', name:'Лайм', cat:'фрукт', min_age:8, emoji:'🍋' },
+    { id:'lemon', name:'Лимон', cat:'фрукт', min_age:8, emoji:'🍋' },
+    { id:'persimmon', name:'Хурма', cat:'фрукт', min_age:8, emoji:'🟠' },
+    { id:'pomegranate', name:'Гранат', cat:'фрукт', min_age:10, emoji:'🟣' },
+    { id:'fig', name:'Инжир', cat:'фрукт', min_age:8, emoji:'🟣' },
+    { id:'date', name:'Финики', cat:'фрукт', min_age:10, emoji:'🟤' },
+    { id:'pineapple', name:'Ананас', cat:'фрукт', min_age:8, emoji:'🍍' },
+    { id:'papaya', name:'Папайя', cat:'фрукт', min_age:6, emoji:'🥭' },
+    { id:'guava', name:'Гуава', cat:'фрукт', min_age:8, emoji:'🟢' },
+    { id:'passion_fruit', name:'Маракуйя', cat:'фрукт', min_age:8, emoji:'🟡' },
+    { id:'jackfruit', name:'Джекфрут', cat:'фрукт', min_age:8, emoji:'🟢' },
+    { id:'dragon_fruit', name:'Питахайя', cat:'фрукт', min_age:8, emoji:'🟣' },
+    // Ягоды
+    { id:'strawberry', name:'Клубника', cat:'ягода', min_age:6, emoji:'🍓' },
+    { id:'raspberry', name:'Малина', cat:'ягода', min_age:6, emoji:'🫐' },
+    { id:'blueberry', name:'Голубика', cat:'ягода', min_age:6, emoji:'🫐' },
+    { id:'blackberry', name:'Ежевика', cat:'ягода', min_age:6, emoji:'🫐' },
+    { id:'cranberry', name:'Клюква', cat:'ягода', min_age:8, emoji:'🫐' },
+    { id:'sea_buckthorn', name:'Облепиха', cat:'ягода', min_age:8, emoji:'🟠' },
+    { id:'gooseberry', name:'Крыжовник', cat:'ягода', min_age:8, emoji:'🟢' },
+    { id:'currant', name:'Смородина', cat:'ягода', min_age:8, emoji:'🔴' },
+    { id:'lingonberry', name:'Брусника', cat:'ягода', min_age:8, emoji:'🔴' },
+    { id:'cloudberry', name:'Морошка', cat:'ягода', min_age:8, emoji:'🟠' },
+    // Каши и злаки
+    { id:'buckwheat', name:'Гречка', cat:'каша', min_age:4, emoji:'🌾' },
+    { id:'rice', name:'Рис', cat:'каша', min_age:4, emoji:'🍚' },
+    { id:'corn', name:'Кукурузная крупа', cat:'каша', min_age:4, emoji:'🌽' },
+    { id:'oatmeal', name:'Овсянка', cat:'каша', min_age:4, emoji:'🌾' },
+    { id:'millet', name:'Пшено', cat:'каша', min_age:6, emoji:'🌾' },
+    { id:'barley', name:'Ячневая крупа', cat:'каша', min_age:6, emoji:'🌾' },
+    { id:'wheat', name:'Пшеница', cat:'каша', min_age:6, emoji:'🌾' },
+    { id:'quinoa', name:'Киноа', cat:'злаки', min_age:6, emoji:'🌾' },
+    { id:'amaranth', name:'Амарант', cat:'злаки', min_age:6, emoji:'🌾' },
+    { id:'spelt', name:'Полба', cat:'злаки', min_age:8, emoji:'🌾' },
+    { id:'bulgur', name:'Булгур', cat:'злаки', min_age:8, emoji:'🌾' },
+    { id:'couscous', name:'Кус-кус', cat:'злаки', min_age:8, emoji:'🌾' },
+    { id:'sorghum', name:'Сорго', cat:'злаки', min_age:6, emoji:'🌾' },
+    { id:'teff', name:'Теф', cat:'злаки', min_age:6, emoji:'🌾' },
+    { id:'rice_flakes', name:'Рисовые хлопья', cat:'злаки', min_age:4, emoji:'🍚' },
+    { id:'oat_flakes', name:'Овсяные хлопья', cat:'злаки', min_age:4, emoji:'🌾' },
+    // Мясо
+    { id:'turkey', name:'Индейка', cat:'мясо', min_age:6, emoji:'🦃' },
+    { id:'chicken', name:'Курица', cat:'мясо', min_age:6, emoji:'🐔' },
+    { id:'beef', name:'Говядина', cat:'мясо', min_age:6, emoji:'🥩' },
+    { id:'veal', name:'Телятина', cat:'мясо', min_age:6, emoji:'🥩' },
+    { id:'rabbit', name:'Кролик', cat:'мясо', min_age:6, emoji:'🐇' },
+    { id:'duck', name:'Утка', cat:'мясо', min_age:8, emoji:'🦆' },
+    { id:'goose', name:'Гусь', cat:'мясо', min_age:8, emoji:'🦆' },
+    { id:'quail', name:'Перепел', cat:'мясо', min_age:6, emoji:'🐦' },
+    { id:'venison', name:'Оленина', cat:'мясо', min_age:8, emoji:'🦌' },
+    { id:'lamb', name:'Баранина', cat:'мясо', min_age:7, emoji:'🐑' },
+    { id:'goat', name:'Козлятина', cat:'мясо', min_age:7, emoji:'🐐' },
+    { id:'liver_beef', name:'Печень говяжья', cat:'мясо', min_age:7, emoji:'🫀' },
+    { id:'liver_chicken', name:'Печень куриная', cat:'мясо', min_age:7, emoji:'🫀' },
+    // Рыба
+    { id:'cod', name:'Треска', cat:'рыба', min_age:8, emoji:'🐟' },
+    { id:'hake', name:'Хек', cat:'рыба', min_age:8, emoji:'🐟' },
+    { id:'salmon', name:'Лосось', cat:'рыба', min_age:8, emoji:'🐠' },
+    { id:'trout', name:'Форель', cat:'рыба', min_age:8, emoji:'🐠' },
+    { id:'mackerel', name:'Скумбрия', cat:'рыба', min_age:8, emoji:'🐟' },
+    { id:'sardine', name:'Сардины', cat:'рыба', min_age:8, emoji:'🐟' },
+    { id:'anchovy', name:'Анчоусы', cat:'рыба', min_age:8, emoji:'🐟' },
+    { id:'tuna', name:'Тунец', cat:'рыба', min_age:10, emoji:'🐟' },
+    { id:'pollock', name:'Минтай', cat:'рыба', min_age:8, emoji:'🐟' },
+    { id:'halibut', name:'Палтус', cat:'рыба', min_age:8, emoji:'🐟' },
+    { id:'sole', name:'Морской язык', cat:'рыба', min_age:8, emoji:'🐟' },
+    { id:'mussels', name:'Мидии', cat:'морепродукты', min_age:10, emoji:'🦪' },
+    { id:'squid', name:'Кальмар', cat:'морепродукты', min_age:10, emoji:'🦑' },
+    { id:'octopus', name:'Осьминог', cat:'морепродукты', min_age:10, emoji:'🐙' },
+    { id:'shrimp', name:'Креветки', cat:'морепродукты', min_age:10, emoji:'🦐' },
+    // Яйцо
+    { id:'egg', name:'Яйцо куриное', cat:'яйцо', min_age:6, emoji:'🥚' },
+    { id:'quail_egg', name:'Яйцо перепелиное', cat:'яйцо', min_age:6, emoji:'🥚' },
+    // Молочные
+    { id:'yogurt', name:'Натуральный йогурт', cat:'молочное', min_age:6, emoji:'🥛' },
+    { id:'cottage_cheese', name:'Творог', cat:'молочное', min_age:6, emoji:'🧀' },
+    { id:'kefir', name:'Кефир', cat:'молочное', min_age:7, emoji:'🥛' },
+    { id:'goat_milk', name:'Козье молоко', cat:'молочное', min_age:10, emoji:'🥛' },
+    { id:'sheep_cheese', name:'Овечий сыр', cat:'молочное', min_age:8, emoji:'🧀' },
+    { id:'mozzarella', name:'Моцарелла', cat:'молочное', min_age:8, emoji:'🧀' },
+    { id:'ricotta', name:'Рикотта', cat:'молочное', min_age:6, emoji:'🧀' },
+    { id:'cream', name:'Сливки', cat:'молочное', min_age:8, emoji:'🥛' },
+    { id:'butter', name:'Сливочное масло', cat:'жиры', min_age:6, emoji:'🧈' },
+    // Бобовые
+    { id:'lentil', name:'Красная чечевица', cat:'бобовые', min_age:7, emoji:'🫘' },
+    { id:'chickpea', name:'Нут', cat:'бобовые', min_age:7, emoji:'🫘' },
+    { id:'beans', name:'Фасоль белая', cat:'бобовые', min_age:8, emoji:'🫘' },
+    { id:'green_lentil', name:'Зелёная чечевица', cat:'бобовые', min_age:7, emoji:'🫘' },
+    { id:'tofu', name:'Тофу', cat:'бобовые', min_age:6, emoji:'🫘' },
+    { id:'edamame', name:'Эдамаме', cat:'бобовые', min_age:8, emoji:'🫘' },
+    { id:'black_beans', name:'Чёрная фасоль', cat:'бобовые', min_age:8, emoji:'🫘' },
+    // Орехи и семена
+    { id:'peanut', name:'Арахис', cat:'орехи', min_age:6, emoji:'🥜' },
+    { id:'almond', name:'Миндаль', cat:'орехи', min_age:6, emoji:'🥜' },
+    { id:'cashew', name:'Кешью', cat:'орехи', min_age:6, emoji:'🥜' },
+    { id:'hazelnut', name:'Фундук', cat:'орехи', min_age:8, emoji:'🥜' },
+    { id:'walnut', name:'Грецкий орех', cat:'орехи', min_age:8, emoji:'🥜' },
+    { id:'pistachio', name:'Фисташка', cat:'орехи', min_age:8, emoji:'🥜' },
+    { id:'sesame', name:'Кунжут', cat:'семена', min_age:6, emoji:'🌱' },
+    { id:'flaxseed', name:'Семена льна', cat:'семена', min_age:8, emoji:'🌱' },
+    { id:'chia', name:'Семена чиа', cat:'семена', min_age:8, emoji:'🌱' },
+    { id:'hemp_seeds', name:'Семена конопли', cat:'семена', min_age:8, emoji:'🌱' },
+    { id:'pumpkin_seeds', name:'Тыквенные семечки', cat:'семена', min_age:8, emoji:'🌱' },
+    { id:'sunflower_seeds', name:'Семена подсолнечника', cat:'семена', min_age:8, emoji:'🌱' },
+    // Масла
+    { id:'olive_oil', name:'Оливковое масло', cat:'жиры', min_age:6, emoji:'🫒' },
+    { id:'rapeseed_oil', name:'Рапсовое масло', cat:'жиры', min_age:6, emoji:'🫒' },
+    { id:'sunflower_oil', name:'Подсолнечное масло', cat:'жиры', min_age:6, emoji:'🫒' },
+    { id:'coconut_oil', name:'Кокосовое масло', cat:'жиры', min_age:6, emoji:'🥥' },
+    // Травы и специи
+    { id:'cinnamon', name:'Корица', cat:'специи', min_age:6, emoji:'🟤' },
+    { id:'turmeric', name:'Куркума', cat:'специи', min_age:6, emoji:'🟡' },
+    { id:'ginger', name:'Имбирь', cat:'специи', min_age:8, emoji:'🟤' },
+    { id:'basil', name:'Базилик', cat:'травы', min_age:6, emoji:'🌿' },
+    { id:'oregano', name:'Орегано', cat:'травы', min_age:6, emoji:'🌿' },
+    { id:'thyme', name:'Тимьян', cat:'травы', min_age:6, emoji:'🌿' },
+    { id:'parsley', name:'Петрушка', cat:'травы', min_age:6, emoji:'🌿' },
+    { id:'dill', name:'Укроп', cat:'травы', min_age:6, emoji:'🌿' },
+    { id:'mint', name:'Мята', cat:'травы', min_age:6, emoji:'🌿' },
+    { id:'rosemary', name:'Розмарин', cat:'травы', min_age:8, emoji:'🌿' },
+    { id:'sage', name:'Шалфей', cat:'травы', min_age:8, emoji:'🌿' },
+    // Готовые продукты
+    { id:'baby_rice_porridge', name:'Рисовая каша (готовая)', cat:'готовое', min_age:4, emoji:'🥣' },
+    { id:'baby_buckwheat_porridge', name:'Гречневая каша (готовая)', cat:'готовое', min_age:4, emoji:'🥣' },
+    { id:'baby_vegetable_puree', name:'Овощное пюре (готовая банка)', cat:'готовое', min_age:4, emoji:'🥣' },
+    { id:'baby_fruit_puree', name:'Фруктовое пюре (готовая банка)', cat:'готовое', min_age:6, emoji:'🥣' },
+    { id:'baby_meat_puree', name:'Мясное пюре (готовая банка)', cat:'готовое', min_age:6, emoji:'🥣' },
+    { id:'baby_fish_puree', name:'Рыбное пюре (готовая банка)', cat:'готовое', min_age:8, emoji:'🥣' }
+];
+
+// РЕЦЕПТЫ
+const RECIPES = [
+    { name:'Пюре из кабачка', products:['Кабачок'], age:4, desc:'Отварить кабачок до мягкости, измельчить блендером.', emoji:'🥣' },
+    { name:'Пюре из цветной капусты', products:['Цветная капуста'], age:4, desc:'Отварить соцветия, пюрировать.', emoji:'🥣' },
+    { name:'Каша гречневая', products:['Гречка'], age:4, desc:'Сварить на воде, измельчить до однородности.', emoji:'🥣' },
+    { name:'Пюре из индейки с кабачком', products:['Индейка','Кабачок'], age:6, desc:'Отварить мясо и кабачок, пюрировать.', emoji:'🍲' },
+    { name:'Тыквенное пюре', products:['Тыква'], age:5, desc:'Запечь тыкву, размять вилкой.', emoji:'🎃' },
+    { name:'Рисовая каша с яблоком', products:['Рис','Яблоко'], age:6, desc:'Сварить рис, добавить тёртое яблоко.', emoji:'🍚' }
+];
+
+// ============================================================
+// 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ============================================================
+function calcAge(birthDate) {
+    if (!birthDate) return { months: 0 };
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let months = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
+    if (today.getDate() < birth.getDate()) months--;
+    return { months: Math.max(0, months) };
+}
+
+function isIntroduced(id) {
+    return STATE.introduced && Array.isArray(STATE.introduced) && STATE.introduced.includes(id);
+}
+
+function getNextProduct() {
+    const age = STATE.baby.birthDate ? calcAge(STATE.baby.birthDate).months : 0;
+    const available = PRODUCTS.filter(p => p.min_age <= age && !isIntroduced(p.id));
+    return available.length ? available[0] : null;
+}
+
+function getProgress() {
+    const total = PRODUCTS.length;
+    const introduced = STATE.introduced ? STATE.introduced.length : 0;
+    return total ? Math.round((introduced / total) * 100) : 0;
 }
 
 // ============================================================
-// ОТОБРАЖЕНИЕ ИНТЕРФЕЙСА
+// 3. ОНБОРДИНГ
 // ============================================================
-function render() {
-    try {
-        // Проверяем, что STATE.introduced – массив
-        if (!Array.isArray(STATE.introduced)) {
-            STATE.introduced = [];
+function renderOnboarding() {
+    const app = document.getElementById('app');
+    if (!app) return;
+    let step = 0;
+    const totalSteps = 5;
+
+    const renderStep = (stepIndex) => {
+        let html = `<div class="onboarding">`;
+        html += `<div class="step-indicators">`;
+        for (let i = 0; i < totalSteps; i++) {
+            html += `<span class="${i === stepIndex ? 'active' : ''}"></span>`;
+        }
+        html += `</div>`;
+        switch (stepIndex) {
+            case 0:
+                html += `
+                    <div class="emoji-big">👶</div>
+                    <h1>Как зовут малыша?</h1>
+                    <p>Вы можете пропустить</p>
+                    <input type="text" id="onboarding-name" placeholder="Имя ребёнка" value="${STATE.baby.name || ''}">
+                    <button class="skip" data-action="skip-name">Пропустить →</button>
+                `;
+                break;
+            case 1:
+                html += `
+                    <div class="emoji-big">📅</div>
+                    <h1>Дата рождения</h1>
+                    <p>Мы рассчитаем возраст</p>
+                    <input type="date" id="onboarding-birth" value="${STATE.baby.birthDate || ''}">
+                `;
+                break;
+            case 2:
+                html += `
+                    <div class="emoji-big">🍼</div>
+                    <h1>Тип вскармливания</h1>
+                    <div class="btn-group">
+                        <button class="primary" data-value="ГВ">🤱 Грудное</button>
+                        <button class="primary" data-value="ИВ">🍼 Искусственное</button>
+                        <button class="primary" data-value="Смешанное">🤍 Смешанное</button>
+                    </div>
+                `;
+                break;
+            case 3:
+                html += `
+                    <div class="emoji-big">🌱</div>
+                    <h1>Вы уже начали прикорм?</h1>
+                    <div class="btn-group">
+                        <button class="primary" data-value="yes">Да</button>
+                        <button class="primary" data-value="no">Нет</button>
+                    </div>
+                    <div id="start-date-field" style="display:none; margin-top:16px;">
+                        <label>Дата начала прикорма</label>
+                        <input type="date" id="onboarding-start-date">
+                    </div>
+                `;
+                break;
+            case 4:
+                html += `
+                    <div class="emoji-big">🥄</div>
+                    <h1>Выберите подход</h1>
+                    <p>Можно изменить позже</p>
+                    <div class="btn-group">
+                        <button class="primary" data-value="puree">🥄 Пюре</button>
+                        <button class="primary" data-value="blw">🖐 BLW</button>
+                        <button class="primary" data-value="mixed">🥣 Комбинированный</button>
+                        <button class="secondary" data-value="unknown">🤷 Пока не знаю</button>
+                    </div>
+                `;
+                break;
+        }
+        html += `<div class="nav-buttons">`;
+        if (stepIndex > 0) html += `<button class="prev" data-action="prev-step">← Назад</button>`;
+        else html += `<div></div>`;
+        if (stepIndex < totalSteps - 1) html += `<button class="next" data-action="next-step">Далее →</button>`;
+        else html += `<button class="next" data-action="finish-onboarding">🚀 Начать!</button>`;
+        html += `</div></div>`;
+        app.innerHTML = html;
+
+        document.querySelectorAll('[data-action="next-step"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (stepIndex === 0) {
+                    const name = document.getElementById('onboarding-name')?.value.trim() || '';
+                    STATE.baby.name = name;
+                    saveState();
+                }
+                if (stepIndex === 1) {
+                    const birth = document.getElementById('onboarding-birth')?.value || '';
+                    STATE.baby.birthDate = birth;
+                    if (birth) {
+                        const age = calcAge(birth);
+                        STATE.baby.ageMonths = age.months;
+                    }
+                    saveState();
+                }
+                step = stepIndex + 1;
+                renderStep(step);
+            });
+        });
+        document.querySelectorAll('[data-action="prev-step"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                step = stepIndex - 1;
+                renderStep(step);
+            });
+        });
+        document.querySelectorAll('[data-value]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const val = this.dataset.value;
+                if (stepIndex === 2) {
+                    STATE.baby.feedingType = val;
+                    saveState();
+                    document.querySelectorAll('.btn-group button').forEach(b => b.style.border = 'none');
+                    this.style.border = '3px solid #d4a373';
+                }
+                if (stepIndex === 3) {
+                    if (val === 'yes') {
+                        STATE.baby.feedingStarted = true;
+                        document.getElementById('start-date-field').style.display = 'block';
+                    } else {
+                        STATE.baby.feedingStarted = false;
+                        STATE.baby.feedingStartDate = '';
+                        document.getElementById('start-date-field').style.display = 'none';
+                    }
+                    saveState();
+                    this.style.border = '3px solid #d4a373';
+                }
+                if (stepIndex === 4) {
+                    STATE.baby.approach = val;
+                    saveState();
+                    document.querySelectorAll('.btn-group button').forEach(b => b.style.border = 'none');
+                    this.style.border = '3px solid #d4a373';
+                }
+            });
+        });
+        document.getElementById('onboarding-start-date')?.addEventListener('change', function() {
+            STATE.baby.feedingStartDate = this.value;
             saveState();
-            log('⚠️ STATE.introduced был исправлен (был не массивом)', 'error');
-        }
-
-        app.innerHTML = `
-            <h1>🌸 Прикорм — отладка</h1>
-            <div id="log" class="log-box"></div>
-            <div style="margin-top:16px;">
-                <button onclick="resetAndReload()">🗑️ Очистить данные и перезагрузить</button>
-                <button onclick="location.reload()">🔄 Перезагрузить страницу</button>
-            </div>
-            <h2>📦 Текущее состояние</h2>
-            <pre style="background:#f5f5f5;padding:12px;border-radius:8px;font-size:12px;overflow:auto;max-height:300px;">${JSON.stringify(STATE, null, 2)}</pre>
-            <h2>📋 Введённые продукты (${STATE.introduced.length})</h2>
-            <ul>${STATE.introduced.map(id => `<li>${id}</li>`).join('')}</ul>
-            <h2>📖 Дневник (${STATE.diary.length} записей)</h2>
-            <ul>${STATE.diary.map(e => `<li>${e.product} — ${e.date}</li>`).join('')}</ul>
-            <button onclick="resetAndReload()" class="danger">⚠️ Сбросить всё и начать заново</button>
-        `;
-
-        log('✅ Отладка загружена', 'ok');
-        log(`📌 STATE.introduced: ${Array.isArray(STATE.introduced) ? 'массив, длина ' + STATE.introduced.length : 'НЕ МАССИВ!'}`, 'ok');
-        log(`📌 STATE.diary: ${Array.isArray(STATE.diary) ? 'массив, длина ' + STATE.diary.length : 'НЕ МАССИВ!'}`, 'ok');
-        log('📌 Состояние успешно загружено. Если ошибка, нажмите "Очистить данные".');
-
-        // Если есть ошибка, показываем её в логе
-        if (!Array.isArray(STATE.introduced)) {
-            log('❌ КРИТИЧЕСКАЯ ОШИБКА: STATE.introduced не является массивом!', 'error');
-        }
-    } catch(e) {
-        showError('Ошибка в render(): ' + e.message);
-        app.innerHTML = `
-            <h1>❌ Критическая ошибка</h1>
-            <div class="error-box"><strong>${e.message}</strong><br>${e.stack}</div>
-            <button onclick="resetAndReload()">🗑️ Очистить данные и перезагрузить</button>
-        `;
-    }
+        });
+        document.querySelector('[data-action="skip-name"]')?.addEventListener('click', function() {
+            step = 1;
+            renderStep(step);
+        });
+        document.querySelector('[data-action="finish-onboarding"]')?.addEventListener('click', function() {
+            STATE.onboardingCompleted = true;
+            saveState();
+            renderApp();
+        });
+    };
+    renderStep(0);
 }
 
 // ============================================================
-// ЗАПУСК
+// 4. ОСНОВНОЙ РЕНДЕРИНГ ПРИЛОЖЕНИЯ
 // ============================================================
-render();
+function renderApp() {
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    if (!STATE.onboardingCompleted || !STATE.baby.birthDate) {
+        renderOnboarding();
+        return;
+    }
+
+    const age = calcAge(STATE.baby.birthDate);
+    const nextProduct = getNextProduct();
+    const progress = getProgress();
+    const diaryCount = STATE.diary.length;
+
+    let html = `
+        <div class="dashboard">
+            <div class="welcome-card">
+                <div class="info">
+                    <h1>🌸 Привет, ${STATE.baby.name || 'Малыш'}!</h1>
+                    <p>${age.months} мес. · ${STATE.baby.feedingType}</p>
+                </div>
+                <div class="avatar">👶</div>
+            </div>
+            <div class="status-card">
+                <div class="row"><span class="label">Статус прикорма</span><span class="value">${STATE.baby.feedingStarted ? '🌱 Активно' : '⏳ Ещё не начат'}</span></div>
+                ${STATE.baby.feedingStarted && STATE.baby.feedingStartDate ? `<div class="row" style="margin-top:4px;"><span class="label">Начало</span><span class="value">${STATE.baby.feedingStartDate}</span></div>` : ''}
+            </div>
+            <div class="progress-card">
+                <div class="header"><span>Прогресс</span><span>${STATE.introduced.length} из ${PRODUCTS.length} продуктов</span></div>
+                <div class="track"><div class="fill" style="width:${progress}%;"></div></div>
+            </div>
+            <div class="quick-grid">
+                <div class="quick-card" data-action="add-product"><span class="icon">🥣</span><div class="label">Добавить продукт</div><div class="desc">В дневник</div></div>
+                <div class="quick-card" data-action="products"><span class="icon">🥑</span><div class="label">Продукты</div><div class="desc">Смотреть базу</div></div>
+                <div class="quick-card" data-action="diary"><span class="icon">📖</span><div class="label">Дневник</div><div class="desc">${diaryCount} записей</div></div>
+                <div class="quick-card" data-action="recipes"><span class="icon">🍲</span><div class="label">Рецепты</div><div class="desc">Идеи</div></div>
+            </div>
+            ${nextProduct ? `
+            <div class="recommendation-card">
+                <div class="icon">🌱</div>
+                <div class="content">
+                    <div class="tag">Следующий шаг</div>
+                    <h3>Попробуйте ${nextProduct.name}</h3>
+                    <p>${nextProduct.cat}, с ${nextProduct.min_age} мес.</p>
+                </div>
+                <button class="action" data-action="add-specific" data-id="${nextProduct.id}">➕ Добавить</button>
+            </div>` : `
+            <div class="recommendation-card">
+                <div class="icon">🎉</div>
+                <div class="content">
+                    <div class="tag">Отлично!</div>
+                    <h3>Все продукты введены</h3>
+                    <p>Поздравляем!</p>
+                </div>
+            </div>`}
+            <div class="tab-bar">
+                <button class="active" data-tab="home">Главная</button>
+                <button data-tab="products">Продукты</button>
+                <button data-tab="diary">Дневник</button>
+                <button data-tab="recipes">Рецепты</button>
+                <button data-tab="baby">Малыш</button>
+            </div>
+            <div id="page-home" class="page active"><div style="background:#fafafa;padding:16px;border-radius:12px;margin-top:8px;"><p style="font-size:14px;color:#555;">Здесь будет подробная информация о сегодняшнем дне.</p></div></div>
+            <div id="page-products" class="page">${renderProductsHTML()}</div>
+            <div id="page-diary" class="page">${renderDiaryHTML()}</div>
+            <div id="page-recipes" class="page">${renderRecipesHTML()}</div>
+            <div id="page-baby" class="page">${renderBabyHTML()}</div>
+        </div>
+    `;
+
+    app.innerHTML = html;
+
+    // Обработчики табов
+    document.querySelectorAll('.tab-bar button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tab = this.dataset.tab;
+            document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const page = document.getElementById('page-' + tab);
+            if (page) page.classList.add('active');
+        });
+    });
+
+    // Добавить продукт (быстрая кнопка)
+    document.querySelectorAll('[data-action="add-product"]').forEach(el => {
+        el.addEventListener('click', () => {
+            const firstAvailable = PRODUCTS.find(p => !isIntroduced(p.id));
+            if (firstAvailable) {
+                // Просто добавляем продукт с пометкой "Добавлен"
+                STATE.introduced.push(firstAvailable.id);
+                STATE.diary.push({ product: firstAvailable.id, date: new Date().toISOString().slice(0,10) });
+                saveState();
+                renderApp();
+            } else {
+                alert('Все продукты уже введены!');
+            }
+        });
+    });
+
+    // Добавить конкретный продукт из рекомендации
+    document.querySelectorAll('[data-action="add-specific"]').forEach(el => {
+        el.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (id && !isIntroduced(id)) {
+                STATE.introduced.push(id);
+                STATE.diary.push({ product: id, date: new Date().toISOString().slice(0,10) });
+                saveState();
+                renderApp();
+            }
+        });
+    });
+
+    // Клик по продукту в списке – добавляем
+    document.querySelectorAll('.product-item').forEach(el => {
+        el.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (id && !isIntroduced(id)) {
+                STATE.introduced.push(id);
+                STATE.diary.push({ product: id, date: new Date().toISOString().slice(0,10) });
+                saveState();
+                renderApp();
+            }
+        });
+    });
+
+    // Переключение на продукты, дневник, рецепты
+    document.querySelectorAll('[data-action="products"]').forEach(el => {
+        el.addEventListener('click', () => document.querySelector('[data-tab="products"]').click());
+    });
+    document.querySelectorAll('[data-action="diary"]').forEach(el => {
+        el.addEventListener('click', () => document.querySelector('[data-tab="diary"]').click());
+    });
+    document.querySelectorAll('[data-action="recipes"]').forEach(el => {
+        el.addEventListener('click', () => document.querySelector('[data-tab="recipes"]').click());
+    });
+
+    // Сброс онбординга
+    document.querySelector('[data-action="reset-onboarding"]')?.addEventListener('click', function() {
+        STATE.onboardingCompleted = false;
+        saveState();
+        renderApp();
+    });
+}
+
+function renderProductsHTML() {
+    let html = `<h2>Продукты</h2><div class="product-grid">`;
+    PRODUCTS.forEach(p => {
+        const introduced = isIntroduced(p.id);
+        html += `<div class="product-item ${introduced ? 'introduced' : ''}" data-id="${p.id}">
+            <span class="emoji">${p.emoji}</span>
+            <div class="name">${p.name}</div>
+            <div class="cat">${p.cat}, ${p.min_age}+ мес.</div>
+        </div>`;
+    });
+    html += `</div>`;
+    return html;
+}
+
+function renderDiaryHTML() {
+    let html = `<h2>Дневник</h2>`;
+    if (STATE.diary.length === 0) {
+        html += `<div class="empty-state"><div class="empty-icon">📖</div><h3>Дневник пуст</h3><p>Добавьте продукты</p></div>`;
+    } else {
+        STATE.diary.slice().reverse().forEach(entry => {
+            const product = PRODUCTS.find(p => p.id === entry.product);
+            const name = product ? product.name : entry.product;
+            html += `<div class="diary-entry"><div class="info"><strong>${name}</strong><br><small>${entry.date}</small></div></div>`;
+        });
+    }
+    return html;
+}
+
+function renderRecipesHTML() {
+    let html = `<h2>Рецепты</h2>`;
+    RECIPES.forEach(r => {
+        html += `<div style="background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px;"><strong>${r.name}</strong> (с ${r.age} мес.)<br><small>${r.desc}</small></div>`;
+    });
+    return html;
+}
+
+function renderBabyHTML() {
+    const baby = STATE.baby;
+    return `
+        <h2>Малыш</h2>
+        <div class="baby-card" style="display:flex;align-items:center;background:#fafafa;padding:16px;border-radius:12px;margin:12px 0;">
+            <div class="baby-avatar" style="font-size:48px;margin-right:16px;">👶</div>
+            <div><strong>${baby.name || 'Имя не указано'}</strong><br>${calcAge(baby.birthDate).months} мес.</div>
+        </div>
+        <div class="settings-row"><span>🍼</span><div><strong>Тип кормления</strong><br><small>${baby.feedingType}</small></div></div>
+        <div class="settings-row"><span>🥄</span><div><strong>Подход</strong><br><small>${baby.approach}</small></div></div>
+        <div class="settings-row"><span>📅</span><div><strong>Прикорм начат</strong><br><small>${baby.feedingStarted ? baby.feedingStartDate || 'Да' : 'Нет'}</small></div></div>
+        <button class="danger-button" data-action="reset-onboarding">Сбросить онбординг</button>
+    `;
+}
+
+// ============================================================
+// 5. ЗАПУСК
+// ============================================================
+renderApp();
 </script>
 </body>
 </html>
