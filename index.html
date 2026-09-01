@@ -2,21 +2,92 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#f8f4f0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Прикорм 🌸</title>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta
+        name="theme-color"
+        content="#F8F5F1"
+    >
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="default"
+    >
+
+    <meta
+        name="mobile-web-app-capable"
+        content="yes"
+    >
+
+    <title>Прикорм</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
+    <!--
+        ============================================================
+        ROOT APPLICATION
+        ============================================================
+    -->
+
     <div id="app"></div>
 
+
+    <!--
+        ============================================================
+        APPLICATION MODULES
+
+        Порядок загрузки важен.
+
+        1. config       — настройки и константы
+        2. products     — база продуктов
+        3. recipes      — база рецептов
+        4. safety       — безопасность
+        5. recommendations — рекомендации
+        6. utils        — вспомогательные функции
+        7. state        — единое состояние приложения
+        8. ui           — создание интерфейса
+        9. rendering    — отображение данных
+        10. handlers    — действия пользователя
+        11. theme       — тема
+        12. app         — запуск приложения
+        ============================================================
+    -->
+
     <script src="config.js"></script>
+
     <script src="products.js"></script>
+
     <script src="recipes.js"></script>
+
     <script src="safety.js"></script>
+
     <script src="recommendations.js"></script>
+
     <script src="utils.js"></script>
+
+    <script src="state.js"></script>
+
+    <script src="ui.js"></script>
+
+    <script src="rendering.js"></script>
+
+    <script src="handlers.js"></script>
+
+    <script src="theme.js"></script>
+
     <script src="app.js"></script>
+
 </body>
-</html> 
+</html>
