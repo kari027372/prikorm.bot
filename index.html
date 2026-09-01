@@ -63,34 +63,62 @@
         .recommendation-card .content p{font-size:14px;color:#555}
         .recommendation-card .action{background:#d4a373;border:none;padding:8px 16px;border-radius:30px;color:#fff;font-weight:600;cursor:pointer;font-size:14px}
 
-        /* ===== ОСТАЛЬНЫЕ ЭКРАНЫ (продукты, дневник и т.д.) ===== */
+        /* ===== ТАБЫ И СТРАНИЦЫ ===== */
         .tab-bar{display:flex;gap:10px;background:#fff;padding:10px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
         .tab-bar button{flex:1;padding:10px;border:none;border-radius:10px;background:#f0ebe7;cursor:pointer;font-weight:600;transition:0.2s}
         .tab-bar button.active{background:#d4a373;color:#fff}
-        .page{display:none}
+        .page{display:none;padding-top:12px}
         .page.active{display:block}
+
+        /* ===== ПРОДУКТЫ ===== */
         .product-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-        .product-item{background:#fafafa;padding:12px;border-radius:8px;text-align:center;cursor:pointer;transition:0.2s}
+        .product-item{background:#fafafa;padding:12px;border-radius:8px;text-align:center;cursor:pointer;transition:0.2s;border:1px solid transparent}
         .product-item:active{transform:scale(0.96)}
         .product-item .emoji{font-size:30px;display:block}
         .product-item .name{font-size:14px;font-weight:600;margin-top:4px}
         .product-item .cat{font-size:12px;color:#888}
+        .product-item.introduced{background:#e8f5e9;border-color:#a5d6a7}
+        .product-item.introduced .name::after{content:" ✅";font-size:12px}
+
+        /* ===== ДНЕВНИК ===== */
         .diary-entry{display:flex;align-items:center;background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px}
         .diary-entry .info{flex:1}
+        .diary-entry .date{font-size:12px;color:#888}
+
+        /* ===== НАСТРОЙКИ ===== */
         .settings-row{display:flex;align-items:center;background:#fafafa;padding:12px;border-radius:8px;margin-bottom:6px;border:none;width:100%;text-align:left;cursor:pointer}
         .settings-row span:first-child{font-size:20px;margin-right:12px}
         .settings-row div{flex:1}
         .settings-row strong{display:block}
         .settings-row small{color:#888}
         .danger-button{background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:14px;width:100%;font-weight:700;cursor:pointer;margin:16px 0}
-        .empty-state{text-align:center;padding:40px 20px;color:#999}
-        .empty-state .empty-icon{font-size:64px}
-        .empty-state h3{font-size:18px;color:#555}
-        .empty-state p{font-size:14px}
+
+        /* ===== МОДАЛКА ===== */
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000;animation:fadeIn 0.2s}
+        .modal{background:#fff;max-width:400px;width:90%;border-radius:24px;padding:24px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,0.2)}
+        .modal h2{margin-bottom:16px}
+        .modal .field{margin-bottom:16px}
+        .modal .field label{display:block;font-weight:600;margin-bottom:4px;font-size:14px}
+        .modal .field select,.modal .field input{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;font-size:16px}
+        .modal .field .btn-group{display:flex;gap:8px}
+        .modal .field .btn-group button{flex:1;padding:12px;border:2px solid #ddd;border-radius:12px;background:transparent;cursor:pointer;font-weight:600;transition:0.2s}
+        .modal .field .btn-group button.selected{border-color:#d4a373;background:#fdf6f0}
+        .modal .actions{display:flex;gap:12px;margin-top:16px}
+        .modal .actions button{flex:1;padding:14px;border:none;border-radius:14px;font-weight:600;cursor:pointer}
+        .modal .actions .cancel{background:#f0ebe7;color:#555}
+        .modal .actions .save{background:#d4a373;color:#fff}
+        .modal .actions .save:disabled{opacity:0.5;pointer-events:none}
+
+        /* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */
         .bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;display:flex;justify-content:space-around;background:#fff;padding:8px 0;border-top:1px solid #eee;box-shadow:0 -2px 10px rgba(0,0,0,0.04)}
         .bottom-nav button{background:none;border:none;font-size:12px;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
         .bottom-nav button.active{color:#d4a373;font-weight:700}
         .bottom-nav button .nav-icon{font-size:24px}
+
+        .empty-state{text-align:center;padding:40px 20px;color:#999}
+        .empty-state .empty-icon{font-size:64px}
+        .empty-state h3{font-size:18px;color:#555}
+        .empty-state p{font-size:14px}
     </style>
 </head>
 <body>
@@ -122,7 +150,7 @@ function saveState() {
     localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
 }
 
-// ПРОДУКТЫ (полный список – вставьте сюда свой массив из 162 продуктов)
+// ПРОДУКТЫ (здесь у вас полный список, я оставлю сокращённый для примера, замените на свой)
 const PRODUCTS = [
     { id:'courgette', name:'Кабачок', cat:'овощ', min_age:4, emoji:'🥒' },
     { id:'broccoli', name:'Брокколи', cat:'овощ', min_age:4, emoji:'🥦' },
@@ -336,7 +364,7 @@ function getNextProduct() {
 function getProgress() {
     const total = PRODUCTS.length;
     const introduced = STATE.introduced.length;
-    return Math.round((introduced / total) * 100);
+    return total ? Math.round((introduced / total) * 100) : 0;
 }
 
 // ============================================================
@@ -512,7 +540,105 @@ function renderOnboarding() {
 }
 
 // ============================================================
-// 4. ГЛАВНОЕ ПРИЛОЖЕНИЕ
+// 4. МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ ПРОДУКТА
+// ============================================================
+function openAddModal(productId) {
+    const product = PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
+
+    // Если уже введён – выходим
+    if (isIntroduced(productId)) {
+        alert('Этот продукт уже введён');
+        return;
+    }
+
+    // Создаём модалку
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+        <div class="modal">
+            <h2>➕ ${product.emoji} ${product.name}</h2>
+            <div class="field">
+                <label>Как приготовили?</label>
+                <select id="modal-source">
+                    <option value="homemade">🏠 Приготовила сама</option>
+                    <option value="store">🛒 Купила готовым</option>
+                </select>
+            </div>
+            <div class="field" id="brand-field" style="display:none;">
+                <label>Бренд</label>
+                <input type="text" id="modal-brand" placeholder="Например, Gerber">
+            </div>
+            <div class="field">
+                <label>Понравилось?</label>
+                <div class="btn-group" id="modal-liked">
+                    <button data-value="true">❤️ Да</button>
+                    <button data-value="false">🤍 Нет</button>
+                    <button data-value="null" class="selected">🤷 Пока не знаю</button>
+                </div>
+            </div>
+            <div class="field">
+                <label>Заметка (необязательно)</label>
+                <input type="text" id="modal-note" placeholder="Например, съел с удовольствием">
+            </div>
+            <div class="actions">
+                <button class="cancel" id="modal-cancel">Отмена</button>
+                <button class="save" id="modal-save">Сохранить</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Логика показа поля бренда при выборе "Купила"
+    const sourceSelect = document.getElementById('modal-source');
+    const brandField = document.getElementById('brand-field');
+    sourceSelect.addEventListener('change', function() {
+        brandField.style.display = this.value === 'store' ? 'block' : 'none';
+    });
+
+    // Выбор "Понравилось"
+    const likedBtns = document.querySelectorAll('#modal-liked button');
+    likedBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            likedBtns.forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    // Закрытие
+    document.getElementById('modal-cancel').addEventListener('click', function() {
+        overlay.remove();
+    });
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) overlay.remove();
+    });
+
+    // Сохранение
+    document.getElementById('modal-save').addEventListener('click', function() {
+        const likedBtn = document.querySelector('#modal-liked button.selected');
+        const liked = likedBtn ? likedBtn.dataset.value : null;
+        const source = sourceSelect.value;
+        const brand = document.getElementById('modal-brand').value.trim();
+        const note = document.getElementById('modal-note').value.trim();
+
+        // Добавляем продукт
+        STATE.introduced.push(product.id);
+        STATE.diary.push({
+            product: product.id,
+            date: new Date().toISOString().slice(0,10),
+            source: source,
+            brand: brand,
+            liked: liked === 'true' ? true : (liked === 'false' ? false : null),
+            note: note
+        });
+        saveState();
+        overlay.remove();
+        renderApp(); // перерисовываем
+    });
+}
+
+// ============================================================
+// 5. ОСНОВНОЙ РЕНДЕРИНГ ПРИЛОЖЕНИЯ
 // ============================================================
 function renderApp() {
     const app = document.getElementById('app');
@@ -606,7 +732,7 @@ function renderApp() {
                 </div>
             </div>`}
 
-            <!-- Вкладки для остальных разделов (продукты, дневник и т.д.) -->
+            <!-- Вкладки -->
             <div class="tab-bar">
                 <button class="active" data-tab="home">Главная</button>
                 <button data-tab="products">Продукты</button>
@@ -615,7 +741,11 @@ function renderApp() {
                 <button data-tab="baby">Малыш</button>
             </div>
 
-            <div id="page-home" class="page active">Здесь будет подробная информация</div>
+            <div id="page-home" class="page active">
+                <div style="background:#fafafa;padding:16px;border-radius:12px;margin-top:8px;">
+                    <p style="font-size:14px;color:#555;">Здесь будет подробная информация о сегодняшнем дне, рекомендации и календарь.</p>
+                </div>
+            </div>
             <div id="page-products" class="page">${renderProductsHTML()}</div>
             <div id="page-diary" class="page">${renderDiaryHTML()}</div>
             <div id="page-recipes" class="page">${renderRecipesHTML()}</div>
@@ -639,7 +769,12 @@ function renderApp() {
 
     // Обработчики быстрых действий
     document.querySelectorAll('[data-action="add-product"]').forEach(el => {
-        el.addEventListener('click', () => alert('Форма добавления продукта будет здесь'));
+        el.addEventListener('click', () => {
+            // Находим первый доступный продукт (не введённый) и открываем модалку
+            const firstAvailable = PRODUCTS.find(p => !isIntroduced(p.id));
+            if (firstAvailable) openAddModal(firstAvailable.id);
+            else alert('Все продукты уже введены!');
+        });
     });
     document.querySelectorAll('[data-action="products"]').forEach(el => {
         el.addEventListener('click', () => {
@@ -659,39 +794,42 @@ function renderApp() {
     document.querySelectorAll('[data-action="add-specific"]').forEach(el => {
         el.addEventListener('click', function() {
             const id = this.dataset.id;
-            if (id && !isIntroduced(id)) {
-                STATE.introduced.push(id);
-                STATE.diary.push({ product: id, date: new Date().toISOString().slice(0,10) });
-                saveState();
-                renderApp();
+            if (id) openAddModal(id);
+        });
+    });
+
+    // Обработчики для клика по продукту в списке (открытие модалки)
+    document.querySelectorAll('.product-item').forEach(el => {
+        el.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (id) {
+                if (isIntroduced(id)) {
+                    alert('Этот продукт уже введён');
+                } else {
+                    openAddModal(id);
+                }
             }
         });
     });
 
-    // Обработчики для клика по продукту (добавление)
-    document.querySelectorAll('.product-item').forEach(el => {
-        el.addEventListener('click', function() {
-            const id = this.dataset.id;
-            if (id && !isIntroduced(id)) {
-                STATE.introduced.push(id);
-                STATE.diary.push({ product: id, date: new Date().toISOString().slice(0,10) });
-                saveState();
-                renderApp();
-            }
-        });
+    // Обработчик для сброса онбординга (кнопка в профиле)
+    document.querySelector('[data-action="reset-onboarding"]')?.addEventListener('click', function() {
+        STATE.onboardingCompleted = false;
+        saveState();
+        renderApp();
     });
 }
 
 // ============================================================
-// 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РЕНДЕРИНГА СТРАНИЦ
+// 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РЕНДЕРИНГА СТРАНИЦ
 // ============================================================
 function renderProductsHTML() {
     let html = `<h2>Продукты</h2><div class="product-grid">`;
     PRODUCTS.forEach(p => {
-        const done = isIntroduced(p.id) ? ' ✅' : '';
-        html += `<div class="product-item" data-id="${p.id}">
+        const introduced = isIntroduced(p.id);
+        html += `<div class="product-item ${introduced ? 'introduced' : ''}" data-id="${p.id}">
             <span class="emoji">${p.emoji}</span>
-            <div class="name">${p.name}${done}</div>
+            <div class="name">${p.name}</div>
             <div class="cat">${p.cat}, ${p.min_age}+ мес.</div>
         </div>`;
     });
@@ -702,12 +840,21 @@ function renderProductsHTML() {
 function renderDiaryHTML() {
     let html = `<h2>Дневник</h2>`;
     if (STATE.diary.length === 0) {
-        html += `<div class="empty-state"><div class="empty-icon">📖</div><h3>Дневник пуст</h3><p>Добавьте продукты из списка.</p></div>`;
+        html += `<div class="empty-state"><div class="empty-icon">📖</div><h3>Дневник пуст</h3><p>Добавьте продукты через главный экран или список продуктов.</p></div>`;
     } else {
-        STATE.diary.forEach(entry => {
+        STATE.diary.slice().reverse().forEach(entry => {
             const product = PRODUCTS.find(p => p.id === entry.product);
             const name = product ? product.name : entry.product;
-            html += `<div class="diary-entry"><div class="info"><strong>${name}</strong><br><small>${entry.date}</small></div></div>`;
+            const source = entry.source === 'store' ? '🛒' : '🏠';
+            const liked = entry.liked === true ? '❤️' : (entry.liked === false ? '🤍' : '');
+            html += `<div class="diary-entry">
+                <div class="info">
+                    <strong>${name}</strong>
+                    ${liked}
+                    <div style="font-size:13px;color:#888;">${source} ${entry.brand ? entry.brand : ''} · ${entry.date}</div>
+                    ${entry.note ? `<div style="font-size:13px;color:#555;margin-top:4px;">📝 ${entry.note}</div>` : ''}
+                </div>
+            </div>`;
         });
     }
     return html;
@@ -716,7 +863,9 @@ function renderDiaryHTML() {
 function renderRecipesHTML() {
     let html = `<h2>Рецепты</h2>`;
     RECIPES.forEach(r => {
-        html += `<div style="background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px;"><strong>${r.name}</strong> (с ${r.age} мес.)<br><small>${r.desc}</small></div>`;
+        html += `<div style="background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px;">
+            <strong>${r.name}</strong> (с ${r.age} мес.)<br><small>${r.desc}</small>
+        </div>`;
     });
     return html;
 }
@@ -725,18 +874,19 @@ function renderBabyHTML() {
     const baby = STATE.baby;
     return `
         <h2>Малыш</h2>
-        <div class="baby-card">
-            <div class="baby-avatar">👶</div>
+        <div class="baby-card" style="display:flex;align-items:center;background:#fafafa;padding:16px;border-radius:12px;margin:12px 0;">
+            <div class="baby-avatar" style="font-size:48px;margin-right:16px;">👶</div>
             <div><strong>${baby.name || 'Имя не указано'}</strong><br>${calcAge(baby.birthDate).months} мес.</div>
         </div>
         <div class="settings-row"><span>🍼</span><div><strong>Тип кормления</strong><br><small>${baby.feedingType}</small></div></div>
         <div class="settings-row"><span>🥄</span><div><strong>Подход</strong><br><small>${baby.approach}</small></div></div>
-        <button class="danger-button" onclick="STATE.onboardingCompleted=false; saveState(); renderApp();">Сбросить онбординг</button>
+        <div class="settings-row"><span>📅</span><div><strong>Прикорм начат</strong><br><small>${baby.feedingStarted ? baby.feedingStartDate || 'Да' : 'Нет'}</small></div></div>
+        <button class="danger-button" data-action="reset-onboarding">Сбросить онбординг (для теста)</button>
     `;
 }
 
 // ============================================================
-// 6. ЗАПУСК
+// 7. ЗАПУСК
 // ============================================================
 renderApp();
 </script>
