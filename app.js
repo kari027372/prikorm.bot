@@ -5,18 +5,11 @@
 
 
 /* ============================================================
-   APPLICATION
+   APPLICATION (используем глобальный APP_CONFIG из config.js)
    ============================================================ */
 
-const APP_CONFIG = {
-
-    name: "Прикорм",
-
-    version: "4.0.0",
-
-    defaultScreen: "home"
-
-};
+// НЕ объявляем APP_CONFIG здесь — он уже есть в config.js
+// Просто используем window.APP_CONFIG
 
 
 /* ============================================================
@@ -26,7 +19,7 @@ const APP_CONFIG = {
 function initApp() {
 
     console.log(
-        `🌸 ${APP_CONFIG.name} v${APP_CONFIG.version}`
+        `🌸 Приложение v${window.APP_CONFIG?.app?.version || '2.0.0'}`
     );
 
 
@@ -94,7 +87,8 @@ function initApp() {
 
     const screen =
         STATE.ui?.screen ||
-        APP_CONFIG.defaultScreen;
+        window.APP_CONFIG?.defaultScreen ||
+        "home";
 
 
     showScreen(
@@ -156,8 +150,7 @@ function initializeState() {
                     notifications: true
                 },
                 ui: {
-                    screen:
-                        APP_CONFIG.defaultScreen
+                    screen: "home"
                 }
             };
         }
@@ -247,7 +240,8 @@ function normalizeState() {
     if (!STATE.ui.screen) {
 
         STATE.ui.screen =
-            APP_CONFIG.defaultScreen;
+            window.APP_CONFIG?.defaultScreen ||
+            "home";
     }
 
 
@@ -368,7 +362,8 @@ function showScreen(
     ) {
 
         screen =
-            APP_CONFIG.defaultScreen;
+            window.APP_CONFIG?.defaultScreen ||
+            "home";
     }
 
 
@@ -1082,7 +1077,8 @@ function startApplication() {
 
         render(
             STATE.ui?.screen ||
-            APP_CONFIG.defaultScreen
+            window.APP_CONFIG?.defaultScreen ||
+            "home"
         );
     }
 }
@@ -1144,4 +1140,3 @@ window.resetState =
 
 window.migrateLegacyProfile =
     migrateLegacyProfile;
-    
