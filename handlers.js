@@ -177,8 +177,12 @@ function handleDocumentClick(
 
         case "choose-product":
 
-            openProductPicker();
-
+            // УСЛОВНЫЙ ВЫЗОВ openProductPicker
+            if (typeof openProductPicker === 'function') {
+                openProductPicker();
+            } else {
+                showToast('Функция выбора продукта временно недоступна');
+            }
             break;
 
 
