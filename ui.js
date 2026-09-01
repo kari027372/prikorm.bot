@@ -2549,3 +2549,11 @@ document.addEventListener('click', function(e) {
 
 
 window.renderProductPicker = renderProductPicker;
+
+// ГАРАНТИЯ, ЧТО openProductPicker И renderProductPicker ДОСТУПНЫ ГЛОБАЛЬНО
+if (typeof window.openProductPicker === 'undefined') {
+    window.openProductPicker = openProductPicker;
+}
+if (typeof window.renderProductPicker === 'undefined') {
+    window.renderProductPicker = renderProductPicker;
+}
