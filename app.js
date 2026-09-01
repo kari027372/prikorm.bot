@@ -605,3 +605,24 @@ if (document.readyState === "loading") {
 }
 
 window.initApp = initApp;
+// Скрываем экран загрузки после полной инициализации
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        // Небольшая задержка, чтобы стили применились
+        setTimeout(() => {
+            loadingScreen.classList.add('hidden');
+            // Полностью убираем из DOM через 0.6s (время анимации)
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 600);
+        }, 300);
+    }
+}
+
+// Вызываем после initApp
+const originalInit = initApp;
+initApp = function() {
+    originalInit();
+    hideLoadingScreen();
+};
