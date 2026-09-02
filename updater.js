@@ -131,3 +131,10 @@ function initUpdater() {
 window.getAppVersion = getAppVersion;
 window.checkForUpdate = checkForUpdate;
 window.initUpdater = initUpdater;
+
+// АВТОМАТИЧЕСКИЙ ЗАПУСК ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initUpdater);
+} else {
+    initUpdater();
+}
