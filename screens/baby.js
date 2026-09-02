@@ -1,22 +1,51 @@
-// screens/baby.js — экран "Малыш"
-function renderBaby() {
-    const baby = getBaby();
-    return `
-    <div class="screen">
-        <div class="page-header"><h1>Малыш</h1></div>
-        <div class="baby-profile-card">
-            <div class="baby-avatar">👶</div>
-            <div><strong>${baby.name || 'Имя не указано'}</strong><br><span class="muted">${formatAge(baby)}</span></div>
-            <button class="icon-button" data-action="edit-baby">✏️</button>
-        </div>
-        <div class="settings-list">
-            <button class="settings-row" data-action="settings" data-setting="feeding-type"><span>🍼</span><div><strong>Тип кормления</strong><small>${baby.feedingType || 'Не указан'}</small></div><span>›</span></button>
-            <button class="settings-row" data-action="settings" data-setting="prikorm-start"><span>📅</span><div><strong>Начало прикорма</strong><small>${baby.prikormStartDate || 'Не указано'}</small></div><span>›</span></button>
-            <button class="settings-row" data-action="settings" data-setting="approach"><span>🥄</span><div><strong>Подход</strong><small>${baby.approach || 'Можно настроить'}</small></div><span>›</span></button>
-        </div>
-        <button class="danger-button" data-action="reset-data">Сбросить все данные</button>
-    </div>`;
-}
+// screens/baby.js — список детей + добавление/переключение/удаление
+window.renderBaby = function() {
+    const state = window.STATE || {};
+    const children = state.children || [];
+    const current = window.getCurrentChild ? window.getCurrentChild() : null;
 
-// Экспорт в глобальную область
-window.renderBaby = renderBaby;
+    let html = `
+        <div class="screen active">
+            <div class="page-header">
+                <h1>👶 Малыши</h1>
+                <button class="icon-button" data-action="navigate" data-screen="home">⌂</button>
+            </div>
+    `;
+
+    if (children.length === 0) {
+        html += `
+            <div class="empty-state">
+                <span class="empty-icon">👶</span>
+                <h3>Нет добавленных детей</h3>
+                <p>Пройдите онбординг или нажмите «Добавить ребёнка»</p>
+            </div>
+        `;
+    } else {
+        // Список детей
+        children.forEach(child => {
+            const isActive = current && current.id === child.id;
+            const age = (child.birthDate && typeof window.formatAge === 'function') 
+                ? window.formatAge(child.birthDate) 
+                : 'Возраст не указан';
+            html += `
+                <div class="settings-row" style="${isActive ? 'border: 2px solid var(--bg-primary);' : ''}" data-action="switch-child" data-child-id="${child.id}">
+                    <span>${child.sex === 'male' ? '👦' : child.sex === 'female' ? '👧' : '👶'}</span>
+                    <div>
+                        <strong>${child.name || 'Без имени'}</strong>
+                        <small>${age}</small>
+                    </div>
+                    ${isActive ? '<span>✔</span>' : ''}
+                    <button class="icon-button" data-action="delete-child" data-child-id="${child.id}">🗑️</button>
+                </div>
+            `;
+        });
+    }
+
+    // Кнопка добавления ребёнка
+    html += `
+        <button class="primary-button" data-action="open-add-child" style="margin-top: 16px;">➕ Добавить ребёнка</button>
+    `;
+
+    html += `</div>`;
+    return html;
+};
