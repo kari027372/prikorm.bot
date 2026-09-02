@@ -148,7 +148,7 @@ function handleDocumentClick(event) {
                 showToast('Заполните хотя бы одно поле', 'error');
             }
             break;
-        // ===== ОБРАБОТЧИКИ ДЛЯ ЭКРАНА "МАЛЫШ" (исправлены) =====
+        // ===== ОБРАБОТЧИКИ ДЛЯ ЭКРАНА "МАЛЫШ" =====
         case "switch-child":
             var childId = target.dataset.childId;
             if (childId && typeof window.switchChild === 'function') {
@@ -163,7 +163,8 @@ function handleDocumentClick(event) {
             if (confirm('Удалить этого ребёнка? Все данные по нему будут потеряны.')) {
                 if (typeof window.deleteChild === 'function') {
                     window.deleteChild(childId);
-                    // Мгновенное обновление с небольшой задержкой
+                    // Принудительное сохранение и мгновенное обновление
+                    if (typeof saveState === 'function') saveState();
                     setTimeout(function() {
                         var currentScreen = STATE.navigation?.currentScreen || 'baby';
                         if (typeof render === 'function') render(currentScreen);
@@ -527,9 +528,7 @@ function openSetting(setting) {
                 setTheme(current === "light" ? "dark" : "light");
             }
             break;
-        // ===== НОВЫЙ ПУНКТ ДЛЯ ЗАПУСКА ОНБОРДИНГА (исправлен) =====
         case "run-onboarding":
-            // Устанавливаем режим добавления ребёнка, НЕ сбрасывая onboardingCompleted
             STATE._onboardingMode = 'add-child';
             if (typeof saveState === 'function') saveState();
             if (typeof render === 'function') render('onboarding');
@@ -545,7 +544,7 @@ function confirmReset() {
     setTimeout(function() { location.reload(); }, 300);
 }
 
-// ===== НОВАЯ ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ РЕБЁНКА (исправлена) =====
+// ===== ДОБАВЛЕНИЕ РЕБЁНКА =====
 function showAddChildModal() {
     var overlay = document.createElement('div');
     overlay.className = 'modal-overlay active';
@@ -578,7 +577,6 @@ function showAddChildModal() {
     document.body.appendChild(overlay);
     document.body.classList.add('modal-open');
 
-    // Закрытие по клику на фон
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) {
             overlay.remove();
@@ -586,23 +584,19 @@ function showAddChildModal() {
         }
     });
 
-    // Кнопка "Отмена"
     overlay.querySelector('[data-action="close-modal"]').addEventListener('click', function() {
         overlay.remove();
         document.body.classList.remove('modal-open');
     });
 
-    // Кнопка "Пропустить онбординг" – добавляет ребёнка без онбординга
     overlay.querySelector('#skip-onboarding-btn').addEventListener('click', function() {
         var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
         var birthDate = document.getElementById('add-child-birth')?.value || '';
         var sex = document.getElementById('add-child-sex')?.value || '';
-
         if (!birthDate) {
             alert('Пожалуйста, укажите дату рождения');
             return;
         }
-
         if (typeof window.addChild === 'function') {
             window.addChild({
                 name: name,
@@ -613,6 +607,7 @@ function showAddChildModal() {
                 approach: 'mixed',
                 readiness: {}
             });
+            if (typeof saveState === 'function') saveState();
             overlay.remove();
             document.body.classList.remove('modal-open');
             var currentScreen = STATE.navigation?.currentScreen || 'baby';
@@ -624,7 +619,7 @@ function showAddChildModal() {
     });
 }
 
-// Обработчик сохранения нового ребёнка (исправлен: не сбрасывает onboardingCompleted)
+// Обработчик сохранения через кнопку "Сохранить"
 document.addEventListener('click', function(event) {
     var target = event.target.closest('#save-child-btn');
     if (!target) return;
@@ -633,14 +628,11 @@ document.addEventListener('click', function(event) {
     var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
     var birthDate = document.getElementById('add-child-birth')?.value || '';
     var sex = document.getElementById('add-child-sex')?.value || '';
-
     if (!birthDate) {
         alert('Пожалуйста, укажите дату рождения');
         return;
     }
-
     if (typeof window.addChild === 'function') {
-        // Добавляем ребёнка
         window.addChild({
             name: name,
             birthDate: birthDate,
@@ -652,9 +644,7 @@ document.addEventListener('click', function(event) {
         });
         overlay.remove();
         document.body.classList.remove('modal-open');
-        // Устанавливаем режим "добавление ребёнка" и запускаем онбординг
         STATE._onboardingMode = 'add-child';
-        // НЕ меняем onboardingCompleted – оставляем как есть
         if (typeof saveState === 'function') saveState();
         if (typeof render === 'function') render('onboarding');
     } else {
