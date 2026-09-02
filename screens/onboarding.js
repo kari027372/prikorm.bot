@@ -228,44 +228,68 @@
         }
     }
 
+    // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ finishOnboarding =====
     function finishOnboarding() {
-        // Собираем данные
-        const name = STATE.baby?.name || tempData.name || '';
-        const birthDate = STATE.baby?.birthDate || tempData.birthDate || '';
-        const sex = STATE.baby?.sex || tempData.sex || '';
-        const feedingType = STATE.baby?.feedingType || tempData.feedingType || '';
-        const feedingStarted = STATE.baby?.feedingStarted !== undefined ? STATE.baby.feedingStarted : (tempData.feedingStarted || false);
-        const feedingStartDate = STATE.baby?.feedingStartDate || tempData.feedingStartDate || '';
-        const approach = STATE.baby?.approach || tempData.approach || 'mixed';
-        const readiness = STATE.onboarding?.readiness || {};
-
         const childData = {
-            name: name,
-            birthDate: birthDate,
-            sex: sex,
-            feedingType: feedingType,
-            feedingStarted: feedingStarted,
-            feedingStartDate: feedingStartDate,
-            approach: approach,
-            readiness: readiness,
+            name: tempData.name || '',
+            birthDate: tempData.birthDate || '',
+            sex: tempData.sex || '',
+            feedingType: tempData.feedingType || '',
+            feedingStarted: (tempData.feedingStarted === 'Да'),
+            feedingStartDate: tempData.feedingStartDate || '',
+            approach: tempData.approach || 'mixed',
+            readiness: STATE.onboarding?.readiness || {},
             notes: '',
             photo: ''
         };
 
-        // Добавляем ребёнка
+        // Режим добавления нового ребёнка (вызван из настроек или после кнопки "Сохранить")
+        if (STATE._onboardingMode === 'add-child') {
+            // Если есть дети – обновляем последнего добавленного
+            if (STATE.children && STATE.children.length > 0) {
+                var lastChild = STATE.children[STATE.children.length - 1];
+                if (lastChild) {
+                    Object.assign(lastChild, childData);
+                } else {
+                    // Если почему-то нет – добавляем нового
+                    if (typeof window.addChild === 'function') {
+                        window.addChild(childData);
+                    } else {
+                        STATE.children.push({ id: 'child_' + Date.now(), ...childData });
+                    }
+                }
+            } else {
+                // Если детей нет – создаём первого
+                if (typeof window.addChild === 'function') {
+                    window.addChild(childData);
+                } else {
+                    STATE.children = STATE.children || [];
+                    STATE.children.push({ id: 'child_' + Date.now(), ...childData });
+                    STATE.currentChildId = STATE.children[0].id;
+                }
+            }
+            // Удаляем старый baby, если есть
+            delete STATE.baby;
+            // Сбрасываем режим
+            STATE._onboardingMode = null;
+            // Сохраняем состояние, НЕ меняем onboardingCompleted
+            if (typeof window.saveState === 'function') window.saveState();
+            // Переходим на экран "Малыш"
+            if (typeof window.render === 'function') window.render('baby');
+            return;
+        }
+
+        // Обычный режим (первый запуск или перезапуск)
         if (typeof window.addChild === 'function') {
             window.addChild(childData);
         } else {
-            // fallback
             if (!STATE.children) STATE.children = [];
             STATE.children.push({ id: 'child_' + Date.now(), ...childData });
             STATE.currentChildId = STATE.children[0].id;
         }
-
-        // Удаляем старый baby, если есть
         delete STATE.baby;
-
         STATE.onboardingCompleted = true;
+        STATE._onboardingMode = null;
         if (typeof window.saveState === 'function') window.saveState();
         if (typeof window.render === 'function') window.render('home');
     }
