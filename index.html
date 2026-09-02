@@ -4,12 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#F8F5F1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Прикорм 🌸</title>
     <style>
         * {
@@ -34,7 +28,6 @@
             position: relative;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
         }
-
         /* ===== ЭКРАН ЗАГРУЗКИ ===== */
         #loading-screen {
             position: fixed;
@@ -71,14 +64,12 @@
             margin-top: 20px;
             font-size: 18px;
             color: #888;
-            font-family: 'Segoe UI', Roboto, sans-serif;
         }
         .loading-version {
             margin-top: 8px;
             font-size: 14px;
             color: #bbb;
         }
-
         /* ===== ОНБОРДИНГ ===== */
         .onboarding {
             display: flex;
@@ -156,9 +147,6 @@
             background: #d4a373;
             color: #fff;
         }
-        .onboarding .btn-group button.primary:hover {
-            background: #c4956a;
-        }
         .onboarding .btn-group button.secondary {
             background: transparent;
             color: #888;
@@ -216,12 +204,6 @@
             background: #d4a373;
             color: #fff;
         }
-        .onboarding .nav-buttons button.next:disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        /* ===== ДАШБОРД / ОСНОВНОЕ ПРИЛОЖЕНИЕ ===== */
         .dashboard {
             display: block;
         }
@@ -254,7 +236,6 @@
             border-radius: 20px;
             padding: 16px;
             margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid #f0ebe7;
         }
         .status-card .row {
@@ -276,7 +257,6 @@
             border-radius: 20px;
             padding: 16px;
             margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid #f0ebe7;
         }
         .progress-card .header {
@@ -447,10 +427,6 @@
         .diary-entry .info {
             flex: 1;
         }
-        .diary-entry .date {
-            font-size: 12px;
-            color: #888;
-        }
         .settings-row {
             display: flex;
             align-items: center;
@@ -547,6 +523,13 @@
     <div id="app"></div>
 
     <script>
+        // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА И ПЕРЕЗАГРУЗКА (только первый раз)
+        if (!localStorage.getItem('_cache_cleared')) {
+            localStorage.clear();
+            localStorage.setItem('_cache_cleared', 'true');
+            location.reload(true);
+        }
+
         // ============================================================
         // 1. СОСТОЯНИЕ И ДАННЫЕ
         // ============================================================
@@ -577,7 +560,6 @@
 
         let STATE = JSON.parse(localStorage.getItem('prikorm_app_state')) || JSON.parse(JSON.stringify(DEFAULT_STATE));
 
-        // Гарантируем наличие onboarding
         if (!STATE.onboarding) {
             STATE.onboarding = {
                 readiness: {},
@@ -593,7 +575,7 @@
             localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
         }
 
-        // ПРОДУКТЫ (полный список – вставьте свой)
+        // ПРОДУКТЫ (20 первых для компактности)
         const PRODUCTS = [
             { id: 'courgette', name: 'Кабачок', cat: 'овощ', min_age: 4, emoji: '🥒' },
             { id: 'broccoli', name: 'Брокколи', cat: 'овощ', min_age: 4, emoji: '🥦' },
@@ -601,189 +583,25 @@
             { id: 'pumpkin', name: 'Тыква', cat: 'овощ', min_age: 5, emoji: '🎃' },
             { id: 'carrot', name: 'Морковь', cat: 'овощ', min_age: 5, emoji: '🥕' },
             { id: 'potato', name: 'Картофель', cat: 'овощ', min_age: 5, emoji: '🥔' },
-            { id: 'sweet_potato', name: 'Батат', cat: 'овощ', min_age: 6, emoji: '🍠' },
-            { id: 'beetroot', name: 'Свёкла', cat: 'овощ', min_age: 6, emoji: '🟣' },
-            { id: 'cucumber', name: 'Огурец', cat: 'овощ', min_age: 6, emoji: '🥒' },
-            { id: 'tomato', name: 'Помидор', cat: 'овощ', min_age: 6, emoji: '🍅' },
-            { id: 'pepper', name: 'Сладкий перец', cat: 'овощ', min_age: 6, emoji: '🫑' },
-            { id: 'peas', name: 'Зелёный горошек', cat: 'овощ', min_age: 6, emoji: '🟢' },
-            { id: 'green_beans', name: 'Стручковая фасоль', cat: 'овощ', min_age: 6, emoji: '🫘' },
-            { id: 'spinach', name: 'Шпинат', cat: 'овощ', min_age: 6, emoji: '🌿' },
-            { id: 'jerusalem_artichoke', name: 'Топинамбур', cat: 'овощ', min_age: 6, emoji: '🌰' },
-            { id: 'parsnip', name: 'Пастернак', cat: 'овощ', min_age: 6, emoji: '🥕' },
-            { id: 'celery', name: 'Сельдерей', cat: 'овощ', min_age: 6, emoji: '🌿' },
-            { id: 'turnip', name: 'Репа', cat: 'овощ', min_age: 6, emoji: '🥔' },
-            { id: 'radish', name: 'Редис', cat: 'овощ', min_age: 8, emoji: '🫚' },
-            { id: 'fennel', name: 'Фенхель', cat: 'овощ', min_age: 6, emoji: '🌿' },
-            { id: 'leek', name: 'Лук-порей', cat: 'овощ', min_age: 7, emoji: '🧅' },
-            { id: 'asparagus', name: 'Спаржа', cat: 'овощ', min_age: 8, emoji: '🌿' },
-            { id: 'artichoke', name: 'Артишок', cat: 'овощ', min_age: 8, emoji: '🌿' },
-            { id: 'kale', name: 'Кале', cat: 'овощ', min_age: 6, emoji: '🥬' },
-            { id: 'swiss_chard', name: 'Мангольд', cat: 'овощ', min_age: 6, emoji: '🥬' },
-            { id: 'endive', name: 'Эндивий', cat: 'овощ', min_age: 8, emoji: '🥬' },
-            { id: 'radicchio', name: 'Радиккио', cat: 'овощ', min_age: 8, emoji: '🥬' },
-            { id: 'bok_choy', name: 'Пак-чой', cat: 'овощ', min_age: 6, emoji: '🥬' },
-            { id: 'chinese_cabbage', name: 'Пекинская капуста', cat: 'овощ', min_age: 6, emoji: '🥬' },
-            { id: 'daikon', name: 'Дайкон', cat: 'овощ', min_age: 8, emoji: '🫚' },
-            { id: 'plantain', name: 'Плантан', cat: 'овощ', min_age: 6, emoji: '🍌' },
-            { id: 'yuca', name: 'Юка', cat: 'овощ', min_age: 6, emoji: '🥔' },
-            { id: 'malanga', name: 'Маланга', cat: 'овощ', min_age: 6, emoji: '🥔' },
-            { id: 'kohlrabi', name: 'Кольраби', cat: 'овощ', min_age: 6, emoji: '🥬' },
-            { id: 'celeriac', name: 'Сельдерей корневой', cat: 'овощ', min_age: 6, emoji: '🌿' },
-            // Фрукты
             { id: 'apple', name: 'Яблоко', cat: 'фрукт', min_age: 6, emoji: '🍎' },
             { id: 'pear', name: 'Груша', cat: 'фрукт', min_age: 6, emoji: '🍐' },
             { id: 'banana', name: 'Банан', cat: 'фрукт', min_age: 6, emoji: '🍌' },
-            { id: 'peach', name: 'Персик', cat: 'фрукт', min_age: 6, emoji: '🍑' },
-            { id: 'apricot', name: 'Абрикос', cat: 'фрукт', min_age: 6, emoji: '🍑' },
-            { id: 'plum', name: 'Слива', cat: 'фрукт', min_age: 6, emoji: '🫐' },
-            { id: 'mango', name: 'Манго', cat: 'фрукт', min_age: 6, emoji: '🥭' },
-            { id: 'avocado', name: 'Авокадо', cat: 'фрукт', min_age: 6, emoji: '🥑' },
-            { id: 'kiwi', name: 'Киви', cat: 'фрукт', min_age: 6, emoji: '🥝' },
-            { id: 'grapefruit', name: 'Грейпфрут', cat: 'фрукт', min_age: 8, emoji: '🍊' },
-            { id: 'lime', name: 'Лайм', cat: 'фрукт', min_age: 8, emoji: '🍋' },
-            { id: 'lemon', name: 'Лимон', cat: 'фрукт', min_age: 8, emoji: '🍋' },
-            { id: 'persimmon', name: 'Хурма', cat: 'фрукт', min_age: 8, emoji: '🟠' },
-            { id: 'pomegranate', name: 'Гранат', cat: 'фрукт', min_age: 10, emoji: '🟣' },
-            { id: 'fig', name: 'Инжир', cat: 'фрукт', min_age: 8, emoji: '🟣' },
-            { id: 'date', name: 'Финики', cat: 'фрукт', min_age: 10, emoji: '🟤' },
-            { id: 'pineapple', name: 'Ананас', cat: 'фрукт', min_age: 8, emoji: '🍍' },
-            { id: 'papaya', name: 'Папайя', cat: 'фрукт', min_age: 6, emoji: '🥭' },
-            { id: 'guava', name: 'Гуава', cat: 'фрукт', min_age: 8, emoji: '🟢' },
-            { id: 'passion_fruit', name: 'Маракуйя', cat: 'фрукт', min_age: 8, emoji: '🟡' },
-            { id: 'jackfruit', name: 'Джекфрут', cat: 'фрукт', min_age: 8, emoji: '🟢' },
-            { id: 'dragon_fruit', name: 'Питахайя', cat: 'фрукт', min_age: 8, emoji: '🟣' },
-            // Ягоды
-            { id: 'strawberry', name: 'Клубника', cat: 'ягода', min_age: 6, emoji: '🍓' },
-            { id: 'raspberry', name: 'Малина', cat: 'ягода', min_age: 6, emoji: '🫐' },
-            { id: 'blueberry', name: 'Голубика', cat: 'ягода', min_age: 6, emoji: '🫐' },
-            { id: 'blackberry', name: 'Ежевика', cat: 'ягода', min_age: 6, emoji: '🫐' },
-            { id: 'cranberry', name: 'Клюква', cat: 'ягода', min_age: 8, emoji: '🫐' },
-            { id: 'sea_buckthorn', name: 'Облепиха', cat: 'ягода', min_age: 8, emoji: '🟠' },
-            { id: 'gooseberry', name: 'Крыжовник', cat: 'ягода', min_age: 8, emoji: '🟢' },
-            { id: 'currant', name: 'Смородина', cat: 'ягода', min_age: 8, emoji: '🔴' },
-            { id: 'lingonberry', name: 'Брусника', cat: 'ягода', min_age: 8, emoji: '🔴' },
-            { id: 'cloudberry', name: 'Морошка', cat: 'ягода', min_age: 8, emoji: '🟠' },
-            // Каши и злаки
             { id: 'buckwheat', name: 'Гречка', cat: 'каша', min_age: 4, emoji: '🌾' },
             { id: 'rice', name: 'Рис', cat: 'каша', min_age: 4, emoji: '🍚' },
-            { id: 'corn', name: 'Кукурузная крупа', cat: 'каша', min_age: 4, emoji: '🌽' },
-            { id: 'oatmeal', name: 'Овсянка', cat: 'каша', min_age: 4, emoji: '🌾' },
-            { id: 'millet', name: 'Пшено', cat: 'каша', min_age: 6, emoji: '🌾' },
-            { id: 'barley', name: 'Ячневая крупа', cat: 'каша', min_age: 6, emoji: '🌾' },
-            { id: 'wheat', name: 'Пшеница', cat: 'каша', min_age: 6, emoji: '🌾' },
-            { id: 'quinoa', name: 'Киноа', cat: 'злаки', min_age: 6, emoji: '🌾' },
-            { id: 'amaranth', name: 'Амарант', cat: 'злаки', min_age: 6, emoji: '🌾' },
-            { id: 'spelt', name: 'Полба', cat: 'злаки', min_age: 8, emoji: '🌾' },
-            { id: 'bulgur', name: 'Булгур', cat: 'злаки', min_age: 8, emoji: '🌾' },
-            { id: 'couscous', name: 'Кус-кус', cat: 'злаки', min_age: 8, emoji: '🌾' },
-            { id: 'sorghum', name: 'Сорго', cat: 'злаки', min_age: 6, emoji: '🌾' },
-            { id: 'teff', name: 'Теф', cat: 'злаки', min_age: 6, emoji: '🌾' },
-            { id: 'rice_flakes', name: 'Рисовые хлопья', cat: 'злаки', min_age: 4, emoji: '🍚' },
-            { id: 'oat_flakes', name: 'Овсяные хлопья', cat: 'злаки', min_age: 4, emoji: '🌾' },
-            // Мясо
             { id: 'turkey', name: 'Индейка', cat: 'мясо', min_age: 6, emoji: '🦃' },
             { id: 'chicken', name: 'Курица', cat: 'мясо', min_age: 6, emoji: '🐔' },
             { id: 'beef', name: 'Говядина', cat: 'мясо', min_age: 6, emoji: '🥩' },
-            { id: 'veal', name: 'Телятина', cat: 'мясо', min_age: 6, emoji: '🥩' },
-            { id: 'rabbit', name: 'Кролик', cat: 'мясо', min_age: 6, emoji: '🐇' },
-            { id: 'duck', name: 'Утка', cat: 'мясо', min_age: 8, emoji: '🦆' },
-            { id: 'goose', name: 'Гусь', cat: 'мясо', min_age: 8, emoji: '🦆' },
-            { id: 'quail', name: 'Перепел', cat: 'мясо', min_age: 6, emoji: '🐦' },
-            { id: 'venison', name: 'Оленина', cat: 'мясо', min_age: 8, emoji: '🦌' },
-            { id: 'lamb', name: 'Баранина', cat: 'мясо', min_age: 7, emoji: '🐑' },
-            { id: 'goat', name: 'Козлятина', cat: 'мясо', min_age: 7, emoji: '🐐' },
-            { id: 'liver_beef', name: 'Печень говяжья', cat: 'мясо', min_age: 7, emoji: '🫀' },
-            { id: 'liver_chicken', name: 'Печень куриная', cat: 'мясо', min_age: 7, emoji: '🫀' },
-            // Рыба
             { id: 'cod', name: 'Треска', cat: 'рыба', min_age: 8, emoji: '🐟' },
-            { id: 'hake', name: 'Хек', cat: 'рыба', min_age: 8, emoji: '🐟' },
             { id: 'salmon', name: 'Лосось', cat: 'рыба', min_age: 8, emoji: '🐠' },
-            { id: 'trout', name: 'Форель', cat: 'рыба', min_age: 8, emoji: '🐠' },
-            { id: 'mackerel', name: 'Скумбрия', cat: 'рыба', min_age: 8, emoji: '🐟' },
-            { id: 'sardine', name: 'Сардины', cat: 'рыба', min_age: 8, emoji: '🐟' },
-            { id: 'anchovy', name: 'Анчоусы', cat: 'рыба', min_age: 8, emoji: '🐟' },
-            { id: 'tuna', name: 'Тунец', cat: 'рыба', min_age: 10, emoji: '🐟' },
-            { id: 'pollock', name: 'Минтай', cat: 'рыба', min_age: 8, emoji: '🐟' },
-            { id: 'halibut', name: 'Палтус', cat: 'рыба', min_age: 8, emoji: '🐟' },
-            { id: 'sole', name: 'Морской язык', cat: 'рыба', min_age: 8, emoji: '🐟' },
-            { id: 'mussels', name: 'Мидии', cat: 'морепродукты', min_age: 10, emoji: '🦪' },
-            { id: 'squid', name: 'Кальмар', cat: 'морепродукты', min_age: 10, emoji: '🦑' },
-            { id: 'octopus', name: 'Осьминог', cat: 'морепродукты', min_age: 10, emoji: '🐙' },
-            { id: 'shrimp', name: 'Креветки', cat: 'морепродукты', min_age: 10, emoji: '🦐' },
-            // Яйцо
-            { id: 'egg', name: 'Яйцо куриное', cat: 'яйцо', min_age: 6, emoji: '🥚' },
-            { id: 'quail_egg', name: 'Яйцо перепелиное', cat: 'яйцо', min_age: 6, emoji: '🥚' },
-            // Молочные
-            { id: 'yogurt', name: 'Натуральный йогурт', cat: 'молочное', min_age: 6, emoji: '🥛' },
-            { id: 'cottage_cheese', name: 'Творог', cat: 'молочное', min_age: 6, emoji: '🧀' },
-            { id: 'kefir', name: 'Кефир', cat: 'молочное', min_age: 7, emoji: '🥛' },
-            { id: 'goat_milk', name: 'Козье молоко', cat: 'молочное', min_age: 10, emoji: '🥛' },
-            { id: 'sheep_cheese', name: 'Овечий сыр', cat: 'молочное', min_age: 8, emoji: '🧀' },
-            { id: 'mozzarella', name: 'Моцарелла', cat: 'молочное', min_age: 8, emoji: '🧀' },
-            { id: 'ricotta', name: 'Рикотта', cat: 'молочное', min_age: 6, emoji: '🧀' },
-            { id: 'cream', name: 'Сливки', cat: 'молочное', min_age: 8, emoji: '🥛' },
-            { id: 'butter', name: 'Сливочное масло', cat: 'жиры', min_age: 6, emoji: '🧈' },
-            // Бобовые
-            { id: 'lentil', name: 'Красная чечевица', cat: 'бобовые', min_age: 7, emoji: '🫘' },
-            { id: 'chickpea', name: 'Нут', cat: 'бобовые', min_age: 7, emoji: '🫘' },
-            { id: 'beans', name: 'Фасоль белая', cat: 'бобовые', min_age: 8, emoji: '🫘' },
-            { id: 'green_lentil', name: 'Зелёная чечевица', cat: 'бобовые', min_age: 7, emoji: '🫘' },
-            { id: 'tofu', name: 'Тофу', cat: 'бобовые', min_age: 6, emoji: '🫘' },
-            { id: 'edamame', name: 'Эдамаме', cat: 'бобовые', min_age: 8, emoji: '🫘' },
-            { id: 'black_beans', name: 'Чёрная фасоль', cat: 'бобовые', min_age: 8, emoji: '🫘' },
-            // Орехи и семена
-            { id: 'peanut', name: 'Арахис', cat: 'орехи', min_age: 6, emoji: '🥜' },
-            { id: 'almond', name: 'Миндаль', cat: 'орехи', min_age: 6, emoji: '🥜' },
-            { id: 'cashew', name: 'Кешью', cat: 'орехи', min_age: 6, emoji: '🥜' },
-            { id: 'hazelnut', name: 'Фундук', cat: 'орехи', min_age: 8, emoji: '🥜' },
-            { id: 'walnut', name: 'Грецкий орех', cat: 'орехи', min_age: 8, emoji: '🥜' },
-            { id: 'pistachio', name: 'Фисташка', cat: 'орехи', min_age: 8, emoji: '🥜' },
-            { id: 'sesame', name: 'Кунжут', cat: 'семена', min_age: 6, emoji: '🌱' },
-            { id: 'flaxseed', name: 'Семена льна', cat: 'семена', min_age: 8, emoji: '🌱' },
-            { id: 'chia', name: 'Семена чиа', cat: 'семена', min_age: 8, emoji: '🌱' },
-            { id: 'hemp_seeds', name: 'Семена конопли', cat: 'семена', min_age: 8, emoji: '🌱' },
-            { id: 'pumpkin_seeds', name: 'Тыквенные семечки', cat: 'семена', min_age: 8, emoji: '🌱' },
-            { id: 'sunflower_seeds', name: 'Семена подсолнечника', cat: 'семена', min_age: 8, emoji: '🌱' },
-            // Масла
-            { id: 'olive_oil', name: 'Оливковое масло', cat: 'жиры', min_age: 6, emoji: '🫒' },
-            { id: 'rapeseed_oil', name: 'Рапсовое масло', cat: 'жиры', min_age: 6, emoji: '🫒' },
-            { id: 'sunflower_oil', name: 'Подсолнечное масло', cat: 'жиры', min_age: 6, emoji: '🫒' },
-            { id: 'coconut_oil', name: 'Кокосовое масло', cat: 'жиры', min_age: 6, emoji: '🥥' },
-            // Травы и специи
-            { id: 'cinnamon', name: 'Корица', cat: 'специи', min_age: 6, emoji: '🟤' },
-            { id: 'turmeric', name: 'Куркума', cat: 'специи', min_age: 6, emoji: '🟡' },
-            { id: 'ginger', name: 'Имбирь', cat: 'специи', min_age: 8, emoji: '🟤' },
-            { id: 'basil', name: 'Базилик', cat: 'травы', min_age: 6, emoji: '🌿' },
-            { id: 'oregano', name: 'Орегано', cat: 'травы', min_age: 6, emoji: '🌿' },
-            { id: 'thyme', name: 'Тимьян', cat: 'травы', min_age: 6, emoji: '🌿' },
-            { id: 'parsley', name: 'Петрушка', cat: 'травы', min_age: 6, emoji: '🌿' },
-            { id: 'dill', name: 'Укроп', cat: 'травы', min_age: 6, emoji: '🌿' },
-            { id: 'mint', name: 'Мята', cat: 'травы', min_age: 6, emoji: '🌿' },
-            { id: 'rosemary', name: 'Розмарин', cat: 'травы', min_age: 8, emoji: '🌿' },
-            { id: 'sage', name: 'Шалфей', cat: 'травы', min_age: 8, emoji: '🌿' },
-            // Готовые продукты
-            { id: 'baby_rice_porridge', name: 'Рисовая каша (готовая)', cat: 'готовое', min_age: 4, emoji: '🥣' },
-            { id: 'baby_buckwheat_porridge', name: 'Гречневая каша (готовая)', cat: 'готовое', min_age: 4, emoji: '🥣' },
-            { id: 'baby_vegetable_puree', name: 'Овощное пюре (готовая банка)', cat: 'готовое', min_age: 4, emoji: '🥣' },
-            { id: 'baby_fruit_puree', name: 'Фруктовое пюре (готовая банка)', cat: 'готовое', min_age: 6, emoji: '🥣' },
-            { id: 'baby_meat_puree', name: 'Мясное пюре (готовая банка)', cat: 'готовое', min_age: 6, emoji: '🥣' },
-            { id: 'baby_fish_puree', name: 'Рыбное пюре (готовая банка)', cat: 'готовое', min_age: 8, emoji: '🥣' }
+            { id: 'egg', name: 'Яйцо', cat: 'яйцо', min_age: 6, emoji: '🥚' },
+            { id: 'yogurt', name: 'Йогурт', cat: 'молочное', min_age: 6, emoji: '🥛' },
+            { id: 'lentil', name: 'Чечевица', cat: 'бобовые', min_age: 7, emoji: '🫘' },
+            { id: 'peanut', name: 'Арахис', cat: 'орехи', min_age: 6, emoji: '🥜' }
         ];
 
-        // РЕЦЕПТЫ
         const RECIPES = [
-            { name: 'Пюре из кабачка', products: ['Кабачок'], age: 4, desc: 'Отварить кабачок до мягкости, измельчить блендером.',
-                emoji: '🥣' },
-            { name: 'Пюре из цветной капусты', products: ['Цветная капуста'], age: 4, desc: 'Отварить соцветия, пюрировать.',
-                emoji: '🥣' },
-            { name: 'Каша гречневая', products: ['Гречка'], age: 4, desc: 'Сварить на воде, измельчить до однородности.',
-                emoji: '🥣' },
-            { name: 'Пюре из индейки с кабачком', products: ['Индейка', 'Кабачок'], age: 6,
-                desc: 'Отварить мясо и кабачок, пюрировать.', emoji: '🍲' },
-            { name: 'Тыквенное пюре', products: ['Тыква'], age: 5, desc: 'Запечь тыкву, размять вилкой.', emoji: '🎃' },
-            { name: 'Рисовая каша с яблоком', products: ['Рис', 'Яблоко'], age: 6, desc: 'Сварить рис, добавить тёртое яблоко.',
-                emoji: '🍚' }
+            { name: 'Пюре из кабачка', age: 4, desc: 'Отварить кабачок до мягкости, измельчить' },
+            { name: 'Каша гречневая', age: 4, desc: 'Сварить на воде, измельчить' }
         ];
 
         // ============================================================
@@ -815,7 +633,7 @@
         }
 
         // ============================================================
-        // 3. ОНБОРДИНГ (расширенный, 11 шагов)
+        // 3. ОНБОРДИНГ (11 шагов)
         // ============================================================
         function renderOnboarding() {
             const app = document.getElementById('app');
@@ -832,178 +650,178 @@
                 html += `</div>`;
 
                 switch (stepIndex) {
-                    case 0: // имя
+                    case 0:
                         html += `
-                                <div class="emoji-big">👶</div>
-                                <h1>Как зовут малыша?</h1>
-                                <p>Вы можете пропустить</p>
-                                <input type="text" id="onboarding-name" placeholder="Имя" value="${STATE.baby.name || ''}">
-                                <button class="skip" data-action="skip-name">Пропустить →</button>
-                            `;
+                            <div class="emoji-big">👶</div>
+                            <h1>Как зовут малыша?</h1>
+                            <p>Вы можете пропустить</p>
+                            <input type="text" id="onboarding-name" placeholder="Имя" value="${STATE.baby.name || ''}">
+                            <button class="skip" data-action="skip-name">Пропустить →</button>
+                        `;
                         break;
-                    case 1: // дата
+                    case 1:
                         html += `
-                                <div class="emoji-big">📅</div>
-                                <h1>Дата рождения</h1>
-                                <p>Мы рассчитаем возраст</p>
-                                <input type="date" id="onboarding-birth" value="${STATE.baby.birthDate || ''}">
-                            `;
+                            <div class="emoji-big">📅</div>
+                            <h1>Дата рождения</h1>
+                            <p>Мы рассчитаем возраст</p>
+                            <input type="date" id="onboarding-birth" value="${STATE.baby.birthDate || ''}">
+                        `;
                         break;
-                    case 2: // вскармливание
+                    case 2:
                         html += `
-                                <div class="emoji-big">🍼</div>
-                                <h1>Тип вскармливания</h1>
-                                <div class="btn-group">
-                                    <button class="primary" data-value="ГВ">🤱 Грудное</button>
-                                    <button class="primary" data-value="ИВ">🍼 Искусственное</button>
-                                    <button class="primary" data-value="Смешанное">🤍 Смешанное</button>
-                                </div>
-                            `;
+                            <div class="emoji-big">🍼</div>
+                            <h1>Тип вскармливания</h1>
+                            <div class="btn-group">
+                                <button class="primary" data-value="ГВ">🤱 Грудное</button>
+                                <button class="primary" data-value="ИВ">🍼 Искусственное</button>
+                                <button class="primary" data-value="Смешанное">🤍 Смешанное</button>
+                            </div>
+                        `;
                         break;
-                    case 3: // начало прикорма
+                    case 3:
                         html += `
-                                <div class="emoji-big">🌱</div>
-                                <h1>Вы уже начали прикорм?</h1>
-                                <div class="btn-group">
-                                    <button class="primary" data-value="yes">Да</button>
-                                    <button class="primary" data-value="no">Нет</button>
-                                </div>
-                                <div id="start-date-field" style="display:none; margin-top:16px;">
-                                    <label>Дата начала прикорма</label>
-                                    <input type="date" id="onboarding-start-date">
-                                </div>
-                            `;
+                            <div class="emoji-big">🌱</div>
+                            <h1>Вы уже начали прикорм?</h1>
+                            <div class="btn-group">
+                                <button class="primary" data-value="yes">Да</button>
+                                <button class="primary" data-value="no">Нет</button>
+                            </div>
+                            <div id="start-date-field" style="display:none; margin-top:16px;">
+                                <label>Дата начала прикорма</label>
+                                <input type="date" id="onboarding-start-date">
+                            </div>
+                        `;
                         break;
-                    case 4: // подход
+                    case 4:
                         html += `
-                                <div class="emoji-big">🥄</div>
-                                <h1>Выберите подход</h1>
-                                <p>Можно изменить позже</p>
-                                <div class="btn-group">
-                                    <button class="primary" data-value="puree">🥄 Пюре</button>
-                                    <button class="primary" data-value="blw">🖐 BLW</button>
-                                    <button class="primary" data-value="mixed">🥣 Комбинированный</button>
-                                    <button class="secondary" data-value="unknown">🤷 Пока не знаю</button>
-                                </div>
-                            `;
+                            <div class="emoji-big">🥄</div>
+                            <h1>Выберите подход</h1>
+                            <p>Можно изменить позже</p>
+                            <div class="btn-group">
+                                <button class="primary" data-value="puree">🥄 Пюре</button>
+                                <button class="primary" data-value="blw">🖐 BLW</button>
+                                <button class="primary" data-value="mixed">🥣 Комбинированный</button>
+                                <button class="secondary" data-value="unknown">🤷 Пока не знаю</button>
+                            </div>
+                        `;
                         break;
-                    case 5: // признаки готовности
+                    case 5:
                         const r = STATE.onboarding.readiness || {};
                         html += `
-                                <div class="emoji-big">🧸</div>
-                                <h1>Признаки готовности</h1>
-                                <p>Какие признаки вы замечаете? (выберите все)</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-sit" ${r.sitSupport ? 'checked' : ''}> Сидит с поддержкой
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-head" ${r.headControl ? 'checked' : ''}> Уверенно держит голову
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-reach" ${r.reachesFood ? 'checked' : ''}> Тянется к еде
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-mouth" ${r.opensMouth ? 'checked' : ''}> Открывает рот при виде еды
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-notsure" ${r.notSure ? 'checked' : ''}> Пока не уверена
-                                    </label>
-                                </div>
-                            `;
+                            <div class="emoji-big">🧸</div>
+                            <h1>Признаки готовности</h1>
+                            <p>Какие признаки вы замечаете? (выберите все)</p>
+                            <div class="btn-group" style="flex-direction:column; gap:8px;">
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                    <input type="checkbox" id="readiness-sit" ${r.sitSupport ? 'checked' : ''}> Сидит с поддержкой
+                                </label>
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                    <input type="checkbox" id="readiness-head" ${r.headControl ? 'checked' : ''}> Уверенно держит голову
+                                </label>
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                    <input type="checkbox" id="readiness-reach" ${r.reachesFood ? 'checked' : ''}> Тянется к еде
+                                </label>
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                    <input type="checkbox" id="readiness-mouth" ${r.opensMouth ? 'checked' : ''}> Открывает рот при виде еды
+                                </label>
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                    <input type="checkbox" id="readiness-notsure" ${r.notSure ? 'checked' : ''}> Пока не уверена
+                                </label>
+                            </div>
+                        `;
                         break;
-                    case 6: // аллергии
+                    case 6:
                         const allergies = STATE.onboarding.allergies || [];
                         const allAllergens = ['Egg', 'Dairy', 'Tree nuts', 'Fish', 'Wheat', 'Soy', 'Sesame', 'Citrus fruits'];
                         html += `
-                                <div class="emoji-big">⚠️</div>
-                                <h1>Аллергии</h1>
-                                <p>Есть ли у малыша аллергия на что-то?</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    ${allAllergens.map(a => `
-                                        <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                            <input type="checkbox" class="allergy-check" value="${a}" ${allergies.includes(a) ? 'checked' : ''}> ${a}
-                                        </label>
-                                    `).join('')}
+                            <div class="emoji-big">⚠️</div>
+                            <h1>Аллергии</h1>
+                            <p>Есть ли у малыша аллергия на что-то?</p>
+                            <div class="btn-group" style="flex-direction:column; gap:8px;">
+                                ${allAllergens.map(a => `
                                     <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="allergy-none" ${allergies.length === 0 ? 'checked' : ''}> Нет
+                                        <input type="checkbox" class="allergy-check" value="${a}" ${allergies.includes(a) ? 'checked' : ''}> ${a}
                                     </label>
-                                </div>
-                            `;
+                                `).join('')}
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                    <input type="checkbox" id="allergy-none" ${allergies.length === 0 ? 'checked' : ''}> Нет
+                                </label>
+                            </div>
+                        `;
                         break;
-                    case 7: // диета
+                    case 7:
                         const diet = STATE.onboarding.diet || [];
                         const dietOpts = ['Reflux', 'Dairy-free', 'Gluten-free', 'Eczema-friendly', 'Pork-free', 'Rich iron',
                             'Grain-free'
                         ];
                         html += `
-                                <div class="emoji-big">🥗</div>
-                                <h1>Диета</h1>
-                                <p>Есть ли особенности питания?</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    ${dietOpts.map(d => `
-                                        <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                            <input type="checkbox" class="diet-check" value="${d}" ${diet.includes(d) ? 'checked' : ''}> ${d}
-                                        </label>
-                                    `).join('')}
+                            <div class="emoji-big">🥗</div>
+                            <h1>Диета</h1>
+                            <p>Есть ли особенности питания?</p>
+                            <div class="btn-group" style="flex-direction:column; gap:8px;">
+                                ${dietOpts.map(d => `
                                     <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="diet-none" ${diet.length === 0 ? 'checked' : ''}> Нет
+                                        <input type="checkbox" class="diet-check" value="${d}" ${diet.includes(d) ? 'checked' : ''}> ${d}
                                     </label>
-                                </div>
-                            `;
+                                `).join('')}
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                    <input type="checkbox" id="diet-none" ${diet.length === 0 ? 'checked' : ''}> Нет
+                                </label>
+                            </div>
+                        `;
                         break;
-                    case 8: // любимые продукты
+                    case 8:
                         const favs = STATE.onboarding.favoriteFoods || [];
                         const foodOpts = ['Banana', 'Mango', 'Cucumber', 'Chicken', 'Apple', 'Cheese', 'Egg', 'Avocado',
                             'Strawberry'
                         ];
                         html += `
-                                <div class="emoji-big">🍎</div>
-                                <h1>Любимые продукты</h1>
-                                <p>Что бы вы хотели предложить малышу в первую неделю?</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    ${foodOpts.map(f => `
-                                        <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                            <input type="checkbox" class="fav-check" value="${f}" ${favs.includes(f) ? 'checked' : ''}> ${f}
-                                        </label>
-                                    `).join('')}
+                            <div class="emoji-big">🍎</div>
+                            <h1>Любимые продукты</h1>
+                            <p>Что бы вы хотели предложить малышу в первую неделю?</p>
+                            <div class="btn-group" style="flex-direction:column; gap:8px;">
+                                ${foodOpts.map(f => `
                                     <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="fav-none" ${favs.length === 0 ? 'checked' : ''}> Не знаю
+                                        <input type="checkbox" class="fav-check" value="${f}" ${favs.includes(f) ? 'checked' : ''}> ${f}
                                     </label>
-                                </div>
-                            `;
+                                `).join('')}
+                                <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                    <input type="checkbox" id="fav-none" ${favs.length === 0 ? 'checked' : ''}> Не знаю
+                                </label>
+                            </div>
+                        `;
                         break;
-                    case 9: // страхи
+                    case 9:
                         const worries = STATE.onboarding.worries || [];
                         const worryOpts = ['Choking & Gagging', 'Allergic reactions', 'Baby refusing food',
                             'Getting enough iron & nutrients', 'Doing something wrong'
                         ];
                         html += `
-                                <div class="emoji-big">😰</div>
-                                <h1>Что вас беспокоит?</h1>
-                                <p>Выберите все, что вас волнует</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    ${worryOpts.map(w => `
-                                        <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                            <input type="checkbox" class="worry-check" value="${w}" ${worries.includes(w) ? 'checked' : ''}> ${w}
-                                        </label>
-                                    `).join('')}
-                                </div>
-                            `;
+                            <div class="emoji-big">😰</div>
+                            <h1>Что вас беспокоит?</h1>
+                            <p>Выберите все, что вас волнует</p>
+                            <div class="btn-group" style="flex-direction:column; gap:8px;">
+                                ${worryOpts.map(w => `
+                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
+                                        <input type="checkbox" class="worry-check" value="${w}" ${worries.includes(w) ? 'checked' : ''}> ${w}
+                                    </label>
+                                `).join('')}
+                            </div>
+                        `;
                         break;
-                    case 10: // уверенность
+                    case 10:
                         const confidence = STATE.onboarding.confidence || '';
                         html += `
-                                <div class="emoji-big">💪</div>
-                                <h1>Как вы себя чувствуете?</h1>
-                                <p>Готовы начать прикорм?</p>
-                                <div class="btn-group">
-                                    <button class="${confidence === 'nervous' ? 'primary' : ''}" data-value="nervous">😰 Нервничаю</button>
-                                    <button class="${confidence === 'overwhelmed' ? 'primary' : ''}" data-value="overwhelmed">😵 Растеряна</button>
-                                    <button class="${confidence === 'confident' ? 'primary' : ''}" data-value="confident">😊 Уверена</button>
-                                    <button class="${confidence === 'very' ? 'primary' : ''}" data-value="very">💪 Очень уверена</button>
-                                </div>
-                            `;
+                            <div class="emoji-big">💪</div>
+                            <h1>Как вы себя чувствуете?</h1>
+                            <p>Готовы начать прикорм?</p>
+                            <div class="btn-group">
+                                <button class="${confidence === 'nervous' ? 'primary' : ''}" data-value="nervous">😰 Нервничаю</button>
+                                <button class="${confidence === 'overwhelmed' ? 'primary' : ''}" data-value="overwhelmed">😵 Растеряна</button>
+                                <button class="${confidence === 'confident' ? 'primary' : ''}" data-value="confident">😊 Уверена</button>
+                                <button class="${confidence === 'very' ? 'primary' : ''}" data-value="very">💪 Очень уверена</button>
+                            </div>
+                        `;
                         break;
                 }
 
@@ -1015,7 +833,7 @@
                 html += `</div></div>`;
                 app.innerHTML = html;
 
-                // Обработчики для навигации
+                // Обработчики
                 document.querySelectorAll('[data-action="next-step"]').forEach(btn => {
                     btn.addEventListener('click', () => {
                         saveCurrentStepData(stepIndex);
@@ -1031,7 +849,6 @@
                     });
                 });
 
-                // Обработчики для кнопок выбора (вскармливание, начало прикорма, подход, уверенность)
                 document.querySelectorAll('[data-value]').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const val = this.dataset.value;
@@ -1068,19 +885,16 @@
                     });
                 });
 
-                // Обработчик даты начала прикорма
                 document.getElementById('onboarding-start-date')?.addEventListener('change', function() {
                     STATE.baby.feedingStartDate = this.value;
                     saveState();
                 });
 
-                // Пропуск имени
                 document.querySelector('[data-action="skip-name"]')?.addEventListener('click', function() {
                     step = 1;
                     renderStep(step);
                 });
 
-                // Финиш
                 document.querySelector('[data-action="finish-onboarding"]')?.addEventListener('click', function() {
                     saveCurrentStepData(stepIndex);
                     STATE.onboardingCompleted = true;
@@ -1089,7 +903,6 @@
                 });
             };
 
-            // Функция сохранения данных текущего шага (для чекбоксов)
             function saveCurrentStepData(stepIndex) {
                 if (stepIndex === 0) {
                     STATE.baby.name = document.getElementById('onboarding-name')?.value.trim() || '';
@@ -1140,25 +953,13 @@
         }
 
         // ============================================================
-        // 4. ЭКРАН ЗАГРУЗКИ – скрыть после инициализации
-        // ============================================================
-        function hideLoadingScreen() {
-            const el = document.getElementById('loading-screen');
-            if (el) {
-                setTimeout(() => {
-                    el.classList.add('hidden');
-                    setTimeout(() => { el.style.display = 'none'; }, 600);
-                }, 300);
-            }
-        }
-
-        // ============================================================
-        // 5. ОСНОВНОЙ РЕНДЕРИНГ ПРИЛОЖЕНИЯ
+        // 4. ОСНОВНОЕ ПРИЛОЖЕНИЕ
         // ============================================================
         function renderApp() {
             const app = document.getElementById('app');
             if (!app) return;
 
+            // Если онбординг не завершён – показываем его
             if (!STATE.onboardingCompleted || !STATE.baby.birthDate) {
                 renderOnboarding();
                 return;
@@ -1170,60 +971,60 @@
             const diaryCount = STATE.diary.length;
 
             let html = `
-                    <div class="dashboard">
-                        <div class="welcome-card">
-                            <div class="info">
-                                <h1>🌸 Привет, ${STATE.baby.name || 'Малыш'}!</h1>
-                                <p>${age.months} мес. · ${STATE.baby.feedingType}</p>
-                            </div>
-                            <div class="avatar">👶</div>
+                <div class="dashboard">
+                    <div class="welcome-card">
+                        <div class="info">
+                            <h1>🌸 Привет, ${STATE.baby.name || 'Малыш'}!</h1>
+                            <p>${age.months} мес. · ${STATE.baby.feedingType}</p>
                         </div>
-                        <div class="status-card">
-                            <div class="row"><span class="label">Статус прикорма</span><span class="value">${STATE.baby.feedingStarted ? '🌱 Активно' : '⏳ Ещё не начат'}</span></div>
-                            ${STATE.baby.feedingStarted && STATE.baby.feedingStartDate ? `<div class="row" style="margin-top:4px;"><span class="label">Начало</span><span class="value">${STATE.baby.feedingStartDate}</span></div>` : ''}
-                        </div>
-                        <div class="progress-card">
-                            <div class="header"><span>Прогресс</span><span>${STATE.introduced.length} из ${PRODUCTS.length} продуктов</span></div>
-                            <div class="track"><div class="fill" style="width:${progress}%;"></div></div>
-                        </div>
-                        <div class="quick-grid">
-                            <div class="quick-card" data-action="add-product"><span class="icon">🥣</span><div class="label">Добавить продукт</div><div class="desc">В дневник</div></div>
-                            <div class="quick-card" data-action="products"><span class="icon">🥑</span><div class="label">Продукты</div><div class="desc">Смотреть базу</div></div>
-                            <div class="quick-card" data-action="diary"><span class="icon">📖</span><div class="label">Дневник</div><div class="desc">${diaryCount} записей</div></div>
-                            <div class="quick-card" data-action="recipes"><span class="icon">🍲</span><div class="label">Рецепты</div><div class="desc">Идеи</div></div>
-                        </div>
-                        ${nextProduct ? `
-                        <div class="recommendation-card">
-                            <div class="icon">🌱</div>
-                            <div class="content">
-                                <div class="tag">Следующий шаг</div>
-                                <h3>Попробуйте ${nextProduct.name}</h3>
-                                <p>${nextProduct.cat}, с ${nextProduct.min_age} мес.</p>
-                            </div>
-                            <button class="action" data-action="add-specific" data-id="${nextProduct.id}">➕ Добавить</button>
-                        </div>` : `
-                        <div class="recommendation-card">
-                            <div class="icon">🎉</div>
-                            <div class="content">
-                                <div class="tag">Отлично!</div>
-                                <h3>Все продукты введены</h3>
-                                <p>Поздравляем!</p>
-                            </div>
-                        </div>`}
-                        <div class="tab-bar">
-                            <button class="active" data-tab="home">Главная</button>
-                            <button data-tab="products">Продукты</button>
-                            <button data-tab="diary">Дневник</button>
-                            <button data-tab="recipes">Рецепты</button>
-                            <button data-tab="baby">Малыш</button>
-                        </div>
-                        <div id="page-home" class="page active"><div style="background:#fafafa;padding:16px;border-radius:12px;margin-top:8px;"><p style="font-size:14px;color:#555;">Здесь будет подробная информация о сегодняшнем дне.</p></div></div>
-                        <div id="page-products" class="page">${renderProductsHTML()}</div>
-                        <div id="page-diary" class="page">${renderDiaryHTML()}</div>
-                        <div id="page-recipes" class="page">${renderRecipesHTML()}</div>
-                        <div id="page-baby" class="page">${renderBabyHTML()}</div>
+                        <div class="avatar">👶</div>
                     </div>
-                `;
+                    <div class="status-card">
+                        <div class="row"><span class="label">Статус прикорма</span><span class="value">${STATE.baby.feedingStarted ? '🌱 Активно' : '⏳ Ещё не начат'}</span></div>
+                        ${STATE.baby.feedingStarted && STATE.baby.feedingStartDate ? `<div class="row" style="margin-top:4px;"><span class="label">Начало</span><span class="value">${STATE.baby.feedingStartDate}</span></div>` : ''}
+                    </div>
+                    <div class="progress-card">
+                        <div class="header"><span>Прогресс</span><span>${STATE.introduced.length} из ${PRODUCTS.length} продуктов</span></div>
+                        <div class="track"><div class="fill" style="width:${progress}%;"></div></div>
+                    </div>
+                    <div class="quick-grid">
+                        <div class="quick-card" data-action="add-product"><span class="icon">🥣</span><div class="label">Добавить продукт</div><div class="desc">В дневник</div></div>
+                        <div class="quick-card" data-action="products"><span class="icon">🥑</span><div class="label">Продукты</div><div class="desc">Смотреть базу</div></div>
+                        <div class="quick-card" data-action="diary"><span class="icon">📖</span><div class="label">Дневник</div><div class="desc">${diaryCount} записей</div></div>
+                        <div class="quick-card" data-action="recipes"><span class="icon">🍲</span><div class="label">Рецепты</div><div class="desc">Идеи</div></div>
+                    </div>
+                    ${nextProduct ? `
+                    <div class="recommendation-card">
+                        <div class="icon">🌱</div>
+                        <div class="content">
+                            <div class="tag">Следующий шаг</div>
+                            <h3>Попробуйте ${nextProduct.name}</h3>
+                            <p>${nextProduct.cat}, с ${nextProduct.min_age} мес.</p>
+                        </div>
+                        <button class="action" data-action="add-specific" data-id="${nextProduct.id}">➕ Добавить</button>
+                    </div>` : `
+                    <div class="recommendation-card">
+                        <div class="icon">🎉</div>
+                        <div class="content">
+                            <div class="tag">Отлично!</div>
+                            <h3>Все продукты введены</h3>
+                            <p>Поздравляем!</p>
+                        </div>
+                    </div>`}
+                    <div class="tab-bar">
+                        <button class="active" data-tab="home">Главная</button>
+                        <button data-tab="products">Продукты</button>
+                        <button data-tab="diary">Дневник</button>
+                        <button data-tab="recipes">Рецепты</button>
+                        <button data-tab="baby">Малыш</button>
+                    </div>
+                    <div id="page-home" class="page active"><div style="background:#fafafa;padding:16px;border-radius:12px;margin-top:8px;"><p style="font-size:14px;color:#555;">Здесь будет подробная информация о сегодняшнем дне.</p></div></div>
+                    <div id="page-products" class="page">${renderProductsHTML()}</div>
+                    <div id="page-diary" class="page">${renderDiaryHTML()}</div>
+                    <div id="page-recipes" class="page">${renderRecipesHTML()}</div>
+                    <div id="page-baby" class="page">${renderBabyHTML()}</div>
+                </div>
+            `;
 
             app.innerHTML = html;
 
@@ -1239,14 +1040,13 @@
                 });
             });
 
-            // Добавить продукт (быстрая кнопка)
+            // Кнопка "Добавить продукт"
             document.querySelectorAll('[data-action="add-product"]').forEach(el => {
                 el.addEventListener('click', () => {
                     const firstAvailable = PRODUCTS.find(p => !isIntroduced(p.id));
                     if (firstAvailable) {
                         STATE.introduced.push(firstAvailable.id);
-                        STATE.diary.push({ product: firstAvailable.id, date: new Date().toISOString().slice(0,
-                            10) });
+                        STATE.diary.push({ product: firstAvailable.id, date: new Date().toISOString().slice(0, 10) });
                         saveState();
                         renderApp();
                     } else {
@@ -1255,7 +1055,7 @@
                 });
             });
 
-            // Добавить конкретный продукт из рекомендации
+            // Добавить конкретный продукт
             document.querySelectorAll('[data-action="add-specific"]').forEach(el => {
                 el.addEventListener('click', function() {
                     const id = this.dataset.id;
@@ -1268,7 +1068,7 @@
                 });
             });
 
-            // Клик по продукту в списке – добавляем
+            // Клик по продукту
             document.querySelectorAll('.product-item').forEach(el => {
                 el.addEventListener('click', function() {
                     const id = this.dataset.id;
@@ -1281,7 +1081,7 @@
                 });
             });
 
-            // Переключение на продукты, дневник, рецепты
+            // Переключение на другие вкладки
             document.querySelectorAll('[data-action="products"]').forEach(el => {
                 el.addEventListener('click', () => document.querySelector('[data-tab="products"]').click());
             });
@@ -1299,19 +1099,32 @@
                 renderApp();
             });
 
-            // Скрываем экран загрузки после того, как всё отрисовано
+            // Скрываем экран загрузки
             hideLoadingScreen();
         }
 
+        function hideLoadingScreen() {
+            const el = document.getElementById('loading-screen');
+            if (el) {
+                setTimeout(() => {
+                    el.classList.add('hidden');
+                    setTimeout(() => { el.style.display = 'none'; }, 600);
+                }, 300);
+            }
+        }
+
+        // ============================================================
+        // 5. ФУНКЦИИ ДЛЯ СТРАНИЦ
+        // ============================================================
         function renderProductsHTML() {
             let html = `<h2>Продукты</h2><div class="product-grid">`;
             PRODUCTS.forEach(p => {
                 const introduced = isIntroduced(p.id);
                 html += `<div class="product-item ${introduced ? 'introduced' : ''}" data-id="${p.id}">
-                        <span class="emoji">${p.emoji}</span>
-                        <div class="name">${p.name}</div>
-                        <div class="cat">${p.cat}, ${p.min_age}+ мес.</div>
-                    </div>`;
+                    <span class="emoji">${p.emoji}</span>
+                    <div class="name">${p.name}</div>
+                    <div class="cat">${p.cat}, ${p.min_age}+ мес.</div>
+                </div>`;
             });
             html += `</div>`;
             return html;
@@ -1342,16 +1155,16 @@
         function renderBabyHTML() {
             const baby = STATE.baby;
             return `
-                    <h2>Малыш</h2>
-                    <div class="baby-card" style="display:flex;align-items:center;background:#fafafa;padding:16px;border-radius:12px;margin:12px 0;">
-                        <div class="baby-avatar" style="font-size:48px;margin-right:16px;">👶</div>
-                        <div><strong>${baby.name || 'Имя не указано'}</strong><br>${calcAge(baby.birthDate).months} мес.</div>
-                    </div>
-                    <div class="settings-row"><span>🍼</span><div><strong>Тип кормления</strong><br><small>${baby.feedingType}</small></div></div>
-                    <div class="settings-row"><span>🥄</span><div><strong>Подход</strong><br><small>${baby.approach}</small></div></div>
-                    <div class="settings-row"><span>📅</span><div><strong>Прикорм начат</strong><br><small>${baby.feedingStarted ? baby.feedingStartDate || 'Да' : 'Нет'}</small></div></div>
-                    <button class="danger-button" data-action="reset-onboarding">Сбросить онбординг</button>
-                `;
+                <h2>Малыш</h2>
+                <div class="baby-card" style="display:flex;align-items:center;background:#fafafa;padding:16px;border-radius:12px;margin:12px 0;">
+                    <div class="baby-avatar" style="font-size:48px;margin-right:16px;">👶</div>
+                    <div><strong>${baby.name || 'Имя не указано'}</strong><br>${calcAge(baby.birthDate).months} мес.</div>
+                </div>
+                <div class="settings-row"><span>🍼</span><div><strong>Тип кормления</strong><br><small>${baby.feedingType}</small></div></div>
+                <div class="settings-row"><span>🥄</span><div><strong>Подход</strong><br><small>${baby.approach}</small></div></div>
+                <div class="settings-row"><span>📅</span><div><strong>Прикорм начат</strong><br><small>${baby.feedingStarted ? baby.feedingStartDate || 'Да' : 'Нет'}</small></div></div>
+                <button class="danger-button" data-action="reset-onboarding">Сбросить онбординг</button>
+            `;
         }
 
         // ============================================================
