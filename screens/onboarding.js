@@ -1,9 +1,9 @@
-// screens/onboarding.js
+// screens/onboarding.js (с вариантами "Нет" и "Не знаю")
 (function() {
     'use strict';
 
     // ============================================================
-    // ДАННЫЕ ДЛЯ ШАГОВ (можно вынести в config.js, если нужно)
+    // ДАННЫЕ ДЛЯ ШАГОВ
     // ============================================================
     const ALLERGENS_LIST = [
         'Яйцо', 'Молочные продукты', 'Орехи', 'Рыба',
@@ -27,6 +27,9 @@
         'Нехватка железа и питательных веществ',
         'Делаю что-то не так'
     ];
+
+    // Список значений, которые не нужно сохранять (для чекбоксов)
+    const SKIP_VALUES = ['Нет', 'Не знаю', 'Пропустить'];
 
     // ============================================================
     // ОПИСАНИЕ ШАГОВ (массив объектов)
@@ -68,8 +71,8 @@
             desc: '',
             type: 'choice',
             options: ['Да', 'Нет'],
-            key: 'feedingStarted',  // будет установлено true/false
-            extra: 'start-date-field' // дополнительное поле
+            key: 'feedingStarted',
+            extra: 'start-date-field'
         },
         {
             id: 'approach',
@@ -102,7 +105,7 @@
             title: 'Аллергии',
             desc: 'Есть ли у малыша аллергия на что-то?',
             type: 'checkboxes',
-            options: ALLERGENS_LIST,
+            options: [...ALLERGENS_LIST, 'Нет', 'Не знаю'],   // <-- добавлены варианты
             key: 'allergies'
         },
         {
@@ -111,7 +114,7 @@
             title: 'Диета',
             desc: 'Есть ли особенности питания?',
             type: 'checkboxes',
-            options: DIET_OPTIONS,
+            options: [...DIET_OPTIONS, 'Нет', 'Не знаю'],    // <-- добавлены варианты
             key: 'diet'
         },
         {
@@ -120,7 +123,7 @@
             title: 'Любимые продукты',
             desc: 'Что бы вы хотели предложить малышу в первую неделю?',
             type: 'checkboxes',
-            options: FAVORITE_FOODS,
+            options: [...FAVORITE_FOODS, 'Не знаю', 'Пропустить'], // <-- добавлены варианты
             key: 'favoriteFoods'
         },
         {
@@ -147,10 +150,10 @@
     // СОСТОЯНИЕ ОНБОРДИНГА
     // ============================================================
     let currentStep = 0;
-    let tempData = {}; // временные данные (для чекбоксов и прочего)
+    let tempData = {};
 
     // ============================================================
-    // ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ РАСЧЁТА ВОЗРАСТА (если нет в utils)
+    // ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ РАСЧЁТА ВОЗРАСТА
     // ============================================================
     function calcAge(birthDate) {
         if (!birthDate) return { months: 0 };
@@ -182,7 +185,6 @@
         html += `<h1>${step.title}</h1>`;
         if (step.desc) html += `<p>${step.desc}</p>`;
 
-        // Рендеринг в зависимости от типа
         if (step.type === 'input') {
             const val = tempData[step.key] || STATE.baby[step.key] || '';
             html += `<input type="${step.inputType}" id="onboarding-input" placeholder="${step.placeholder || ''}" value="${val}">`;
@@ -216,7 +218,7 @@
             html += `</div>`;
         }
 
-        // Навигационные кнопки
+        // Навигационные кнопки (уже есть "Назад" на всех шагах, кроме первого)
         html += `<div class="nav-buttons">`;
         if (currentStep > 0) html += `<button class="prev" data-action="prev-step">← Назад</button>`;
         else html += `<div></div>`;
@@ -232,7 +234,6 @@
                 const key = this.dataset.choice;
                 const value = this.dataset.value;
                 tempData[key] = value;
-                // Если это шаг "feedingStarted" – обрабатываем отдельно
                 if (key === 'feedingStarted') {
                     const started = (value === 'Да');
                     tempData.feedingStarted = started;
@@ -242,23 +243,19 @@
                         document.getElementById('onboarding-start-date').value = '';
                     }
                 }
-                // Подсветка выбранного
                 document.querySelectorAll(`[data-choice="${key}"]`).forEach(b => b.style.border = 'none');
                 this.style.border = '3px solid #d4a373';
             });
         });
 
-        // Обработчик даты начала прикорма
         document.getElementById('onboarding-start-date')?.addEventListener('change', function() {
             tempData.feedingStartDate = this.value;
         });
 
-        // Пропуск шага
         document.querySelector('[data-action="skip-step"]')?.addEventListener('click', function() {
             goToStep(currentStep + 1);
         });
 
-        // Навигация
         document.querySelector('[data-action="next-step"]')?.addEventListener('click', function() {
             saveCurrentStepData();
             goToStep(currentStep + 1);
@@ -269,7 +266,6 @@
             goToStep(currentStep - 1);
         });
 
-        // Завершение
         document.querySelector('[data-action="finish-onboarding"]')?.addEventListener('click', function() {
             saveCurrentStepData();
             finishOnboarding();
@@ -292,7 +288,6 @@
         const step = STEPS[currentStep];
         if (!step) return;
 
-        // Обработка input
         if (step.type === 'input') {
             const input = document.getElementById('onboarding-input');
             if (input) {
@@ -305,7 +300,6 @@
             }
         }
 
-        // Обработка choice
         if (step.type === 'choice') {
             const key = step.key;
             const value = tempData[key];
@@ -322,27 +316,25 @@
             }
         }
 
-        // Обработка checkboxes
         if (step.type === 'checkboxes') {
             const checks = document.querySelectorAll('.step-checkbox:checked');
             const values = Array.from(checks).map(el => el.value);
             const key = step.key;
             if (key === 'readiness') {
-                // маппинг на булевы флаги
                 const r = STATE.onboarding.readiness || {};
                 const mapping = step.mapping || {};
-                // Сброс всех флагов
                 Object.keys(mapping).forEach(k => r[mapping[k]] = false);
                 values.forEach(val => {
                     if (mapping[val]) r[mapping[val]] = true;
                 });
                 STATE.onboarding.readiness = r;
             } else {
-                STATE.onboarding[key] = values;
+                // Фильтруем специальные варианты "Нет", "Не знаю", "Пропустить"
+                const filtered = values.filter(v => !SKIP_VALUES.includes(v));
+                STATE.onboarding[key] = filtered;
             }
         }
 
-        // Сохраняем STATE
         if (typeof window.saveState === 'function') {
             window.saveState();
         }
@@ -352,13 +344,11 @@
     // ЗАВЕРШЕНИЕ ОНБОРДИНГА
     // ============================================================
     function finishOnboarding() {
-        // Устанавливаем флаг завершения
         STATE.onboardingCompleted = true;
         if (typeof window.saveState === 'function') {
             window.saveState();
         }
         console.log('✅ Онбординг завершён, переходим на главный экран');
-        // Переход на главный экран через render
         if (typeof window.render === 'function') {
             window.render('home');
         } else {
@@ -370,11 +360,9 @@
     // ГЛАВНАЯ ФУНКЦИЯ (вызывается из app.js)
     // ============================================================
     window.renderOnboarding = function() {
-        // Загружаем временные данные из STATE, если они уже есть
-        // (чтобы при возврате шагов данные не терялись)
         currentStep = 0;
         renderStep();
     };
 
-    console.log('✅ onboarding.js (рефакторинг) загружен, шагов:', STEPS.length);
+    console.log('✅ onboarding.js (с вариантами "Нет"/"Не знаю") загружен, шагов:', STEPS.length);
 })();
