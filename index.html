@@ -115,11 +115,11 @@
     <script>
         var FILES = [
             'config.js',
-            'products.js',
-            'recipes.js',
+            'data/data_products.js',
+            'data/recipes.js',
             'diary.js',
-            'safety.js',
-            'recommendations.js',
+            'data/safety.js',
+            'data/recommendations.js',
             'utils.js',
             'state.js',
             'onboarding.js',
@@ -177,12 +177,10 @@
 
         function startApp() {
             console.log('🚀 Запуск приложения...');
-            // Пытаемся вызвать initApp (содержит логику онбординга)
             if (typeof initApp === 'function') {
                 initApp();
                 return;
             }
-            // Если initApp нет, пробуем renderApp или render
             if (typeof renderApp === 'function') {
                 renderApp();
             } else if (typeof render === 'function') {
