@@ -15,7 +15,6 @@
         @keyframes spin{to{transform:rotate(360deg)}}
         .loading-text{margin-top:20px;font-size:18px;color:#888}
         .loading-version{margin-top:8px;font-size:14px;color:#bbb}
-
         .onboarding{display:flex;flex-direction:column;justify-content:center;min-height:80vh;padding:0 16px;text-align:center;animation:fadeIn 0.5s}
         @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         .onboarding .step-indicators{display:flex;justify-content:center;gap:8px;margin:20px 0 30px}
@@ -37,6 +36,21 @@
         .onboarding .nav-buttons button:active{transform:scale(0.96)}
         .onboarding .nav-buttons button.prev{background:#f0ebe7;color:#555}
         .onboarding .nav-buttons button.next{background:#d4a373;color:#fff}
+
+        /* Подсветка выбранных чекбоксов */
+        .onboarding .btn-group label {
+            display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px;
+            background:#fafafa; padding:12px; border-radius:12px;
+            border:2px solid transparent; transition: background 0.2s, border-color 0.2s;
+            cursor:pointer;
+        }
+        .onboarding .btn-group label:has(input:checked) {
+            background:#e8f5e9 !important;
+            border-color:#4caf50 !important;
+        }
+        .onboarding .btn-group label input[type="checkbox"] {
+            width:20px; height:20px; cursor:pointer;
+        }
 
         .dashboard{display:block}
         .welcome-card{background:linear-gradient(135deg,#fdf6f0,#f5ebe3);border-radius:24px;padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
@@ -106,25 +120,23 @@
     <div id="app"></div>
 
     <script>
-        // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА (только при первом запуске)
-        if (!localStorage.getItem('_cache_cleared')) {
-            localStorage.clear();
-            localStorage.setItem('_cache_cleared', 'true');
-            location.reload(true);
-        }
+        // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА КЭША ПРИ ПЕРВОМ ЗАПУСКЕ
+        (function() {
+            try {
+                if (!localStorage.getItem('_cache_cleared')) {
+                    localStorage.clear();
+                    localStorage.setItem('_cache_cleared', 'true');
+                    location.reload(true);
+                    return;
+                }
+            } catch(e) {}
+        })();
 
         // ============================================================
         // 1. СОСТОЯНИЕ
         // ============================================================
         const DEFAULT_STATE = {
-            baby: {
-                name: '',
-                birthDate: '',
-                feedingType: 'ГВ',
-                feedingStarted: false,
-                feedingStartDate: '',
-                approach: 'mixed'
-            },
+            baby: { name: '', birthDate: '', feedingType: 'ГВ', feedingStarted: false, feedingStartDate: '', approach: 'mixed' },
             diary: [],
             introduced: [],
             favorites: [],
@@ -141,22 +153,28 @@
             onboardingCompleted: false
         };
 
-        let STATE = JSON.parse(localStorage.getItem('prikorm_app_state')) || JSON.parse(JSON.stringify(DEFAULT_STATE));
-
-        // Гарантируем onboarding
-        if (!STATE.onboarding) {
-            STATE.onboarding = {
-                readiness: {},
-                allergies: [],
-                diet: [],
-                favoriteFoods: [],
-                worries: [],
-                confidence: ''
-            };
+        let STATE;
+        try {
+            const saved = localStorage.getItem('prikorm_app_state');
+            STATE = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_STATE));
+            if (!STATE.onboarding) {
+                STATE.onboarding = {
+                    readiness: {},
+                    allergies: [],
+                    diet: [],
+                    favoriteFoods: [],
+                    worries: [],
+                    confidence: ''
+                };
+            }
+        } catch(e) {
+            STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
         }
 
         function saveState() {
-            localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
+            try {
+                localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
+            } catch(e) {}
         }
 
         // ПРОДУКТЫ (первые 20)
@@ -188,9 +206,6 @@
             { name:'Каша гречневая', age:4, desc:'Сварить на воде, измельчить' }
         ];
 
-        // ============================================================
-        // 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-        // ============================================================
         function calcAge(birthDate) {
             if (!birthDate) return { months:0 };
             const birth = new Date(birthDate);
@@ -217,12 +232,13 @@
         }
 
         // ============================================================
-        // 3. ОНБОРДИНГ (11 шагов)
+        // 2. ОНБОРДИНГ (11 шагов, все на русском)
         // ============================================================
         function renderOnboarding() {
             try {
                 const app = document.getElementById('app');
                 if (!app) return;
+
                 let step = 0;
                 const totalSteps = 11;
 
@@ -290,105 +306,94 @@
                                 </div>
                             `;
                             break;
-                        case 5:
+                        case 5: // признаки готовности
                             const r = STATE.onboarding.readiness || {};
                             html += `
                                 <div class="emoji-big">🧸</div>
                                 <h1>Признаки готовности</h1>
                                 <p>Какие признаки вы замечаете? (выберите все)</p>
                                 <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-sit" ${r.sitSupport?'checked':''}> Сидит с поддержкой
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-head" ${r.headControl?'checked':''}> Уверенно держит голову
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-reach" ${r.reachesFood?'checked':''}> Тянется к еде
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-mouth" ${r.opensMouth?'checked':''}> Открывает рот при виде еды
-                                    </label>
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="readiness-notsure" ${r.notSure?'checked':''}> Пока не уверена
-                                    </label>
+                                    <label><input type="checkbox" id="readiness-sit" ${r.sitSupport?'checked':''}> Сидит с поддержкой</label>
+                                    <label><input type="checkbox" id="readiness-head" ${r.headControl?'checked':''}> Уверенно держит голову</label>
+                                    <label><input type="checkbox" id="readiness-reach" ${r.reachesFood?'checked':''}> Тянется к еде</label>
+                                    <label><input type="checkbox" id="readiness-mouth" ${r.opensMouth?'checked':''}> Открывает рот при виде еды</label>
+                                    <label><input type="checkbox" id="readiness-notsure" ${r.notSure?'checked':''}> Пока не уверена</label>
                                 </div>
                             `;
                             break;
-                        case 6:
+                        case 6: // аллергии (переведено на русский)
                             const allergies = STATE.onboarding.allergies || [];
-                            const allAllergens = ['Egg','Dairy','Tree nuts','Fish','Wheat','Soy','Sesame','Citrus fruits'];
                             html += `
                                 <div class="emoji-big">⚠️</div>
                                 <h1>Аллергии</h1>
                                 <p>Есть ли у малыша аллергия на что-то?</p>
                                 <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    ${allAllergens.map(a => `
-                                        <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                            <input type="checkbox" class="allergy-check" value="${a}" ${allergies.includes(a)?'checked':''}> ${a}
-                                        </label>
-                                    `).join('')}
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="allergy-none" ${allergies.length===0?'checked':''}> Нет
-                                    </label>
+                                    <label><input type="checkbox" class="allergy-check" value="Яйцо" ${allergies.includes('Яйцо')?'checked':''}> Яйцо</label>
+                                    <label><input type="checkbox" class="allergy-check" value="Молочные продукты" ${allergies.includes('Молочные продукты')?'checked':''}> Молочные продукты</label>
+                                    <label><input type="checkbox" class="allergy-check" value="Орехи" ${allergies.includes('Орехи')?'checked':''}> Орехи</label>
+                                    <label><input type="checkbox" class="allergy-check" value="Рыба" ${allergies.includes('Рыба')?'checked':''}> Рыба</label>
+                                    <label><input type="checkbox" class="allergy-check" value="Пшеница" ${allergies.includes('Пшеница')?'checked':''}> Пшеница</label>
+                                    <label><input type="checkbox" class="allergy-check" value="Соя" ${allergies.includes('Соя')?'checked':''}> Соя</label>
+                                    <label><input type="checkbox" class="allergy-check" value="Кунжут" ${allergies.includes('Кунжут')?'checked':''}> Кунжут</label>
+                                    <label><input type="checkbox" class="allergy-check" value="Цитрусовые" ${allergies.includes('Цитрусовые')?'checked':''}> Цитрусовые</label>
+                                    <label><input type="checkbox" id="allergy-none" ${allergies.length===0?'checked':''}> Нет</label>
                                 </div>
                             `;
                             break;
-                        case 7:
+                        case 7: // диета (переведено)
                             const diet = STATE.onboarding.diet || [];
-                            const dietOpts = ['Reflux','Dairy-free','Gluten-free','Eczema-friendly','Pork-free','Rich iron','Grain-free'];
                             html += `
                                 <div class="emoji-big">🥗</div>
                                 <h1>Диета</h1>
                                 <p>Есть ли особенности питания?</p>
                                 <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    ${dietOpts.map(d => `
-                                        <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                            <input type="checkbox" class="diet-check" value="${d}" ${diet.includes(d)?'checked':''}> ${d}
-                                        </label>
-                                    `).join('')}
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="diet-none" ${diet.length===0?'checked':''}> Нет
-                                    </label>
+                                    <label><input type="checkbox" class="diet-check" value="Рефлюкс" ${diet.includes('Рефлюкс')?'checked':''}> Рефлюкс</label>
+                                    <label><input type="checkbox" class="diet-check" value="Без молочных" ${diet.includes('Без молочных')?'checked':''}> Без молочных</label>
+                                    <label><input type="checkbox" class="diet-check" value="Без глютена" ${diet.includes('Без глютена')?'checked':''}> Без глютена</label>
+                                    <label><input type="checkbox" class="diet-check" value="При экземе" ${diet.includes('При экземе')?'checked':''}> При экземе</label>
+                                    <label><input type="checkbox" class="diet-check" value="Без свинины" ${diet.includes('Без свинины')?'checked':''}> Без свинины</label>
+                                    <label><input type="checkbox" class="diet-check" value="Богатое железом" ${diet.includes('Богатое железом')?'checked':''}> Богатое железом</label>
+                                    <label><input type="checkbox" class="diet-check" value="Без злаков" ${diet.includes('Без злаков')?'checked':''}> Без злаков</label>
+                                    <label><input type="checkbox" id="diet-none" ${diet.length===0?'checked':''}> Нет</label>
                                 </div>
                             `;
                             break;
-                        case 8:
+                        case 8: // любимые продукты (переведено)
                             const favs = STATE.onboarding.favoriteFoods || [];
-                            const foodOpts = ['Banana','Mango','Cucumber','Chicken','Apple','Cheese','Egg','Avocado','Strawberry'];
                             html += `
                                 <div class="emoji-big">🍎</div>
                                 <h1>Любимые продукты</h1>
                                 <p>Что бы вы хотели предложить малышу в первую неделю?</p>
                                 <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    ${foodOpts.map(f => `
-                                        <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                            <input type="checkbox" class="fav-check" value="${f}" ${favs.includes(f)?'checked':''}> ${f}
-                                        </label>
-                                    `).join('')}
-                                    <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                        <input type="checkbox" id="fav-none" ${favs.length===0?'checked':''}> Не знаю
-                                    </label>
+                                    <label><input type="checkbox" class="fav-check" value="Банан" ${favs.includes('Банан')?'checked':''}> Банан</label>
+                                    <label><input type="checkbox" class="fav-check" value="Манго" ${favs.includes('Манго')?'checked':''}> Манго</label>
+                                    <label><input type="checkbox" class="fav-check" value="Огурец" ${favs.includes('Огурец')?'checked':''}> Огурец</label>
+                                    <label><input type="checkbox" class="fav-check" value="Курица" ${favs.includes('Курица')?'checked':''}> Курица</label>
+                                    <label><input type="checkbox" class="fav-check" value="Яблоко" ${favs.includes('Яблоко')?'checked':''}> Яблоко</label>
+                                    <label><input type="checkbox" class="fav-check" value="Сыр" ${favs.includes('Сыр')?'checked':''}> Сыр</label>
+                                    <label><input type="checkbox" class="fav-check" value="Яйцо" ${favs.includes('Яйцо')?'checked':''}> Яйцо</label>
+                                    <label><input type="checkbox" class="fav-check" value="Авокадо" ${favs.includes('Авокадо')?'checked':''}> Авокадо</label>
+                                    <label><input type="checkbox" class="fav-check" value="Клубника" ${favs.includes('Клубника')?'checked':''}> Клубника</label>
+                                    <label><input type="checkbox" id="fav-none" ${favs.length===0?'checked':''}> Не знаю</label>
                                 </div>
                             `;
                             break;
-                        case 9:
+                        case 9: // страхи (переведено)
                             const worries = STATE.onboarding.worries || [];
-                            const worryOpts = ['Choking & Gagging','Allergic reactions','Baby refusing food','Getting enough iron & nutrients','Doing something wrong'];
                             html += `
                                 <div class="emoji-big">😰</div>
                                 <h1>Что вас беспокоит?</h1>
                                 <p>Выберите все, что вас волнует</p>
                                 <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    ${worryOpts.map(w => `
-                                        <label style="display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px; background:#fafafa; padding:12px; border-radius:12px;">
-                                            <input type="checkbox" class="worry-check" value="${w}" ${worries.includes(w)?'checked':''}> ${w}
-                                        </label>
-                                    `).join('')}
+                                    <label><input type="checkbox" class="worry-check" value="Удушье и попёрхивание" ${worries.includes('Удушье и попёрхивание')?'checked':''}> Удушье и попёрхивание</label>
+                                    <label><input type="checkbox" class="worry-check" value="Аллергические реакции" ${worries.includes('Аллергические реакции')?'checked':''}> Аллергические реакции</label>
+                                    <label><input type="checkbox" class="worry-check" value="Отказ от еды" ${worries.includes('Отказ от еды')?'checked':''}> Отказ от еды</label>
+                                    <label><input type="checkbox" class="worry-check" value="Нехватка железа и питательных веществ" ${worries.includes('Нехватка железа и питательных веществ')?'checked':''}> Нехватка железа и питательных веществ</label>
+                                    <label><input type="checkbox" class="worry-check" value="Делаю что-то не так" ${worries.includes('Делаю что-то не так')?'checked':''}> Делаю что-то не так</label>
                                 </div>
                             `;
                             break;
-                        case 10:
+                        case 10: // уверенность
                             const confidence = STATE.onboarding.confidence || '';
                             html += `
                                 <div class="emoji-big">💪</div>
@@ -412,7 +417,7 @@
                     html += `</div></div>`;
                     app.innerHTML = html;
 
-                    // Обработчики
+                    // Обработчики навигации
                     document.querySelectorAll('[data-action="next-step"]').forEach(btn => {
                         btn.addEventListener('click', ()=>{
                             saveCurrentStepData(stepIndex);
@@ -427,6 +432,8 @@
                             renderStep(step);
                         });
                     });
+
+                    // Обработчики кнопок выбора (для шагов 2,3,4,10)
                     document.querySelectorAll('[data-value]').forEach(btn => {
                         btn.addEventListener('click', function(){
                             const val = this.dataset.value;
@@ -462,14 +469,20 @@
                             }
                         });
                     });
+
+                    // Обработчик даты начала прикорма
                     document.getElementById('onboarding-start-date')?.addEventListener('change', function(){
                         STATE.baby.feedingStartDate = this.value;
                         saveState();
                     });
+
+                    // Пропуск имени
                     document.querySelector('[data-action="skip-name"]')?.addEventListener('click', function(){
                         step = 1;
                         renderStep(step);
                     });
+
+                    // Завершение онбординга
                     document.querySelector('[data-action="finish-onboarding"]')?.addEventListener('click', function(){
                         saveCurrentStepData(stepIndex);
                         STATE.onboardingCompleted = true;
@@ -531,7 +544,7 @@
         }
 
         // ============================================================
-        // 4. СКРЫТИЕ ЗАГРУЗКИ
+        // 3. СКРЫТИЕ ЗАГРУЗКИ
         // ============================================================
         function hideLoadingScreen() {
             const el = document.getElementById('loading-screen');
@@ -544,17 +557,14 @@
         }
 
         // ============================================================
-        // 5. ОСНОВНОЙ РЕНДЕРИНГ
+        // 4. ОСНОВНОЙ РЕНДЕРИНГ
         // ============================================================
         function renderApp() {
             try {
                 const app = document.getElementById('app');
-                if (!app) {
-                    console.error('Элемент #app не найден');
-                    return;
-                }
+                if (!app) return;
 
-                // Скрываем загрузку в любом случае, чтобы пользователь видел контент
+                // Скрываем загрузку в любом случае
                 hideLoadingScreen();
 
                 if (!STATE.onboardingCompleted || !STATE.baby.birthDate) {
@@ -562,7 +572,6 @@
                     return;
                 }
 
-                // Здесь продолжение – рендеринг главного экрана
                 const age = calcAge(STATE.baby.birthDate);
                 const nextProduct = getNextProduct();
                 const progress = getProgress();
@@ -700,12 +709,12 @@
                 console.error('Ошибка в renderApp:', e);
                 const app = document.getElementById('app');
                 if (app) app.innerHTML = `<div style="padding:20px;color:red;">Ошибка приложения: ${e.message}</div>`;
-                hideLoadingScreen(); // всё равно скрываем загрузку
+                hideLoadingScreen();
             }
         }
 
         // ============================================================
-        // 6. ФУНКЦИИ ДЛЯ СТРАНИЦ
+        // 5. ФУНКЦИИ ДЛЯ СТРАНИЦ
         // ============================================================
         function renderProductsHTML() {
             let html = `<h2>Продукты</h2><div class="product-grid">`;
@@ -759,9 +768,18 @@
         }
 
         // ============================================================
-        // 7. ЗАПУСК
+        // 6. ЗАПУСК
         // ============================================================
         renderApp();
+
+        // Дополнительный таймаут для скрытия загрузки
+        setTimeout(() => {
+            const ls = document.getElementById('loading-screen');
+            if (ls && !ls.classList.contains('hidden')) {
+                ls.classList.add('hidden');
+                setTimeout(() => { ls.style.display = 'none'; }, 600);
+            }
+        }, 3000);
     </script>
 </body>
 </html>
