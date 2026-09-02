@@ -32,12 +32,12 @@ function initApp() {
         initTheme();
     }
 
-    // 3. ПРОВЕРКА ОНБОРДИНГА
+    // 3. ПРОВЕРКА ОНБОРДИНГА (исправлено)
     if (typeof STATE.onboardingCompleted !== 'boolean') {
         STATE.onboardingCompleted = false;
     }
-
-    if (STATE.onboardingCompleted === false) {
+    // Если режим добавления не активен и онбординг не завершён – запускаем
+    if (!STATE._onboardingMode && STATE.onboardingCompleted === false) {
         console.log('🔄 Онбординг не завершён, запускаем...');
         if (typeof renderOnboarding === 'function') {
             renderOnboarding();
@@ -324,13 +324,11 @@ function startApplication() {
     migrateLegacyProfile();
 
     // ========== ДОБАВЛЕННАЯ МИГРАЦИЯ ==========
-    // Если после загрузки остался старый объект baby, мигрируем его в children
     if (STATE.baby && Object.keys(STATE.baby).length > 0) {
         console.log('🔄 Обнаружен старый объект baby, мигрируем в children...');
         if (typeof window.migrateBabyToChildren === 'function') {
             window.migrateBabyToChildren();
         } else {
-            // Ручная миграция
             const newChild = {
                 id: 'child_' + Date.now(),
                 name: STATE.baby.name || '',
@@ -353,7 +351,13 @@ function startApplication() {
         }
     }
 
-    // Принудительный рендер главной через 300 мс (чтобы данные точно подгрузились)
+    // Сбрасываем возможный застрявший режим добавления
+    if (STATE._onboardingMode) {
+        STATE._onboardingMode = null;
+        if (typeof saveState === 'function') saveState();
+    }
+
+    // Принудительный рендер главной через 300 мс
     setTimeout(function() {
         if (typeof render === 'function') {
             render('home');
