@@ -228,7 +228,7 @@
         }
     }
 
-    // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ finishOnboarding =====
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАВЕРШЕНИЯ ===
     function finishOnboarding() {
         const childData = {
             name: tempData.name || '',
@@ -243,15 +243,13 @@
             photo: ''
         };
 
-        // Режим добавления нового ребёнка (вызван из настроек или после кнопки "Сохранить")
+        // Режим добавления нового ребёнка
         if (STATE._onboardingMode === 'add-child') {
-            // Если есть дети – обновляем последнего добавленного
             if (STATE.children && STATE.children.length > 0) {
                 var lastChild = STATE.children[STATE.children.length - 1];
                 if (lastChild) {
                     Object.assign(lastChild, childData);
                 } else {
-                    // Если почему-то нет – добавляем нового
                     if (typeof window.addChild === 'function') {
                         window.addChild(childData);
                     } else {
@@ -259,7 +257,6 @@
                     }
                 }
             } else {
-                // Если детей нет – создаём первого
                 if (typeof window.addChild === 'function') {
                     window.addChild(childData);
                 } else {
@@ -268,18 +265,14 @@
                     STATE.currentChildId = STATE.children[0].id;
                 }
             }
-            // Удаляем старый baby, если есть
             delete STATE.baby;
-            // Сбрасываем режим
             STATE._onboardingMode = null;
-            // Сохраняем состояние, НЕ меняем onboardingCompleted
             if (typeof window.saveState === 'function') window.saveState();
-            // Переходим на экран "Малыш"
             if (typeof window.render === 'function') window.render('baby');
             return;
         }
 
-        // Обычный режим (первый запуск или перезапуск)
+        // Обычный режим
         if (typeof window.addChild === 'function') {
             window.addChild(childData);
         } else {
