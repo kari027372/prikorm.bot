@@ -10,10 +10,6 @@
     const DEFAULT_SCREEN = 'home';
     const VALID_SCREENS = ['home', 'products', 'today', 'diary', 'recipes', 'baby', 'settings', 'onboarding'];
 
-    // ============================================================
-    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (используются экранами)
-    // ============================================================
-
     function getState() {
         return window.STATE || {};
     }
@@ -87,27 +83,6 @@
         };
     }
 
-    function formatAge(baby) {
-        if (!baby || !baby.birthDate) return 'Возраст не указан';
-        try {
-            const birth = new Date(baby.birthDate);
-            const now = new Date();
-            let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
-            if (now.getDate() < birth.getDate()) months--;
-            if (months < 0) return 'Возраст не указан';
-            if (months < 12) return months + ' мес.';
-            const years = Math.floor(months / 12);
-            const remMonths = months % 12;
-            return years + ' г. ' + remMonths + ' мес.';
-        } catch (e) {
-            return 'Возраст не указан';
-        }
-    }
-
-    // ============================================================
-    // ДИСПЕТЧЕР РЕНДЕРИНГА
-    // ============================================================
-
     function render(screen) {
         console.log('🔄 render() вызван с экраном:', screen);
         screen = screen || getUIState().screen || DEFAULT_SCREEN;
@@ -150,10 +125,6 @@
         console.log('✅ render() завершён для экрана:', screen);
     }
 
-    // ============================================================
-    // НИЖНЯЯ НАВИГАЦИЯ (остаётся здесь)
-    // ============================================================
-
     function renderBottomNavigation(active) {
         const items = [
             { id: 'home', icon: '⌂', label: 'Главная' },
@@ -168,10 +139,6 @@
     function renderErrorScreen(message) {
         return `<div class="screen"><div class="error-screen"><div class="error-icon">😔</div><h2>Что-то пошло не так</h2><p>${message || 'Неизвестная ошибка'}</p><button onclick="location.reload()" class="primary-button">Перезагрузить</button></div></div>`;
     }
-
-    // ============================================================
-    // ЭКСПОРТЫ
-    // ============================================================
 
     console.log('✅ rendering.js: присваиваю window.render и другие утилиты');
 
@@ -189,7 +156,7 @@
     window.addMealToPlan = addMealToPlan;
     window.removeMealFromPlan = removeMealFromPlan;
     window.getDiaryStats = getDiaryStats;
-    window.formatAge = formatAge;
+    // window.formatAge = formatAge;   <-- УБРАНО, чтобы не переопределять функцию из utils.js
     window.renderBottomNavigation = renderBottomNavigation;
     window.renderErrorScreen = renderErrorScreen;
 
