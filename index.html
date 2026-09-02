@@ -61,20 +61,26 @@
         log('🚀 Начинаем диагностику', 'info');
 
         // ============================================================
-        // 2. Загрузка скриптов с индикацией
+        // 2. Загрузка скриптов с индикацией (обновлён список)
         // ============================================================
         const FILES = [
             { src: 'config.js', label: 'config.js' },
             { src: 'data/products.js', label: 'data/products.js' },
             { src: 'data/recipes.js', label: 'data/recipes.js' },
-            { src: 'diary.js', label: 'diary.js' },
             { src: 'data/safety.js', label: 'data/safety.js' },
             { src: 'data/recommendations.js', label: 'data/recommendations.js' },
             { src: 'utils.js', label: 'utils.js' },
             { src: 'state.js', label: 'state.js' },
+            { src: 'rendering.js', label: 'rendering.js' },
+            // --- Экраны из папки screens/ ---
+            { src: 'screens/home.js', label: 'screens/home.js' },
+            { src: 'screens/products.js', label: 'screens/products.js' },
+            { src: 'screens/today.js', label: 'screens/today.js' },
+            // --- Остальные (пока в корне) ---
+            { src: 'diary.js', label: 'diary.js' },
             { src: 'onboarding.js', label: 'onboarding.js' },
             { src: 'ui.js', label: 'ui.js' },
-            { src: 'rendering.js', label: 'rendering.js' },
+            // --- Обработчики и темы ---
             { src: 'handlers.js', label: 'handlers.js' },
             { src: 'theme.js', label: 'theme.js' },
             { src: 'app.js', label: 'app.js' }
