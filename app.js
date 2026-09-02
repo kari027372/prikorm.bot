@@ -33,16 +33,20 @@ function initApp() {
     }
 
     // 3. ПРОВЕРКА ОНБОРДИНГА (исправлено)
-    if (STATE && STATE.onboardingCompleted === false) {
+    // Гарантируем, что поле существует
+    if (typeof STATE.onboardingCompleted !== 'boolean') {
+        STATE.onboardingCompleted = false;
+    }
+
+    if (STATE.onboardingCompleted === false) {
         console.log('🔄 Онбординг не завершён, запускаем...');
         if (typeof renderOnboarding === 'function') {
-            renderOnboarding(); // вызываем из screens/onboarding.js
+            renderOnboarding();
             return; // ВАЖНО: выходим, чтобы не запускать основное приложение
         } else {
             console.warn('⚠️ Функция renderOnboarding не найдена, пропускаем');
-            // Если функция не найдена, устанавливаем флаг, чтобы не зациклиться
             STATE.onboardingCompleted = true;
-            saveState();
+            if (typeof saveState === 'function') saveState();
         }
     }
 
@@ -100,7 +104,7 @@ function initializeState() {
                     worries: [],
                     confidence: ''
                 },
-                onboardingCompleted: false // по умолчанию онбординг не пройден
+                onboardingCompleted: false
             };
         }
     }
@@ -126,6 +130,11 @@ function initializeState() {
             },
             onboardingCompleted: false
         };
+    }
+
+    // Убеждаемся, что onboardingCompleted точно есть
+    if (typeof STATE.onboardingCompleted !== 'boolean') {
+        STATE.onboardingCompleted = false;
     }
 }
 
@@ -317,9 +326,8 @@ window.addEventListener('prikorm:themechange', function(event) {
 function startApplication() {
     initApp();
     migrateLegacyProfile();
-    if (typeof render === 'function') {
-        render(STATE.ui?.screen || DEFAULT_SCREEN);
-    }
+    // Убираем дублирующий вызов render, потому что он уже есть в initApp
+    // Если нужно, можно оставить, но тогда будет двойной рендер
 }
 
 // Запуск приложения
