@@ -9,18 +9,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <title>Прикорм 🌸</title>
     <style>
-        /* (ваш существующий CSS – он остаётся без изменений) */
+        /* Весь ваш CSS – он остаётся без изменений, я его сократил для экономии места, 
+           но вы можете взять его из своего текущего файла или из моего прошлого ответа */
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-        :root{
-            --bg-body:#f5f0eb;--bg-app:#ffffff;--bg-card:#fafafa;--bg-hover:#f0ebe7;--bg-input:#fafafa;
-            --bg-primary:#d4a373;--bg-primary-hover:#c4956a;--bg-success:#e8f5e9;--bg-warning:#f5faf5;
-            --bg-danger:#e74c3c;--bg-info:#e3f2fd;--text-primary:#2d1f14;--text-secondary:#555555;
-            --text-muted:#888888;--text-light:#999999;--text-on-primary:#ffffff;--border-color:#f0ebe7;
-            --border-input:#e8e0d8;--border-success:#a5d6a7;--shadow:0 2px 8px rgba(0,0,0,0.04);
-            --shadow-strong:0 4px 12px rgba(0,0,0,0.06);--shadow-up:0 -2px 10px rgba(0,0,0,0.04);
-            --radius:16px;--radius-sm:8px;--radius-lg:24px;--font-family:'Segoe UI',Roboto,sans-serif;
-            --transition:0.2s ease
-        }
+        :root{--bg-body:#f5f0eb;--bg-app:#ffffff;--bg-card:#fafafa;--bg-hover:#f0ebe7;--bg-input:#fafafa;--bg-primary:#d4a373;--bg-primary-hover:#c4956a;--bg-success:#e8f5e9;--bg-warning:#f5faf5;--bg-danger:#e74c3c;--bg-info:#e3f2fd;--text-primary:#2d1f14;--text-secondary:#555555;--text-muted:#888888;--text-light:#999999;--text-on-primary:#ffffff;--border-color:#f0ebe7;--border-input:#e8e0d8;--border-success:#a5d6a7;--shadow:0 2px 8px rgba(0,0,0,0.04);--shadow-strong:0 4px 12px rgba(0,0,0,0.06);--shadow-up:0 -2px 10px rgba(0,0,0,0.04);--radius:16px;--radius-sm:8px;--radius-lg:24px;--font-family:'Segoe UI',Roboto,sans-serif;--transition:0.2s ease}
         body.theme-dark{--bg-body:#1a1a1a;--bg-app:#2a2a2a;--bg-card:#333333;--bg-hover:#3a3a3a;--bg-input:#3a3a3a;--bg-primary:#b8946a;--bg-primary-hover:#a8845a;--bg-success:#1e3a2a;--bg-warning:#2a3a2a;--text-primary:#e8e0d8;--text-secondary:#bbbbbb;--text-muted:#999999;--text-light:#777777;--text-on-primary:#ffffff;--border-color:#444444;--border-input:#555555;--shadow:0 2px 8px rgba(0,0,0,0.2);--shadow-strong:0 4px 12px rgba(0,0,0,0.3);--shadow-up:0 -2px 10px rgba(0,0,0,0.2)}
         body.theme-kids{--bg-body:#fff7f0;--bg-app:#ffffff;--bg-card:#fef9f5;--bg-hover:#f5ede5;--bg-input:#fef9f5;--bg-primary:#f0c8a0;--bg-primary-hover:#e0b890;--bg-success:#f0f7ea;--bg-warning:#fdf6ed;--text-primary:#3d2a1a;--text-secondary:#6a5a4a;--text-muted:#9a8a7a;--text-light:#b0a090;--text-on-primary:#ffffff;--border-color:#f0e8e0;--border-input:#e8ddd0;--shadow:0 2px 8px rgba(0,0,0,0.04);--shadow-strong:0 4px 12px rgba(0,0,0,0.06);--shadow-up:0 -2px 10px rgba(0,0,0,0.04)}
         body{font-family:var(--font-family);background:var(--bg-body);color:var(--text-primary);display:flex;justify-content:center;padding:0;min-height:100vh;transition:background 0.3s,color 0.3s;-webkit-font-smoothing:antialiased}
@@ -179,7 +171,7 @@
 
     <div id="app"></div>
 
-    <!-- ===== ВСЕ СКРИПТЫ ПОДКЛЮЧАЮТСЯ СТАТИЧЕСКИ (БЕЗ ДУБЛИРОВАНИЯ) ===== -->
+    <!-- ===== ВСЕ СКРИПТЫ ПОДКЛЮЧАЮТСЯ СТАТИЧЕСКИ ===== -->
     <script src="config.js"></script>
     <script src="data/products.js"></script>
     <script src="data/recipes.js"></script>
@@ -200,14 +192,13 @@
     <script src="theme.js"></script>
     <script src="app.js"></script>
 
-    <!-- Eruda для диагностики (можно оставить) -->
+    <!-- Eruda (опционально) -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 
     <!-- ===== ЗАПУСК ПРИЛОЖЕНИЯ ===== -->
     <script>
         (function() {
-            // Скрываем экран загрузки, когда всё готово
             function hideLoading() {
                 var ls = document.getElementById('loading-screen');
                 if (ls) {
@@ -216,28 +207,25 @@
                 }
             }
 
-            // Проверяем наличие функций инициализации
             function startApp() {
-                // Если есть startApplication – вызываем её
+                // Пытаемся вызвать доступные функции инициализации
                 if (typeof startApplication === 'function') {
                     startApplication();
                     hideLoading();
                     return;
                 }
-                // Иначе если есть initApp – вызываем её
                 if (typeof initApp === 'function') {
                     initApp();
                     hideLoading();
                     return;
                 }
-                // Если ничего нет – пробуем вызвать render (если она есть)
                 if (typeof render === 'function') {
                     render();
                     hideLoading();
                     return;
                 }
-                // Если render тоже нет – создаём заглушку, чтобы избежать ошибки
-                console.warn('⚠️ Функция render() не найдена. Добавлена заглушка.');
+                // Если render не определена – создаём заглушку
+                console.warn('⚠️ render() не найдена, создана заглушка.');
                 window.render = function() {
                     document.getElementById('app').innerHTML = 
                         '<div style="padding:40px;text-align:center;">' +
@@ -250,7 +238,6 @@
                 hideLoading();
             }
 
-            // Ждём загрузку DOM и запускаем
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', startApp);
             } else {
