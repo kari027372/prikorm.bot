@@ -148,6 +148,31 @@ function handleDocumentClick(event) {
                 showToast('Заполните хотя бы одно поле', 'error');
             }
             break;
+        // ===== НОВЫЕ ОБРАБОТЧИКИ ДЛЯ ЭКРАНА "МАЛЫШ" =====
+        case "switch-child":
+            var childId = target.dataset.childId;
+            if (childId && typeof window.switchChild === 'function') {
+                window.switchChild(childId);
+                // Перерисовываем текущий экран
+                var currentScreen = STATE.navigation?.currentScreen || 'baby';
+                if (typeof render === 'function') render(currentScreen);
+            }
+            break;
+        case "delete-child":
+            var childId = target.dataset.childId;
+            if (!childId) return;
+            if (confirm('Удалить этого ребёнка? Все данные по нему будут потеряны.')) {
+                if (typeof window.deleteChild === 'function') {
+                    window.deleteChild(childId);
+                    var currentScreen = STATE.navigation?.currentScreen || 'baby';
+                    if (typeof render === 'function') render(currentScreen);
+                }
+            }
+            break;
+        case "open-add-child":
+            showAddChildModal();
+            break;
+        // ===== КОНЕЦ НОВЫХ ОБРАБОТЧИКОВ =====
         case "close-modal":
             if (target.classList.contains("modal-overlay") || target.classList.contains("icon-button")) {
                 closeModal();
@@ -510,6 +535,91 @@ function confirmReset() {
     showToast("Данные удалены.", "success");
     setTimeout(function() { location.reload(); }, 300);
 }
+
+// ===== НОВАЯ ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ РЕБЁНКА =====
+function showAddChildModal() {
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay active';
+    overlay.innerHTML = `
+        <div class="modal-sheet">
+            <h3>👶 Добавить ребёнка</h3>
+            <div style="margin: 16px 0;">
+                <label>Имя</label>
+                <input type="text" id="add-child-name" placeholder="Имя" style="width:100%; padding:12px; border:1px solid var(--border-input); border-radius:8px; margin-top:4px;">
+            </div>
+            <div style="margin: 16px 0;">
+                <label>Дата рождения</label>
+                <input type="date" id="add-child-birth" style="width:100%; padding:12px; border:1px solid var(--border-input); border-radius:8px; margin-top:4px;">
+            </div>
+            <div style="margin: 16px 0;">
+                <label>Пол</label>
+                <select id="add-child-sex" style="width:100%; padding:12px; border:1px solid var(--border-input); border-radius:8px; margin-top:4px;">
+                    <option value="">Не указан</option>
+                    <option value="male">Мальчик</option>
+                    <option value="female">Девочка</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="secondary-button" data-action="close-modal" style="flex:1;">Отмена</button>
+                <button class="primary-button" id="save-child-btn" style="flex:1;">Сохранить</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    document.body.classList.add('modal-open');
+
+    // Закрытие по клику на фон
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            overlay.remove();
+            document.body.classList.remove('modal-open');
+        }
+    });
+
+    // Кнопка "Отмена"
+    overlay.querySelector('[data-action="close-modal"]').addEventListener('click', function() {
+        overlay.remove();
+        document.body.classList.remove('modal-open');
+    });
+}
+
+// Обработчик сохранения нового ребёнка (вне модалки, через делегирование)
+document.addEventListener('click', function(event) {
+    var target = event.target.closest('#save-child-btn');
+    if (!target) return;
+    // Находим родительскую модалку
+    var overlay = target.closest('.modal-overlay');
+    if (!overlay) return;
+    var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
+    var birthDate = document.getElementById('add-child-birth')?.value || '';
+    var sex = document.getElementById('add-child-sex')?.value || '';
+
+    if (!birthDate) {
+        alert('Пожалуйста, укажите дату рождения');
+        return;
+    }
+
+    if (typeof window.addChild === 'function') {
+        window.addChild({
+            name: name,
+            birthDate: birthDate,
+            sex: sex,
+            feedingType: '',
+            feedingStarted: false,
+            approach: 'mixed',
+            readiness: {}
+        });
+        overlay.remove();
+        document.body.classList.remove('modal-open');
+        // Обновляем экран
+        if (typeof render === 'function') {
+            var currentScreen = STATE.navigation?.currentScreen || 'baby';
+            render(currentScreen);
+        }
+    } else {
+        alert('Ошибка: функция addChild не найдена');
+    }
+});
 
 window.setupEventListeners = setupEventListeners;
 window.handleDocumentClick = handleDocumentClick;
