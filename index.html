@@ -9,6 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <title>Прикорм 🌸</title>
     <style>
+        /* (ваш существующий CSS – он остаётся без изменений) */
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
         :root{
             --bg-body:#f5f0eb;--bg-app:#ffffff;--bg-card:#fafafa;--bg-hover:#f0ebe7;--bg-input:#fafafa;
@@ -178,6 +179,7 @@
 
     <div id="app"></div>
 
+    <!-- ===== ВСЕ СКРИПТЫ ПОДКЛЮЧАЮТСЯ СТАТИЧЕСКИ (БЕЗ ДУБЛИРОВАНИЯ) ===== -->
     <script src="config.js"></script>
     <script src="data/products.js"></script>
     <script src="data/recipes.js"></script>
@@ -198,84 +200,62 @@
     <script src="theme.js"></script>
     <script src="app.js"></script>
 
-    <!-- Eruda для диагностики на телефоне -->
+    <!-- Eruda для диагностики (можно оставить) -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 
+    <!-- ===== ЗАПУСК ПРИЛОЖЕНИЯ ===== -->
     <script>
         (function() {
-            var FILES = [
-                'config.js',
-                'data/products.js',
-                'data/recipes.js',
-                'data/safety.js',
-                'data/recommendations.js',
-                'utils.js',
-                'state.js',
-                'rendering.js',
-                'screens/home.js',
-                'screens/products.js',
-                'screens/today.js',
-                'screens/diary.js',
-                'screens/recipes.js',
-                'screens/baby.js',
-                'screens/settings.js',
-                'screens/onboarding.js',
-                'handlers.js',
-                'theme.js',
-                'app.js'
-            ];
-            var loaded = 0;
-            var total = FILES.length;
-            var fill = document.getElementById('progress-fill');
-            var text = document.getElementById('progress-text');
-            var info = document.getElementById('progress-file');
-
-            function loadScript(src, callback) {
-                var script = document.createElement('script');
-                script.src = src;
-                script.onload = function() { callback(true); };
-                script.onerror = function() { callback(false); };
-                document.head.appendChild(script);
+            // Скрываем экран загрузки, когда всё готово
+            function hideLoading() {
+                var ls = document.getElementById('loading-screen');
+                if (ls) {
+                    ls.classList.add('hidden');
+                    setTimeout(function() { ls.style.display = 'none'; }, 600);
+                }
             }
 
-            function loadNext(index) {
-                if (index >= total) {
-                    info.textContent = '✅ Все файлы загружены';
-                    setTimeout(function() {
-                        var ls = document.getElementById('loading-screen');
-                        if (ls) {
-                            ls.classList.add('hidden');
-                            setTimeout(function() { ls.style.display = 'none'; }, 600);
-                        }
-                        if (typeof startApplication === 'function') {
-                            startApplication();
-                        } else if (typeof initApp === 'function') {
-                            initApp();
-                        }
-                    }, 400);
+            // Проверяем наличие функций инициализации
+            function startApp() {
+                // Если есть startApplication – вызываем её
+                if (typeof startApplication === 'function') {
+                    startApplication();
+                    hideLoading();
                     return;
                 }
-                var file = FILES[index];
-                info.textContent = 'Загрузка: ' + file;
-                loadScript(file, function(success) {
-                    if (!success) console.warn('⚠️ Не удалось загрузить: ' + file);
-                    loaded++;
-                    var percent = Math.round((loaded / total) * 100);
-                    fill.style.width = percent + '%';
-                    text.textContent = percent + '%';
-                    loadNext(index + 1);
-                });
+                // Иначе если есть initApp – вызываем её
+                if (typeof initApp === 'function') {
+                    initApp();
+                    hideLoading();
+                    return;
+                }
+                // Если ничего нет – пробуем вызвать render (если она есть)
+                if (typeof render === 'function') {
+                    render();
+                    hideLoading();
+                    return;
+                }
+                // Если render тоже нет – создаём заглушку, чтобы избежать ошибки
+                console.warn('⚠️ Функция render() не найдена. Добавлена заглушка.');
+                window.render = function() {
+                    document.getElementById('app').innerHTML = 
+                        '<div style="padding:40px;text-align:center;">' +
+                        '<div style="font-size:48px;">🌸</div>' +
+                        '<h2 style="margin:20px 0 10px;">Прикорм</h2>' +
+                        '<p style="color:var(--text-muted);">Заглушка render() – проверьте rendering.js</p>' +
+                        '</div>';
+                };
+                render();
+                hideLoading();
             }
 
-            loadNext(0);
-
-            setTimeout(function() {
-                var ls = document.getElementById('loading-screen');
-                if (ls && !ls.classList.contains('hidden')) {
-                    info.textContent = '⏳ Медленное соединение...';
-                }
-            }, 5000);
+            // Ждём загрузку DOM и запускаем
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', startApp);
+            } else {
+                startApp();
+            }
         })();
     </script>
 </body>
