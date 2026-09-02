@@ -544,7 +544,7 @@ function confirmReset() {
     setTimeout(function() { location.reload(); }, 300);
 }
 
-// ===== НОВАЯ ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ РЕБЁНКА (с кнопкой "Пройти онбординг") =====
+// ===== НОВАЯ ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ РЕБЁНКА (исправлена) =====
 function showAddChildModal() {
     var overlay = document.createElement('div');
     overlay.className = 'modal-overlay active';
@@ -572,11 +572,6 @@ function showAddChildModal() {
                 <button class="secondary-button" id="skip-onboarding-btn" style="flex:1;">Пропустить онбординг</button>
                 <button class="primary-button" id="save-child-btn" style="flex:1;">Сохранить</button>
             </div>
-            <div style="margin-top:12px; text-align:center; font-size:14px; color:var(--text-muted);">
-                <button class="secondary-button" id="start-onboarding-btn" style="background:transparent; border:none; color:var(--bg-primary); text-decoration:underline; cursor:pointer;">
-                    Или пройти онбординг для детального заполнения →
-                </button>
-            </div>
         </div>
     `;
     document.body.appendChild(overlay);
@@ -596,7 +591,7 @@ function showAddChildModal() {
         document.body.classList.remove('modal-open');
     });
 
-    // Кнопка "Пропустить онбординг" – создаём ребёнка с базовыми данными
+    // Кнопка "Пропустить онбординг" – добавляет ребёнка без онбординга
     overlay.querySelector('#skip-onboarding-btn').addEventListener('click', function() {
         var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
         var birthDate = document.getElementById('add-child-birth')?.value || '';
@@ -626,19 +621,9 @@ function showAddChildModal() {
             alert('Ошибка: функция addChild не найдена');
         }
     });
-
-    // Кнопка "Пройти онбординг" – закрывает модалку и запускает онбординг
-    overlay.querySelector('#start-onboarding-btn').addEventListener('click', function() {
-        overlay.remove();
-        document.body.classList.remove('modal-open');
-        // Устанавливаем флаг, что онбординг не пройден, чтобы запустить его
-        STATE.onboardingCompleted = false;
-        if (typeof saveState === 'function') saveState();
-        if (typeof render === 'function') render('onboarding');
-    });
 }
 
-// Обработчик сохранения нового ребёнка (обычный, без онбординга)
+// Обработчик сохранения нового ребёнка (теперь запускает онбординг)
 document.addEventListener('click', function(event) {
     var target = event.target.closest('#save-child-btn');
     if (!target) return;
@@ -665,8 +650,10 @@ document.addEventListener('click', function(event) {
         });
         overlay.remove();
         document.body.classList.remove('modal-open');
-        var currentScreen = STATE.navigation?.currentScreen || 'baby';
-        if (typeof render === 'function') render(currentScreen);
+        // Закрыли модалку, теперь запускаем онбординг для нового ребёнка
+        STATE.onboardingCompleted = false;
+        if (typeof saveState === 'function') saveState();
+        if (typeof render === 'function') render('onboarding');
     } else {
         alert('Ошибка: функция addChild не найдена');
     }
