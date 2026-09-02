@@ -117,70 +117,114 @@
             <div id="progress-fill" style="width:0%; height:100%; background:#d4a373; transition: width 0.3s;"></div>
         </div>
         <div style="margin-top:8px; font-size:14px; color:#888;" id="progress-text">0%</div>
+        <div style="margin-top:4px; font-size:12px; color:#bbb;" id="progress-file">Загрузка файлов...</div>
         <div class="loading-version" id="app-version">v2.1.0</div>
     </div>
 
     <div id="app"></div>
 
-    <script src="config.js"></script>
-    <script src="updater.js"></script>
-    <script src="products.js"></script>
-    <script src="recipes.js"></script>
-    <script src="diary.js"></script>
-    <script src="safety.js"></script>
-    <script src="recommendations.js"></script>
-    <script src="utils.js"></script>
-    <script src="state.js"></script>
-    <script src="onboarding.js"></script>
-    <script src="ui.js"></script>
-    <script src="rendering.js"></script>
-    <script src="handlers.js"></script>
-    <script src="theme.js"></script>
-    <script src="app.js"></script>
-
     <script>
-        (function(){
-            try{if(!localStorage.getItem('_cache_cleared')){localStorage.clear();localStorage.setItem('_cache_cleared','true');location.reload(true);return}}catch(e){}
-        })();
+        // Список файлов для загрузки (в порядке подключения)
+        var FILES = [
+            'config.js',
+            'updater.js',
+            'products.js',
+            'recipes.js',
+            'diary.js',
+            'safety.js',
+            'recommendations.js',
+            'utils.js',
+            'state.js',
+            'onboarding.js',
+            'ui.js',
+            'rendering.js',
+            'handlers.js',
+            'theme.js',
+            'app.js'
+        ];
 
-        function hideLoadingScreen(){
-            var el=document.getElementById('loading-screen');
-            if(el){el.classList.add('hidden');setTimeout(function(){el.style.display='none';},600);}
+        var loaded = 0;
+        var total = FILES.length;
+
+        function updateProgress(fileName) {
+            loaded++;
+            var percent = Math.round((loaded / total) * 100);
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('progress-text').textContent = percent + '%';
+            document.getElementById('progress-file').textContent = 'Загрузка: ' + fileName;
+            if (loaded >= total) {
+                document.getElementById('progress-file').textContent = '✅ Все файлы загружены';
+                setTimeout(startApp, 300);
+            }
         }
 
-        function startApp(){
-            if(typeof initApp==='function'){initApp();}
-            else if(typeof renderApp==='function'){renderApp();}
-            else if(typeof render==='function'){render('home');}
-            else{
-                console.error('Не найдена initApp, renderApp или render');
-                document.getElementById('app').innerHTML='<div style="padding:20px;color:red;text-align:center;"><h3>Ошибка загрузки</h3><p>Не найдены функции приложения.</p></div>';
-            }
-            setTimeout(hideLoadingScreen,500);
-            setTimeout(function(){
-                if(typeof initUpdater==='function'){initUpdater();}
-            },1000);
+        function loadScript(src, callback) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = function() {
+                callback(src);
+            };
+            script.onerror = function() {
+                console.error('❌ Ошибка загрузки:', src);
+                callback(src);
+            };
+            document.head.appendChild(script);
         }
 
-        var progress=0;
-        var interval=setInterval(function(){
-            progress+=Math.random()*8+2;
-            if(progress>100)progress=100;
-            document.getElementById('progress-fill').style.width=progress+'%';
-            document.getElementById('progress-text').textContent=Math.round(progress)+'%';
-            if(progress>=100){
-                clearInterval(interval);
-                startApp();
+        function startApp() {
+            console.log('🚀 Запуск приложения...');
+            if (typeof initApp === 'function') {
+                initApp();
+            } else if (typeof renderApp === 'function') {
+                renderApp();
+            } else if (typeof render === 'function') {
+                render('home');
+            } else {
+                console.error('❌ Не найдена initApp, renderApp или render');
+                document.getElementById('app').innerHTML = '<div style="padding:20px;color:red;text-align:center;"><h3>Ошибка загрузки</h3><p>Не найдены функции приложения.</p></div>';
             }
-        },150);
+            setTimeout(hideLoadingScreen, 500);
+            setTimeout(function() {
+                if (typeof initUpdater === 'function') {
+                    initUpdater();
+                }
+            }, 1000);
+        }
 
-        setTimeout(function(){
-            var ls=document.getElementById('loading-screen');
-            if(ls&&!ls.classList.contains('hidden')){
-                ls.classList.add('hidden');
-                setTimeout(function(){ls.style.display='none';},600);
+        function hideLoadingScreen() {
+            var el = document.getElementById('loading-screen');
+            if (el) {
+                el.classList.add('hidden');
+                setTimeout(function() { el.style.display = 'none'; }, 600);
             }
-        },3000);
+        }
+
+        // Загружаем все скрипты последовательно
+        function loadAllScripts(index) {
+            if (index >= FILES.length) {
+                return;
+            }
+            loadScript(FILES[index], function(fileName) {
+                updateProgress(fileName);
+                loadAllScripts(index + 1);
+            });
+        }
+
+        loadAllScripts(0);
+
+        // Таймаут на всякий случай (если скрипты не грузятся)
+        setTimeout(function() {
+            var ls = document.getElementById('loading-screen');
+            if (ls && !ls.classList.contains('hidden')) {
+                var percent = Math.round((loaded / total) * 100);
+                if (percent < 100) {
+                    document.getElementById('progress-file').textContent = '⏳ Возможно, медленное соединение...';
+                }
+                if (loaded > 0 && percent >= 100) {
+                    return;
+                }
+            }
+        }, 5000);
     </script>
 </body>
 </html>
