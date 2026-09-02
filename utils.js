@@ -19,11 +19,10 @@ function safeString(value) {
 
 
 /* ============================================================
-   ВОЗРАСТ
+   ВОЗРАСТ (ИСПРАВЛЕН)
    ============================================================ */
 
 function calcAge(birthDate) {
-
     if (!birthDate) {
         return {
             months: 0,
@@ -43,48 +42,31 @@ function calcAge(birthDate) {
         };
     }
 
-    let months =
-        (today.getFullYear() - birth.getFullYear()) * 12 +
-        (today.getMonth() - birth.getMonth());
+    // Приводим к локальному времени (избегаем проблем с часовыми поясами)
+    const b = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate());
+    const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    if (today.getDate() < birth.getDate()) {
+    let years = t.getFullYear() - b.getFullYear();
+    let months = t.getMonth() - b.getMonth();
+    let days = t.getDate() - b.getDate();
+
+    if (days < 0) {
         months--;
+        const prevMonth = new Date(t.getFullYear(), t.getMonth(), 0);
+        days += prevMonth.getDate();
+    }
+    if (months < 0) {
+        years--;
+        months += 12;
     }
 
-    months = Math.max(0, months);
-
-    const monthStart = new Date(birth);
-
-    monthStart.setMonth(
-        birth.getMonth() + months
-    );
-
-    const days = Math.max(
-        0,
-        Math.floor(
-            (
-                today.getTime() -
-                monthStart.getTime()
-            ) /
-            86400000
-        )
-    );
-
-    const totalDays = Math.max(
-        0,
-        Math.floor(
-            (
-                today.getTime() -
-                birth.getTime()
-            ) /
-            86400000
-        )
-    );
+    const totalMonths = years * 12 + months;
+    const totalDays = Math.floor((t.getTime() - b.getTime()) / 86400000);
 
     return {
-        months,
-        days,
-        totalDays
+        months: Math.max(0, totalMonths),
+        days: Math.max(0, days),
+        totalDays: Math.max(0, totalDays)
     };
 }
 
@@ -1077,15 +1059,39 @@ function migrateData() {
 
 
 /* ============================================================
-   ФОРМАТИРОВАНИЕ ВОЗРАСТА (ДОБАВЛЕНО)
+   ФОРМАТИРОВАНИЕ ВОЗРАСТА (ИСПРАВЛЕНО)
    ============================================================ */
 
 function formatAge(birthDate) {
     if (!birthDate) return 'Возраст не указан';
-    const age = calcAge(birthDate);
+
+    const birth = new Date(birthDate);
+    if (isNaN(birth.getTime())) return 'Возраст не указан';
+
+    // Приводим к локальному времени (исправлено)
+    const now = new Date();
+    const b = new Date(birth.getFullYear(), birth.getMonth(), birth.getDate());
+    const t = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    let years = t.getFullYear() - b.getFullYear();
+    let months = t.getMonth() - b.getMonth();
+    let days = t.getDate() - b.getDate();
+
+    if (days < 0) {
+        months--;
+        const prevMonth = new Date(t.getFullYear(), t.getMonth(), 0);
+        days += prevMonth.getDate();
+    }
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+
     const parts = [];
-    if (age.months > 0) parts.push(age.months + 'м');
-    if (age.days > 0) parts.push(age.days + 'д');
+    if (years > 0) parts.push(years + 'г');
+    if (months > 0) parts.push(months + 'м');
+    if (days > 0) parts.push(days + 'д');
+
     return parts.length ? parts.join(' ') : '0д';
 }
 
