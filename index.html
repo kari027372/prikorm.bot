@@ -177,15 +177,18 @@
 
         function startApp() {
             console.log('🚀 Запуск приложения...');
-            if (typeof initTheme === 'function') initTheme();
-            if (typeof render === 'function') {
-                render('home');
-            } else if (typeof renderApp === 'function') {
-                renderApp();
-            } else if (typeof initApp === 'function') {
+            // Пытаемся вызвать initApp (содержит логику онбординга)
+            if (typeof initApp === 'function') {
                 initApp();
+                return;
+            }
+            // Если initApp нет, пробуем renderApp или render
+            if (typeof renderApp === 'function') {
+                renderApp();
+            } else if (typeof render === 'function') {
+                render('home');
             } else {
-                console.error('❌ Не найдена render, renderApp или initApp');
+                console.error('❌ Не найдена initApp, renderApp или render');
                 document.getElementById('app').innerHTML = '<div style="padding:20px;color:red;text-align:center;"><h3>Ошибка загрузки</h3><p>Не найдены функции приложения.</p></div>';
             }
         }
