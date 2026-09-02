@@ -790,7 +790,7 @@ const APP_CONFIG = {
         version: 2,
 
         keys: {
-            state: "prikorm_state",        // <-- исправлено
+            state: "prikorm_state",        // <-- исправлено (было prikorm_app_state)
             child: "prikorm_child",
             products: "prikorm_products",
             diary: "prikorm_diary",
