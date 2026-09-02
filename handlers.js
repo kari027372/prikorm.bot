@@ -148,12 +148,11 @@ function handleDocumentClick(event) {
                 showToast('Заполните хотя бы одно поле', 'error');
             }
             break;
-        // ===== НОВЫЕ ОБРАБОТЧИКИ ДЛЯ ЭКРАНА "МАЛЫШ" =====
+        // ===== ОБРАБОТЧИКИ ДЛЯ ЭКРАНА "МАЛЫШ" (исправлены) =====
         case "switch-child":
             var childId = target.dataset.childId;
             if (childId && typeof window.switchChild === 'function') {
                 window.switchChild(childId);
-                // Перерисовываем текущий экран
                 var currentScreen = STATE.navigation?.currentScreen || 'baby';
                 if (typeof render === 'function') render(currentScreen);
             }
@@ -164,15 +163,18 @@ function handleDocumentClick(event) {
             if (confirm('Удалить этого ребёнка? Все данные по нему будут потеряны.')) {
                 if (typeof window.deleteChild === 'function') {
                     window.deleteChild(childId);
-                    var currentScreen = STATE.navigation?.currentScreen || 'baby';
-                    if (typeof render === 'function') render(currentScreen);
+                    // Мгновенное обновление с небольшой задержкой
+                    setTimeout(function() {
+                        var currentScreen = STATE.navigation?.currentScreen || 'baby';
+                        if (typeof render === 'function') render(currentScreen);
+                    }, 50);
                 }
             }
             break;
         case "open-add-child":
             showAddChildModal();
             break;
-        // ===== КОНЕЦ НОВЫХ ОБРАБОТЧИКОВ =====
+        // ===== КОНЕЦ ОБРАБОТЧИКОВ =====
         case "close-modal":
             if (target.classList.contains("modal-overlay") || target.classList.contains("icon-button")) {
                 closeModal();
@@ -525,6 +527,12 @@ function openSetting(setting) {
                 setTheme(current === "light" ? "dark" : "light");
             }
             break;
+        // ===== НОВЫЙ ПУНКТ ДЛЯ ЗАПУСКА ОНБОРДИНГА (добавьте его в settings.js) =====
+        case "run-onboarding":
+            STATE.onboardingCompleted = false;
+            if (typeof saveState === 'function') saveState();
+            if (typeof render === 'function') render('onboarding');
+            break;
     }
 }
 
@@ -536,7 +544,7 @@ function confirmReset() {
     setTimeout(function() { location.reload(); }, 300);
 }
 
-// ===== НОВАЯ ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ РЕБЁНКА =====
+// ===== НОВАЯ ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ РЕБЁНКА (с кнопкой "Пройти онбординг") =====
 function showAddChildModal() {
     var overlay = document.createElement('div');
     overlay.className = 'modal-overlay active';
@@ -559,9 +567,15 @@ function showAddChildModal() {
                     <option value="female">Девочка</option>
                 </select>
             </div>
-            <div style="display:flex; gap:12px; margin-top:20px;">
+            <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
                 <button class="secondary-button" data-action="close-modal" style="flex:1;">Отмена</button>
+                <button class="secondary-button" id="skip-onboarding-btn" style="flex:1;">Пропустить онбординг</button>
                 <button class="primary-button" id="save-child-btn" style="flex:1;">Сохранить</button>
+            </div>
+            <div style="margin-top:12px; text-align:center; font-size:14px; color:var(--text-muted);">
+                <button class="secondary-button" id="start-onboarding-btn" style="background:transparent; border:none; color:var(--bg-primary); text-decoration:underline; cursor:pointer;">
+                    Или пройти онбординг для детального заполнения →
+                </button>
             </div>
         </div>
     `;
@@ -581,13 +595,53 @@ function showAddChildModal() {
         overlay.remove();
         document.body.classList.remove('modal-open');
     });
+
+    // Кнопка "Пропустить онбординг" – создаём ребёнка с базовыми данными
+    overlay.querySelector('#skip-onboarding-btn').addEventListener('click', function() {
+        var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
+        var birthDate = document.getElementById('add-child-birth')?.value || '';
+        var sex = document.getElementById('add-child-sex')?.value || '';
+
+        if (!birthDate) {
+            alert('Пожалуйста, укажите дату рождения');
+            return;
+        }
+
+        if (typeof window.addChild === 'function') {
+            window.addChild({
+                name: name,
+                birthDate: birthDate,
+                sex: sex,
+                feedingType: '',
+                feedingStarted: false,
+                approach: 'mixed',
+                readiness: {}
+            });
+            overlay.remove();
+            document.body.classList.remove('modal-open');
+            var currentScreen = STATE.navigation?.currentScreen || 'baby';
+            if (typeof render === 'function') render(currentScreen);
+            showToast('👶 Ребёнок добавлен (онбординг пропущен)', 'success');
+        } else {
+            alert('Ошибка: функция addChild не найдена');
+        }
+    });
+
+    // Кнопка "Пройти онбординг" – закрывает модалку и запускает онбординг
+    overlay.querySelector('#start-onboarding-btn').addEventListener('click', function() {
+        overlay.remove();
+        document.body.classList.remove('modal-open');
+        // Устанавливаем флаг, что онбординг не пройден, чтобы запустить его
+        STATE.onboardingCompleted = false;
+        if (typeof saveState === 'function') saveState();
+        if (typeof render === 'function') render('onboarding');
+    });
 }
 
-// Обработчик сохранения нового ребёнка (вне модалки, через делегирование)
+// Обработчик сохранения нового ребёнка (обычный, без онбординга)
 document.addEventListener('click', function(event) {
     var target = event.target.closest('#save-child-btn');
     if (!target) return;
-    // Находим родительскую модалку
     var overlay = target.closest('.modal-overlay');
     if (!overlay) return;
     var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
@@ -611,11 +665,8 @@ document.addEventListener('click', function(event) {
         });
         overlay.remove();
         document.body.classList.remove('modal-open');
-        // Обновляем экран
-        if (typeof render === 'function') {
-            var currentScreen = STATE.navigation?.currentScreen || 'baby';
-            render(currentScreen);
-        }
+        var currentScreen = STATE.navigation?.currentScreen || 'baby';
+        if (typeof render === 'function') render(currentScreen);
     } else {
         alert('Ошибка: функция addChild не найдена');
     }
