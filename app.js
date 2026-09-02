@@ -24,15 +24,12 @@ function initApp() {
         return;
     }
 
-    // 1. Загружаем состояние (обязательно до проверки онбординга)
     initializeState();
 
-    // 2. Инициализируем тему
     if (typeof initTheme === 'function') {
         initTheme();
     }
 
-    // 3. ПРОВЕРКА ОНБОРДИНГА (исправлено)
     if (typeof STATE.onboardingCompleted !== 'boolean') {
         STATE.onboardingCompleted = false;
     }
@@ -49,7 +46,6 @@ function initApp() {
         }
     }
 
-    // 4. Если онбординг пройден – запускаем основное приложение
     if (typeof buildApp === 'function') {
         buildApp();
     } else {
@@ -57,20 +53,17 @@ function initApp() {
         app.innerHTML = '<div id="app-content"></div><div id="modal-root"></div><div id="toast-root"></div>';
     }
 
-    // 5. Подключаем обработчики
     if (typeof setupEventListeners === 'function') {
         setupEventListeners();
     } else {
         console.warn('⚠️ setupEventListeners не найдена');
     }
 
-    // 6. Показываем начальный экран
     var screen = (STATE && STATE.ui && STATE.ui.screen) ? STATE.ui.screen : DEFAULT_SCREEN;
     if (typeof showScreen === 'function') {
         showScreen(screen);
     } else if (typeof render === 'function') {
         render(screen);
-        // Дополнительный рендер через 200 мс для обновления данных
         setTimeout(function() {
             render(screen);
         }, 200);
@@ -78,7 +71,6 @@ function initApp() {
         console.error('❌ render или showScreen не найдены!');
     }
 
-    // 7. Обновляем профиль (если есть функция)
     if (typeof updateProfileUI === 'function') {
         updateProfileUI();
     }
@@ -323,7 +315,7 @@ function startApplication() {
     initApp();
     migrateLegacyProfile();
 
-    // ========== ДОБАВЛЕННАЯ МИГРАЦИЯ ==========
+    // ===== МИГРАЦИЯ baby → children =====
     if (STATE.baby && Object.keys(STATE.baby).length > 0) {
         console.log('🔄 Обнаружен старый объект baby, мигрируем в children...');
         if (typeof window.migrateBabyToChildren === 'function') {
@@ -351,13 +343,18 @@ function startApplication() {
         }
     }
 
-    // Сбрасываем возможный застрявший режим добавления
+    // ===== ЗАЩИТА ОТ ГЛОБАЛЬНОГО ОНБОРДИНГА =====
+    if (STATE.children && STATE.children.length > 0 && STATE.onboardingCompleted === false) {
+        console.log('🔄 Обнаружены дети, но онбординг не завершён. Исправляем...');
+        STATE.onboardingCompleted = true;
+        if (typeof saveState === 'function') saveState();
+    }
+
     if (STATE._onboardingMode) {
         STATE._onboardingMode = null;
         if (typeof saveState === 'function') saveState();
     }
 
-    // Принудительный рендер главной через 300 мс
     setTimeout(function() {
         if (typeof render === 'function') {
             render('home');
