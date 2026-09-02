@@ -208,3 +208,4 @@ const PRODUCTS = [
 // Экспортируем в глобальную область
 window.PRODUCTS = PRODUCTS;
 window.PRODUCT_DATABASE = PRODUCTS;
+
