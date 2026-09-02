@@ -1,37 +1,32 @@
-// screens/home.js – главная страница с динамическими данными
 window.renderHome = function() {
     const state = window.STATE || {};
-    const baby = state.baby || {};
+    // Получаем текущего ребёнка
+    const currentChild = window.getCurrentChild ? window.getCurrentChild() : (state.baby || {});
+    const baby = currentChild || {};
+
     const introduced = state.products?.introduced || [];
     const diary = state.diary || [];
     const totalIntroduced = introduced.length;
 
-    // Рассчитываем возраст
+    // Точный возраст через formatAge (из utils.js)
     let ageText = 'Возраст не указан';
-    if (baby.birthDate) {
-        // Используем глобальную функцию getAgeInMonths из state.js (если есть)
-        const months = typeof window.getAgeInMonths === 'function'
-            ? window.getAgeInMonths(baby.birthDate)
-            : (() => {
-                const birth = new Date(baby.birthDate);
-                const now = new Date();
-                let m = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
-                if (now.getDate() < birth.getDate()) m--;
-                return Math.max(0, m);
-            })();
+    if (baby.birthDate && typeof window.formatAge === 'function') {
+        ageText = window.formatAge(baby.birthDate);
+    } else if (baby.birthDate) {
+        // fallback
+        const birth = new Date(baby.birthDate);
+        const now = new Date();
+        let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+        if (now.getDate() < birth.getDate()) months--;
+        months = Math.max(0, months);
         ageText = months + ' мес.';
     }
 
-    // Получаем общее количество продуктов (из глобального массива PRODUCTS)
     const allProducts = window.PRODUCTS || [];
     const totalProducts = allProducts.length;
-
-    // Прогресс (максимум 100%)
     const progressPercent = totalProducts > 0 ? Math.min(100, (totalIntroduced / totalProducts) * 100) : 0;
 
-    // Последние 3 записи (сначала новые)
     const recentEntries = diary.slice(-3).reverse();
-
     let recentHtml = '';
     if (recentEntries.length === 0) {
         recentHtml = `
@@ -59,18 +54,15 @@ window.renderHome = function() {
         `).join('');
     }
 
-    // Пол и эмодзи аватара
     const avatarEmoji = baby.sex === 'male' ? '👦' : baby.sex === 'female' ? '👧' : '👶';
 
     return `
         <div class="screen active">
-            <!-- Приветствие -->
             <div class="page-header">
                 <h1>🌸 Прикорм</h1>
                 <button class="icon-button" data-action="toggleTheme">🌓</button>
             </div>
 
-            <!-- Карточка малыша -->
             <div class="baby-profile-card" id="babyCard">
                 <div class="baby-avatar">${avatarEmoji}</div>
                 <div>
@@ -80,7 +72,6 @@ window.renderHome = function() {
                 <button class="icon-button" style="margin-left:auto;" data-action="navigate" data-screen="baby">✎</button>
             </div>
 
-            <!-- Прогресс введения продуктов -->
             <div class="progress-card">
                 <div class="header">
                     <span>📊 Прогресс введения</span>
@@ -91,7 +82,6 @@ window.renderHome = function() {
                 </div>
             </div>
 
-            <!-- Быстрые действия -->
             <div class="quick-actions">
                 <div class="quick-action" data-action="navigate" data-screen="today">
                     <span>📅</span>
@@ -115,7 +105,6 @@ window.renderHome = function() {
                 </div>
             </div>
 
-            <!-- Последние записи в дневнике -->
             <div class="section-heading">
                 <span>🕒 Последние записи</span>
                 <button class="icon-button" data-action="navigate" data-screen="diary">→</button>
