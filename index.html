@@ -11,8 +11,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Прикорм 🌸</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        /* ===== ВСЕ СТИЛИ (ваши оригинальные) ===== */
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Segoe UI',Roboto,sans-serif;background:#f5f0eb;display:flex;justify-content:center;padding:0;min-height:100vh}
         #app{max-width:480px;width:100%;background:#fff;min-height:100vh;padding:16px 16px 80px;position:relative}
@@ -101,8 +101,6 @@
         .bottom-nav button{background:none;border:none;font-size:12px;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
         .bottom-nav button.active{color:#d4a373;font-weight:700}
         .bottom-nav button .nav-icon{font-size:24px}
-
-        /* ===== МОДАЛКА ДЛЯ ОБНОВЛЕНИЙ ===== */
         .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000}
         .modal-sheet{background:#fff;max-width:400px;width:90%;border-radius:24px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,0.2)}
         .primary-button{background:#d4a373;color:#fff;border:none;border-radius:12px;padding:14px 20px;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s}
@@ -112,18 +110,18 @@
     </style>
 </head>
 <body>
-    <!-- ЭКРАН ЗАГРУЗКИ -->
     <div id="loading-screen">
         <div class="spinner"></div>
         <div class="loading-text">🌸 Загрузка приложения...</div>
-        <div class="loading-version">v2.1.0</div>
+        <div style="width:80%; max-width:300px; margin-top:16px; background:#ddd; border-radius:10px; overflow:hidden; height:8px;">
+            <div id="progress-fill" style="width:0%; height:100%; background:#d4a373; transition: width 0.3s;"></div>
+        </div>
+        <div style="margin-top:8px; font-size:14px; color:#888;" id="progress-text">0%</div>
+        <div class="loading-version" id="app-version">v2.1.0</div>
     </div>
 
     <div id="app"></div>
 
-    <!-- ============================================================
-         ПОДКЛЮЧЕНИЕ ВСЕХ МОДУЛЕЙ (порядок важен)
-    ============================================================ -->
     <script src="config.js"></script>
     <script src="updater.js"></script>
     <script src="products.js"></script>
@@ -140,40 +138,49 @@
     <script src="theme.js"></script>
     <script src="app.js"></script>
 
-    <!-- ============================================================
-         ЗАПУСК ПРИЛОЖЕНИЯ
-    ============================================================ -->
     <script>
-        // Принудительная очистка кэша при первом запуске (опционально)
-        (function() {
-            try {
-                if (!localStorage.getItem('_cache_cleared')) {
-                    localStorage.clear();
-                    localStorage.setItem('_cache_cleared', 'true');
-                    location.reload(true);
-                    return;
-                }
-            } catch(e) {}
+        (function(){
+            try{if(!localStorage.getItem('_cache_cleared')){localStorage.clear();localStorage.setItem('_cache_cleared','true');location.reload(true);return}}catch(e){}
         })();
 
-        // Если функция initApp определена во внешнем app.js – вызываем её
-        if (typeof initApp === 'function') {
-            initApp();
-        } else {
-            // fallback – используем renderApp, если она существует
-            if (typeof renderApp === 'function') {
-                renderApp();
-            } else {
-                console.error('❌ Не найдена initApp или renderApp');
-            }
+        function hideLoadingScreen(){
+            var el=document.getElementById('loading-screen');
+            if(el){el.classList.add('hidden');setTimeout(function(){el.style.display='none';},600);}
         }
 
-        // Дополнительная проверка обновлений (если updater не был вызван в app.js)
-        setTimeout(() => {
-            if (typeof initUpdater === 'function') {
-                initUpdater();
+        function startApp(){
+            if(typeof initApp==='function'){initApp();}
+            else if(typeof renderApp==='function'){renderApp();}
+            else if(typeof render==='function'){render('home');}
+            else{
+                console.error('Не найдена initApp, renderApp или render');
+                document.getElementById('app').innerHTML='<div style="padding:20px;color:red;text-align:center;"><h3>Ошибка загрузки</h3><p>Не найдены функции приложения.</p></div>';
             }
-        }, 500);
+            setTimeout(hideLoadingScreen,500);
+            setTimeout(function(){
+                if(typeof initUpdater==='function'){initUpdater();}
+            },1000);
+        }
+
+        var progress=0;
+        var interval=setInterval(function(){
+            progress+=Math.random()*8+2;
+            if(progress>100)progress=100;
+            document.getElementById('progress-fill').style.width=progress+'%';
+            document.getElementById('progress-text').textContent=Math.round(progress)+'%';
+            if(progress>=100){
+                clearInterval(interval);
+                startApp();
+            }
+        },150);
+
+        setTimeout(function(){
+            var ls=document.getElementById('loading-screen');
+            if(ls&&!ls.classList.contains('hidden')){
+                ls.classList.add('hidden');
+                setTimeout(function(){ls.style.display='none';},600);
+            }
+        },3000);
     </script>
 </body>
 </html>
