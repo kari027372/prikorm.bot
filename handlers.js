@@ -527,9 +527,10 @@ function openSetting(setting) {
                 setTheme(current === "light" ? "dark" : "light");
             }
             break;
-        // ===== НОВЫЙ ПУНКТ ДЛЯ ЗАПУСКА ОНБОРДИНГА (добавьте его в settings.js) =====
+        // ===== НОВЫЙ ПУНКТ ДЛЯ ЗАПУСКА ОНБОРДИНГА (исправлен) =====
         case "run-onboarding":
-            STATE.onboardingCompleted = false;
+            // Устанавливаем режим добавления ребёнка, НЕ сбрасывая onboardingCompleted
+            STATE._onboardingMode = 'add-child';
             if (typeof saveState === 'function') saveState();
             if (typeof render === 'function') render('onboarding');
             break;
@@ -623,7 +624,7 @@ function showAddChildModal() {
     });
 }
 
-// Обработчик сохранения нового ребёнка (теперь запускает онбординг)
+// Обработчик сохранения нового ребёнка (исправлен: не сбрасывает onboardingCompleted)
 document.addEventListener('click', function(event) {
     var target = event.target.closest('#save-child-btn');
     if (!target) return;
@@ -639,6 +640,7 @@ document.addEventListener('click', function(event) {
     }
 
     if (typeof window.addChild === 'function') {
+        // Добавляем ребёнка
         window.addChild({
             name: name,
             birthDate: birthDate,
@@ -650,8 +652,9 @@ document.addEventListener('click', function(event) {
         });
         overlay.remove();
         document.body.classList.remove('modal-open');
-        // Закрыли модалку, теперь запускаем онбординг для нового ребёнка
-        STATE.onboardingCompleted = false;
+        // Устанавливаем режим "добавление ребёнка" и запускаем онбординг
+        STATE._onboardingMode = 'add-child';
+        // НЕ меняем onboardingCompleted – оставляем как есть
         if (typeof saveState === 'function') saveState();
         if (typeof render === 'function') render('onboarding');
     } else {
