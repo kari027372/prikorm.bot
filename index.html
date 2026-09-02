@@ -4,288 +4,191 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#F8F5F1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="mobile-web-app-capable" content="yes">
     <title>Прикорм 🌸</title>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-        :root{--bg-body:#f5f0eb;--bg-app:#ffffff;--bg-card:#fafafa;--bg-hover:#f0ebe7;--bg-primary:#d4a373;--bg-primary-hover:#c4956a;--bg-success:#e8f5e9;--bg-warning:#f5faf5;--bg-danger:#e74c3c;--text-primary:#2d1f14;--text-secondary:#555;--text-muted:#888;--text-light:#999;--text-on-primary:#fff;--border-color:#f0ebe7;--border-input:#e8e0d8;--border-success:#a5d6a7;--shadow:0 2px 8px rgba(0,0,0,0.04);--shadow-strong:0 4px 12px rgba(0,0,0,0.06);--shadow-up:0 -2px 10px rgba(0,0,0,0.04);--radius:16px;--radius-sm:8px;--radius-lg:24px;--font-family:'Segoe UI',Roboto,sans-serif}
-        body{font-family:var(--font-family);background:var(--bg-body);color:var(--text-primary);display:flex;justify-content:center;padding:0;min-height:100vh}
-        #app{max-width:480px;width:100%;background:var(--bg-app);min-height:100vh;padding:16px 16px 90px;position:relative}
-        /* === Загрузка === */
-        #loading-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg-body);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;transition:opacity 0.6s}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI',Roboto,sans-serif;background:#f5f0eb;display:flex;justify-content:center;padding:0;min-height:100vh}
+        #app{max-width:480px;width:100%;background:#fff;min-height:100vh;padding:16px 16px 80px;position:relative}
+        #loading-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:#f5f0eb;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;transition:opacity 0.6s}
         #loading-screen.hidden{opacity:0;pointer-events:none}
-        .spinner{width:48px;height:48px;border:4px solid var(--border-color);border-top-color:var(--bg-primary);border-radius:50%;animation:spin 0.8s linear infinite}
+        .spinner{width:48px;height:48px;border:4px solid #ddd;border-top-color:#d4a373;border-radius:50%;animation:spin 0.8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
-        .loading-text{margin-top:20px;font-size:18px;color:var(--text-muted)}
-        .loading-version{margin-top:8px;font-size:14px;color:var(--text-light)}
-        /* === Карточки === */
-        .baby-profile-card{background:var(--bg-card);border-radius:var(--radius-lg);padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:16px;border:1px solid var(--border-color);box-shadow:var(--shadow)}
-        .baby-profile-card .baby-avatar{font-size:48px;line-height:1}
-        .baby-profile-card strong{font-size:18px;color:var(--text-primary)}
-        .baby-profile-card .muted{font-size:14px;color:var(--text-muted)}
-        .progress-card{background:var(--bg-card);border-radius:var(--radius);padding:16px;margin-bottom:16px;border:1px solid var(--border-color);box-shadow:var(--shadow)}
-        .progress-card .header{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:600;color:var(--text-primary)}
-        .progress-track{background:var(--bg-hover);height:8px;border-radius:10px;overflow:hidden}
-        .progress-fill{background:var(--bg-primary);height:100%;border-radius:10px;transition:width 0.5s ease}
-        .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
-        .quick-action{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px}
-        .quick-action:active{transform:scale(0.96);background:var(--bg-hover)}
-        .quick-action span{font-size:32px;display:block}
-        .quick-action strong{font-size:14px;color:var(--text-primary);display:block}
-        .quick-action small{font-size:12px;color:var(--text-muted);display:block}
-        .bottom-navigation{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;display:flex;justify-content:space-around;background:var(--bg-app);padding:8px 0 12px;border-top:1px solid var(--border-color);box-shadow:var(--shadow-up);z-index:100}
-        .bottom-navigation .nav-item{background:none;border:none;font-size:11px;color:var(--text-muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 12px;transition:color 0.2s;flex:1}
-        .bottom-navigation .nav-item span:first-child{font-size:22px;display:block}
-        .bottom-navigation .nav-item.active{color:var(--bg-primary);font-weight:700}
-        .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-top:8px}
-        .page-header h1{font-size:24px;font-weight:700;color:var(--text-primary)}
-        .icon-button{background:none;border:none;font-size:20px;cursor:pointer;padding:6px;border-radius:10px}
-        .muted{color:var(--text-muted);font-size:14px}
-        .screen{display:block;animation:fadeIn 0.4s ease}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-        .empty-state{text-align:center;padding:48px 20px;color:var(--text-muted)}
-        .empty-state .empty-icon{font-size:64px;display:block;margin-bottom:12px}
-        .empty-state h3{font-size:18px;color:var(--text-secondary);margin-bottom:8px}
+        .loading-text{margin-top:20px;font-size:18px;color:#888}
+        .loading-version{margin-top:8px;font-size:14px;color:#bbb}
+        .progress-track{width:80%;max-width:300px;margin-top:16px;background:#ddd;border-radius:10px;overflow:hidden;height:8px}
+        .progress-fill{width:0%;height:100%;background:#d4a373;transition:width 0.3s}
+        .progress-text{margin-top:8px;font-size:14px;color:#888}
+        .progress-file{margin-top:4px;font-size:12px;color:#bbb}
+        .onboarding{display:flex;flex-direction:column;justify-content:center;min-height:80vh;padding:0 16px;text-align:center;animation:fadeIn 0.5s}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .onboarding .step-indicators{display:flex;justify-content:center;gap:8px;margin:20px 0 30px}
+        .onboarding .step-indicators span{width:10px;height:10px;border-radius:50%;background:#ddd;transition:0.3s}
+        .onboarding .step-indicators span.active{background:#d4a373;width:24px;border-radius:12px}
+        .onboarding .emoji-big{font-size:72px;margin-bottom:16px}
+        .onboarding h1{font-size:28px;font-weight:700;color:#2d1f14;margin-bottom:8px}
+        .onboarding p{font-size:16px;color:#777;margin-bottom:24px;line-height:1.5}
+        .onboarding .btn-group{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+        .onboarding .btn-group button{padding:16px;border:none;border-radius:16px;font-size:18px;font-weight:600;background:#f0ebe7;cursor:pointer;transition:all 0.2s}
+        .onboarding .btn-group button:active{transform:scale(0.96)}
+        .onboarding .btn-group button.primary{background:#d4a373;color:#fff}
+        .onboarding .btn-group button.secondary{background:transparent;color:#888;font-weight:400}
+        .onboarding input[type="date"],.onboarding input[type="text"]{width:100%;padding:16px;border:2px solid #e8e0d8;border-radius:16px;font-size:18px;text-align:center;margin:12px 0;background:#fafafa;transition:border 0.2s}
+        .onboarding input:focus{outline:none;border-color:#d4a373}
+        .onboarding .skip{color:#999;font-size:14px;margin-top:16px;background:none;border:none;text-decoration:underline;cursor:pointer}
+        .onboarding .nav-buttons{display:flex;justify-content:space-between;margin-top:24px;gap:12px}
+        .onboarding .nav-buttons button{flex:1;padding:14px;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;transition:0.2s}
+        .onboarding .nav-buttons button:active{transform:scale(0.96)}
+        .onboarding .nav-buttons button.prev{background:#f0ebe7;color:#555}
+        .onboarding .nav-buttons button.next{background:#d4a373;color:#fff}
+        .onboarding .btn-group label{display:flex;align-items:center;gap:10px;font-weight:400;font-size:16px;background:#fafafa;padding:12px;border-radius:12px;border:2px solid transparent;transition:background 0.2s,border-color 0.2s;cursor:pointer}
+        .onboarding .btn-group label:has(input:checked){background:#e8f5e9!important;border-color:#4caf50!important}
+        .onboarding .btn-group label input[type="checkbox"]{width:20px;height:20px;cursor:pointer}
+        .dashboard{display:block}
+        .welcome-card{background:linear-gradient(135deg,#fdf6f0,#f5ebe3);border-radius:24px;padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .welcome-card .info h1{font-size:24px;font-weight:700;color:#2d1f14;margin:0}
+        .welcome-card .info p{font-size:16px;color:#777;margin:4px 0 0}
+        .welcome-card .avatar{font-size:56px}
+        .status-card{background:#fff;border-radius:20px;padding:16px;margin-bottom:16px;border:1px solid #f0ebe7}
+        .status-card .row{display:flex;justify-content:space-between;align-items:center}
+        .status-card .label{font-size:14px;color:#888}
+        .status-card .value{font-size:16px;font-weight:600;color:#2d1f14}
+        .progress-card{background:#fff;border-radius:20px;padding:16px;margin-bottom:16px;border:1px solid #f0ebe7}
+        .progress-card .header{display:flex;justify-content:space-between;margin-bottom:8px}
+        .progress-card .header span{font-weight:600}
+        .progress-card .track{background:#f0ebe7;height:8px;border-radius:10px;overflow:hidden}
+        .progress-card .track .fill{background:#d4a373;height:100%;border-radius:10px;transition:width 0.4s}
+        .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+        .quick-card{background:#fff;border:1px solid #f0ebe7;border-radius:16px;padding:16px;text-align:center;cursor:pointer;transition:0.2s}
+        .quick-card:active{transform:scale(0.96)}
+        .quick-card .icon{font-size:32px;display:block;margin-bottom:6px}
+        .quick-card .label{font-size:14px;font-weight:600;color:#2d1f14}
+        .quick-card .desc{font-size:12px;color:#888}
+        .recommendation-card{background:#f5faf5;border-radius:20px;padding:16px;margin:16px 0;display:flex;align-items:center;gap:12px;border:1px solid #e0f0e0}
+        .recommendation-card .icon{font-size:40px}
+        .recommendation-card .content{flex:1}
+        .recommendation-card .content .tag{font-size:12px;text-transform:uppercase;color:#6a8a7a;letter-spacing:0.5px}
+        .recommendation-card .content h3{font-size:18px;margin:4px 0}
+        .recommendation-card .content p{font-size:14px;color:#555}
+        .recommendation-card .action{background:#d4a373;border:none;padding:8px 16px;border-radius:30px;color:#fff;font-weight:600;cursor:pointer;font-size:14px}
+        .tab-bar{display:flex;gap:10px;background:#fff;padding:10px;border-radius:12px;margin-bottom:16px}
+        .tab-bar button{flex:1;padding:10px;border:none;border-radius:10px;background:#f0ebe7;cursor:pointer;font-weight:600;transition:0.2s}
+        .tab-bar button.active{background:#d4a373;color:#fff}
+        .page{display:none;padding-top:12px}
+        .page.active{display:block}
+        .product-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+        .product-item{background:#fafafa;padding:12px;border-radius:8px;text-align:center;cursor:pointer;transition:0.2s;border:1px solid transparent}
+        .product-item:active{transform:scale(0.96)}
+        .product-item .emoji{font-size:30px;display:block}
+        .product-item .name{font-size:14px;font-weight:600;margin-top:4px}
+        .product-item .cat{font-size:12px;color:#888}
+        .product-item.introduced{background:#e8f5e9;border-color:#a5d6a7}
+        .diary-entry{display:flex;align-items:center;background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px}
+        .diary-entry .info{flex:1}
+        .settings-row{display:flex;align-items:center;background:#fafafa;padding:12px;border-radius:8px;margin-bottom:6px;border:none;width:100%;text-align:left;cursor:pointer}
+        .settings-row span:first-child{font-size:20px;margin-right:12px}
+        .settings-row div{flex:1}
+        .settings-row strong{display:block}
+        .settings-row small{color:#888}
+        .danger-button{background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:14px;width:100%;font-weight:700;cursor:pointer;margin:16px 0}
+        .empty-state{text-align:center;padding:40px 20px;color:#999}
+        .empty-state .empty-icon{font-size:64px}
+        .empty-state h3{font-size:18px;color:#555}
         .empty-state p{font-size:14px}
-        .danger-button{background:var(--bg-danger);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;width:100%;font-weight:700;cursor:pointer;margin:16px 0}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;display:flex;justify-content:space-around;background:#fff;padding:8px 0;border-top:1px solid #eee}
+        .bottom-nav button{background:none;border:none;font-size:12px;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+        .bottom-nav button.active{color:#d4a373;font-weight:700}
+        .bottom-nav button .nav-icon{font-size:24px}
     </style>
 </head>
 <body>
-    <!-- ЭКРАН ЗАГРУЗКИ -->
     <div id="loading-screen">
         <div class="spinner"></div>
         <div class="loading-text">🌸 Загрузка приложения...</div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-text" id="progress-text">0%</div>
+        <div class="progress-file" id="progress-file">Загрузка файлов...</div>
         <div class="loading-version">v2.1.0</div>
     </div>
 
     <div id="app"></div>
 
     <script>
-        // ============================================================
-        // ПРОСТОЙ РЕНДЕРИНГ (всё в одном файле, без внешних зависимостей)
-        // ============================================================
-        const DEFAULT_STATE = {
-            baby: { name: 'Кадим', birthDate: '2026-02-01', feedingType: 'ГВ' },
-            diary: [],
-            introduced: [],
-            products: []
-        };
+        var FILES = [
+            'config.js',
+            'products.js',
+            'recipes.js',
+            'diary.js',
+            'safety.js',
+            'recommendations.js',
+            'utils.js',
+            'state.js',
+            'onboarding.js',
+            'ui.js',
+            'rendering.js',
+            'handlers.js',
+            'theme.js',
+            'app.js'
+        ];
+        var loaded = 0;
+        var total = FILES.length;
+        var fill = document.getElementById('progress-fill');
+        var text = document.getElementById('progress-text');
+        var info = document.getElementById('progress-file');
 
-        let STATE = JSON.parse(localStorage.getItem('prikorm_app_state')) || DEFAULT_STATE;
-
-        function saveState() {
-            localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
+        function loadScript(src, callback) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = function() { callback(true); };
+            script.onerror = function() { callback(false); };
+            document.head.appendChild(script);
         }
 
-        function calcAge(birthDate) {
-            if (!birthDate) return 'Возраст не указан';
-            const birth = new Date(birthDate);
-            const now = new Date();
-            let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
-            if (months < 0) return 'Возраст не указан';
-            if (months < 12) return months + ' мес.';
-            const years = Math.floor(months / 12);
-            const rem = months % 12;
-            return years + ' г. ' + rem + ' мес.';
-        }
-
-        function renderHome() {
-            const baby = STATE.baby || {};
-            const age = calcAge(baby.birthDate);
-            const introducedCount = STATE.introduced.length;
-            const totalProducts = 20; // просто для демонстрации
-            const progressPct = Math.min(Math.round(introducedCount / totalProducts * 100), 100);
-            return `
-                <div class="screen">
-                    <div class="page-header">
-                        <h1>🌸 Прикорм</h1>
-                        <button class="icon-button" data-action="navigate" data-screen="settings">⚙️</button>
-                    </div>
-                    <div class="baby-profile-card">
-                        <div class="baby-avatar">👶</div>
-                        <div><strong>${baby.name || 'Малыш'}</strong><br><span class="muted">${age}</span></div>
-                        <button class="icon-button" data-action="navigate" data-screen="baby">✏️</button>
-                    </div>
-                    <div class="progress-card">
-                        <div class="header"><span>Прогресс</span><span>${introducedCount} / ${totalProducts}</span></div>
-                        <div class="progress-track"><div class="progress-fill" style="width:${progressPct}%"></div></div>
-                    </div>
-                    <div class="quick-actions">
-                        <button class="quick-action" data-action="add-food"><span>🥣</span><strong>Добавить</strong><small>Записать в дневник</small></button>
-                        <button class="quick-action" data-action="navigate" data-screen="products"><span>🥑</span><strong>Продукты</strong><small>База продуктов</small></button>
-                        <button class="quick-action" data-action="navigate" data-screen="diary"><span>📖</span><strong>Дневник</strong><small>${STATE.diary.length} записей</small></button>
-                        <button class="quick-action" data-action="navigate" data-screen="recipes"><span>🍲</span><strong>Рецепты</strong><small>Идеи</small></button>
-                    </div>
-                    <div class="empty-state">
-                        <div class="empty-icon">🌱</div>
-                        <h3>Добро пожаловать!</h3>
-                        <p>Начните добавлять продукты и вести дневник.</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderProducts() {
-            return `
-                <div class="screen">
-                    <div class="page-header"><h1>Продукты</h1></div>
-                    <div class="empty-state">
-                        <div class="empty-icon">🥑</div>
-                        <h3>База продуктов</h3>
-                        <p>Здесь появятся продукты из products.js</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderDiary() {
-            return `
-                <div class="screen">
-                    <div class="page-header"><h1>Дневник</h1></div>
-                    <div class="empty-state">
-                        <div class="empty-icon">📖</div>
-                        <h3>Дневник пуст</h3>
-                        <p>Добавьте продукты через главный экран.</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderRecipes() {
-            return `
-                <div class="screen">
-                    <div class="page-header"><h1>Рецепты</h1></div>
-                    <div class="empty-state">
-                        <div class="empty-icon">🍲</div>
-                        <h3>Рецептов пока нет</h3>
-                        <p>Добавьте свои рецепты.</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderToday() {
-            return `
-                <div class="screen">
-                    <div class="page-header"><h1>Сегодня</h1></div>
-                    <div class="empty-state">
-                        <div class="empty-icon">📅</div>
-                        <h3>План прикорма</h3>
-                        <p>Запланируйте приёмы пищи.</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderBaby() {
-            const baby = STATE.baby || {};
-            return `
-                <div class="screen">
-                    <div class="page-header"><h1>Малыш</h1></div>
-                    <div class="baby-profile-card">
-                        <div class="baby-avatar">👶</div>
-                        <div><strong>${baby.name || 'Имя не указано'}</strong><br><span class="muted">${calcAge(baby.birthDate)}</span></div>
-                        <button class="icon-button" data-action="edit-baby">✏️</button>
-                    </div>
-                    <div style="padding:12px;background:var(--bg-card);border-radius:var(--radius);margin:12px 0;">
-                        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);">
-                            <span class="muted">Тип кормления</span>
-                            <span>${baby.feedingType || 'Не указан'}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;padding:8px 0;">
-                            <span class="muted">Подход</span>
-                            <span>${baby.approach || 'Не выбран'}</span>
-                        </div>
-                    </div>
-                    <button class="danger-button" data-action="reset-data">Сбросить данные</button>
-                </div>
-            `;
-        }
-
-        function renderSettings() {
-            return `
-                <div class="screen">
-                    <div class="page-header"><h1>Настройки</h1></div>
-                    <div style="padding:12px;background:var(--bg-card);border-radius:var(--radius);margin:12px 0;">
-                        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);">
-                            <span class="muted">Уведомления</span>
-                            <span>Включены</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;padding:8px 0;">
-                            <span class="muted">Тема</span>
-                            <span>Светлая</span>
-                        </div>
-                    </div>
-                    <button class="danger-button" data-action="reset-data">Сбросить данные</button>
-                </div>
-            `;
-        }
-
-        function renderBottomNavigation(active) {
-            const items = [
-                { id: 'home', icon: '⌂', label: 'Главная' },
-                { id: 'products', icon: '🥑', label: 'Продукты' },
-                { id: 'today', icon: '📅', label: 'Сегодня' },
-                { id: 'diary', icon: '📖', label: 'Дневник' },
-                { id: 'baby', icon: '👶', label: 'Малыш' }
-            ];
-            return `<nav class="bottom-navigation">${items.map(it => `<button class="nav-item ${active === it.id ? 'active' : ''}" data-action="navigate" data-screen="${it.id}"><span>${it.icon}</span><small>${it.label}</small></button>`).join('')}</nav>`;
-        }
-
-        function render(screen) {
-            const app = document.getElementById('app');
-            if (!app) return;
-            let html = '';
-            switch (screen) {
-                case 'home': html = renderHome(); break;
-                case 'products': html = renderProducts(); break;
-                case 'diary': html = renderDiary(); break;
-                case 'recipes': html = renderRecipes(); break;
-                case 'today': html = renderToday(); break;
-                case 'baby': html = renderBaby(); break;
-                case 'settings': html = renderSettings(); break;
-                default: html = renderHome();
+        function loadNext(index) {
+            if (index >= total) {
+                info.textContent = '✅ Все файлы загружены';
+                setTimeout(function() {
+                    var ls = document.getElementById('loading-screen');
+                    ls.classList.add('hidden');
+                    setTimeout(function() { ls.style.display = 'none'; }, 600);
+                    startApp();
+                }, 400);
+                return;
             }
-            app.innerHTML = html + renderBottomNavigation(screen);
-            // обработчики кликов
-            document.querySelectorAll('[data-action="navigate"]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    render(this.dataset.screen);
-                });
+            var file = FILES[index];
+            info.textContent = 'Загрузка: ' + file;
+            loadScript(file, function(success) {
+                if (!success) console.warn('⚠️ Не удалось загрузить: ' + file);
+                loaded++;
+                var percent = Math.round((loaded / total) * 100);
+                fill.style.width = percent + '%';
+                text.textContent = percent + '%';
+                loadNext(index + 1);
             });
-            document.querySelector('[data-action="reset-data"]')?.addEventListener('click', function(){
-                if(confirm('Удалить все данные?')) {
-                    localStorage.removeItem('prikorm_app_state');
-                    STATE = DEFAULT_STATE;
-                    render('home');
-                }
-            });
-            document.querySelector('[data-action="edit-baby"]')?.addEventListener('click', function(){
-                const name = prompt('Имя малыша:', STATE.baby.name || '');
-                if(name !== null) {
-                    STATE.baby.name = name;
-                    saveState();
-                    render('baby');
-                }
-            });
-            document.querySelector('[data-action="add-food"]')?.addEventListener('click', function(){
-                alert('Форма добавления продукта появится в следующей версии');
-            });
-            // скрываем загрузку
-            const ls = document.getElementById('loading-screen');
-            if (ls) { ls.classList.add('hidden'); setTimeout(() => ls.style.display = 'none', 600); }
         }
 
-        // ============================================================
-        // ЗАПУСК
-        // ============================================================
-        render('home');
-    </script>
+        loadNext(0);
 
-    <!-- ERUDA для консоли на телефоне -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
+        setTimeout(function() {
+            var ls = document.getElementById('loading-screen');
+            if (ls && !ls.classList.contains('hidden')) {
+                info.textContent = '⏳ Медленное соединение...';
+            }
+        }, 5000);
+
+        function startApp() {
+            console.log('🚀 Запуск приложения...');
+            if (typeof initTheme === 'function') initTheme();
+            if (typeof render === 'function') {
+                render('home');
+            } else if (typeof renderApp === 'function') {
+                renderApp();
+            } else if (typeof initApp === 'function') {
+                initApp();
+            } else {
+                console.error('❌ Не найдена render, renderApp или initApp');
+                document.getElementById('app').innerHTML = '<div style="padding:20px;color:red;text-align:center;"><h3>Ошибка загрузки</h3><p>Не найдены функции приложения.</p></div>';
+            }
+        }
+    </script>
 </body>
 </html>
