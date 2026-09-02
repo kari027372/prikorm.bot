@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#F8F5F1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Прикорм 🌸</title>
     <style>
+        /* ===== ВСЕ СТИЛИ (ваши оригинальные) ===== */
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Segoe UI',Roboto,sans-serif;background:#f5f0eb;display:flex;justify-content:center;padding:0;min-height:100vh}
         #app{max-width:480px;width:100%;background:#fff;min-height:100vh;padding:16px 16px 80px;position:relative}
@@ -94,6 +101,14 @@
         .bottom-nav button{background:none;border:none;font-size:12px;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
         .bottom-nav button.active{color:#d4a373;font-weight:700}
         .bottom-nav button .nav-icon{font-size:24px}
+
+        /* ===== МОДАЛКА ДЛЯ ОБНОВЛЕНИЙ ===== */
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:1000}
+        .modal-sheet{background:#fff;max-width:400px;width:90%;border-radius:24px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,0.2)}
+        .primary-button{background:#d4a373;color:#fff;border:none;border-radius:12px;padding:14px 20px;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s}
+        .primary-button:hover{background:#c4956a}
+        .secondary-button{background:#f0ebe7;color:#555;border:none;border-radius:12px;padding:14px 20px;font-size:16px;font-weight:600;cursor:pointer;transition:background 0.2s}
+        .secondary-button:hover{background:#e0d8d0}
     </style>
 </head>
 <body>
@@ -101,12 +116,16 @@
     <div id="loading-screen">
         <div class="spinner"></div>
         <div class="loading-text">🌸 Загрузка приложения...</div>
-        <div class="loading-version">v2.0.0</div>
+        <div class="loading-version">v2.1.0</div>
     </div>
 
     <div id="app"></div>
 
+    <!-- ============================================================
+         ПОДКЛЮЧЕНИЕ ВСЕХ МОДУЛЕЙ (порядок важен)
+    ============================================================ -->
     <script src="config.js"></script>
+    <script src="updater.js"></script>
     <script src="products.js"></script>
     <script src="recipes.js"></script>
     <script src="diary.js"></script>
@@ -121,8 +140,11 @@
     <script src="theme.js"></script>
     <script src="app.js"></script>
 
+    <!-- ============================================================
+         ЗАПУСК ПРИЛОЖЕНИЯ
+    ============================================================ -->
     <script>
-        // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА КЭША ПРИ ПЕРВОМ ЗАПУСКЕ
+        // Принудительная очистка кэша при первом запуске (опционально)
         (function() {
             try {
                 if (!localStorage.getItem('_cache_cleared')) {
@@ -134,287 +156,24 @@
             } catch(e) {}
         })();
 
-        // ============================================================
-        // ОСНОВНОЙ КОД ПРИЛОЖЕНИЯ (без онбординга)
-        // ============================================================
-        const PRODUCTS = [
-            { id:'courgette', name:'Кабачок', cat:'овощ', min_age:4, emoji:'🥒' },
-            { id:'broccoli', name:'Брокколи', cat:'овощ', min_age:4, emoji:'🥦' },
-            { id:'cauliflower', name:'Цветная капуста', cat:'овощ', min_age:4, emoji:'🥦' },
-            { id:'pumpkin', name:'Тыква', cat:'овощ', min_age:5, emoji:'🎃' },
-            { id:'carrot', name:'Морковь', cat:'овощ', min_age:5, emoji:'🥕' },
-            { id:'potato', name:'Картофель', cat:'овощ', min_age:5, emoji:'🥔' },
-            { id:'apple', name:'Яблоко', cat:'фрукт', min_age:6, emoji:'🍎' },
-            { id:'pear', name:'Груша', cat:'фрукт', min_age:6, emoji:'🍐' },
-            { id:'banana', name:'Банан', cat:'фрукт', min_age:6, emoji:'🍌' },
-            { id:'buckwheat', name:'Гречка', cat:'каша', min_age:4, emoji:'🌾' },
-            { id:'rice', name:'Рис', cat:'каша', min_age:4, emoji:'🍚' },
-            { id:'turkey', name:'Индейка', cat:'мясо', min_age:6, emoji:'🦃' },
-            { id:'chicken', name:'Курица', cat:'мясо', min_age:6, emoji:'🐔' },
-            { id:'beef', name:'Говядина', cat:'мясо', min_age:6, emoji:'🥩' },
-            { id:'cod', name:'Треска', cat:'рыба', min_age:8, emoji:'🐟' },
-            { id:'salmon', name:'Лосось', cat:'рыба', min_age:8, emoji:'🐠' },
-            { id:'egg', name:'Яйцо', cat:'яйцо', min_age:6, emoji:'🥚' },
-            { id:'yogurt', name:'Йогурт', cat:'молочное', min_age:6, emoji:'🥛' },
-            { id:'lentil', name:'Чечевица', cat:'бобовые', min_age:7, emoji:'🫘' },
-            { id:'peanut', name:'Арахис', cat:'орехи', min_age:6, emoji:'🥜' }
-        ];
-
-        const RECIPES = [
-            { name:'Пюре из кабачка', age:4, desc:'Отварить кабачок до мягкости, измельчить' },
-            { name:'Каша гречневая', age:4, desc:'Сварить на воде, измельчить' }
-        ];
-
-        function calcAge(birthDate) {
-            if (!birthDate) return { months:0 };
-            const birth = new Date(birthDate);
-            const today = new Date();
-            let months = (today.getFullYear() - birth.getFullYear())*12 + (today.getMonth() - birth.getMonth());
-            if (today.getDate() < birth.getDate()) months--;
-            return { months: Math.max(0, months) };
-        }
-
-        function isIntroduced(id) {
-            return STATE.introduced && Array.isArray(STATE.introduced) && STATE.introduced.includes(id);
-        }
-
-        function getNextProduct() {
-            const age = STATE.baby.birthDate ? calcAge(STATE.baby.birthDate).months : 0;
-            const available = PRODUCTS.filter(p => p.min_age <= age && !isIntroduced(p.id));
-            return available.length ? available[0] : null;
-        }
-
-        function getProgress() {
-            const total = PRODUCTS.length;
-            const introduced = STATE.introduced ? STATE.introduced.length : 0;
-            return total ? Math.round((introduced/total)*100) : 0;
-        }
-
-        function hideLoadingScreen() {
-            const el = document.getElementById('loading-screen');
-            if (el) {
-                setTimeout(() => {
-                    el.classList.add('hidden');
-                    setTimeout(() => { el.style.display = 'none'; }, 600);
-                }, 300);
-            }
-        }
-
-        function renderProductsHTML() {
-            let html = `<h2>Продукты</h2><div class="product-grid">`;
-            PRODUCTS.forEach(p => {
-                const introduced = isIntroduced(p.id);
-                html += `<div class="product-item ${introduced?'introduced':''}" data-id="${p.id}">
-                    <span class="emoji">${p.emoji}</span>
-                    <div class="name">${p.name}</div>
-                    <div class="cat">${p.cat}, ${p.min_age}+ мес.</div>
-                </div>`;
-            });
-            html += `</div>`;
-            return html;
-        }
-
-        function renderDiaryHTML() {
-            let html = `<h2>Дневник</h2>`;
-            if (STATE.diary.length === 0) {
-                html += `<div class="empty-state"><div class="empty-icon">📖</div><h3>Дневник пуст</h3><p>Добавьте продукты</p></div>`;
+        // Если функция initApp определена во внешнем app.js – вызываем её
+        if (typeof initApp === 'function') {
+            initApp();
+        } else {
+            // fallback – используем renderApp, если она существует
+            if (typeof renderApp === 'function') {
+                renderApp();
             } else {
-                STATE.diary.slice().reverse().forEach(entry => {
-                    const product = PRODUCTS.find(p=>p.id===entry.product);
-                    const name = product ? product.name : entry.product;
-                    html += `<div class="diary-entry"><div class="info"><strong>${name}</strong><br><small>${entry.date}</small></div></div>`;
-                });
-            }
-            return html;
-        }
-
-        function renderRecipesHTML() {
-            let html = `<h2>Рецепты</h2>`;
-            RECIPES.forEach(r => {
-                html += `<div style="background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px;"><strong>${r.name}</strong> (с ${r.age} мес.)<br><small>${r.desc}</small></div>`;
-            });
-            return html;
-        }
-
-        function renderBabyHTML() {
-            const baby = STATE.baby;
-            return `
-                <h2>Малыш</h2>
-                <div class="baby-card" style="display:flex;align-items:center;background:#fafafa;padding:16px;border-radius:12px;margin:12px 0;">
-                    <div class="baby-avatar" style="font-size:48px;margin-right:16px;">👶</div>
-                    <div><strong>${baby.name||'Имя не указано'}</strong><br>${calcAge(baby.birthDate).months} мес.</div>
-                </div>
-                <div class="settings-row"><span>🍼</span><div><strong>Тип кормления</strong><br><small>${baby.feedingType}</small></div></div>
-                <div class="settings-row"><span>🥄</span><div><strong>Подход</strong><br><small>${baby.approach}</small></div></div>
-                <div class="settings-row"><span>📅</span><div><strong>Прикорм начат</strong><br><small>${baby.feedingStarted ? baby.feedingStartDate||'Да' : 'Нет'}</small></div></div>
-                <button class="danger-button" data-action="reset-onboarding">Сбросить онбординг</button>
-            `;
-        }
-
-        function renderApp() {
-            try {
-                const app = document.getElementById('app');
-                if (!app) return;
-
-                hideLoadingScreen();
-
-                if (!STATE.onboardingCompleted || !STATE.baby.birthDate) {
-                    if (typeof renderOnboarding === 'function') {
-                        renderOnboarding();
-                    } else {
-                        console.error('❌ renderOnboarding не найдена!');
-                        app.innerHTML = `<div style="padding:20px;color:red;">Ошибка: онбординг не загружен</div>`;
-                    }
-                    return;
-                }
-
-                const age = calcAge(STATE.baby.birthDate);
-                const nextProduct = getNextProduct();
-                const progress = getProgress();
-                const diaryCount = STATE.diary.length;
-
-                let html = `
-                    <div class="dashboard">
-                        <div class="welcome-card">
-                            <div class="info">
-                                <h1>🌸 Привет, ${STATE.baby.name || 'Малыш'}!</h1>
-                                <p>${age.months} мес. · ${STATE.baby.feedingType}</p>
-                            </div>
-                            <div class="avatar">👶</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="row"><span class="label">Статус прикорма</span><span class="value">${STATE.baby.feedingStarted ? '🌱 Активно' : '⏳ Ещё не начат'}</span></div>
-                            ${STATE.baby.feedingStarted && STATE.baby.feedingStartDate ? `<div class="row" style="margin-top:4px;"><span class="label">Начало</span><span class="value">${STATE.baby.feedingStartDate}</span></div>` : ''}
-                        </div>
-                        <div class="progress-card">
-                            <div class="header"><span>Прогресс</span><span>${STATE.introduced.length} из ${PRODUCTS.length} продуктов</span></div>
-                            <div class="track"><div class="fill" style="width:${progress}%;"></div></div>
-                        </div>
-                        <div class="quick-grid">
-                            <div class="quick-card" data-action="add-product"><span class="icon">🥣</span><div class="label">Добавить продукт</div><div class="desc">В дневник</div></div>
-                            <div class="quick-card" data-action="products"><span class="icon">🥑</span><div class="label">Продукты</div><div class="desc">Смотреть базу</div></div>
-                            <div class="quick-card" data-action="diary"><span class="icon">📖</span><div class="label">Дневник</div><div class="desc">${diaryCount} записей</div></div>
-                            <div class="quick-card" data-action="recipes"><span class="icon">🍲</span><div class="label">Рецепты</div><div class="desc">Идеи</div></div>
-                        </div>
-                        ${nextProduct ? `
-                        <div class="recommendation-card">
-                            <div class="icon">🌱</div>
-                            <div class="content">
-                                <div class="tag">Следующий шаг</div>
-                                <h3>Попробуйте ${nextProduct.name}</h3>
-                                <p>${nextProduct.cat}, с ${nextProduct.min_age} мес.</p>
-                            </div>
-                            <button class="action" data-action="add-specific" data-id="${nextProduct.id}">➕ Добавить</button>
-                        </div>` : `
-                        <div class="recommendation-card">
-                            <div class="icon">🎉</div>
-                            <div class="content">
-                                <div class="tag">Отлично!</div>
-                                <h3>Все продукты введены</h3>
-                                <p>Поздравляем!</p>
-                            </div>
-                        </div>`}
-                        <div class="tab-bar">
-                            <button class="active" data-tab="home">Главная</button>
-                            <button data-tab="products">Продукты</button>
-                            <button data-tab="diary">Дневник</button>
-                            <button data-tab="recipes">Рецепты</button>
-                            <button data-tab="baby">Малыш</button>
-                        </div>
-                        <div id="page-home" class="page active"><div style="background:#fafafa;padding:16px;border-radius:12px;margin-top:8px;"><p style="font-size:14px;color:#555;">Здесь будет подробная информация о сегодняшнем дне.</p></div></div>
-                        <div id="page-products" class="page">${renderProductsHTML()}</div>
-                        <div id="page-diary" class="page">${renderDiaryHTML()}</div>
-                        <div id="page-recipes" class="page">${renderRecipesHTML()}</div>
-                        <div id="page-baby" class="page">${renderBabyHTML()}</div>
-                    </div>
-                `;
-
-                app.innerHTML = html;
-
-                document.querySelectorAll('.tab-bar button').forEach(btn => {
-                    btn.addEventListener('click', function(){
-                        const tab = this.dataset.tab;
-                        document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
-                        this.classList.add('active');
-                        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-                        document.getElementById('page-'+tab)?.classList.add('active');
-                    });
-                });
-
-                document.querySelectorAll('[data-action="add-product"]').forEach(el => {
-                    el.addEventListener('click', ()=>{
-                        const firstAvailable = PRODUCTS.find(p => !isIntroduced(p.id));
-                        if (firstAvailable) {
-                            STATE.introduced.push(firstAvailable.id);
-                            STATE.diary.push({ product: firstAvailable.id, date: new Date().toISOString().slice(0,10) });
-                            saveState();
-                            renderApp();
-                        } else {
-                            alert('Все продукты уже введены!');
-                        }
-                    });
-                });
-
-                document.querySelectorAll('[data-action="add-specific"]').forEach(el => {
-                    el.addEventListener('click', function(){
-                        const id = this.dataset.id;
-                        if (id && !isIntroduced(id)) {
-                            STATE.introduced.push(id);
-                            STATE.diary.push({ product: id, date: new Date().toISOString().slice(0,10) });
-                            saveState();
-                            renderApp();
-                        }
-                    });
-                });
-
-                document.querySelectorAll('.product-item').forEach(el => {
-                    el.addEventListener('click', function(){
-                        const id = this.dataset.id;
-                        if (id && !isIntroduced(id)) {
-                            STATE.introduced.push(id);
-                            STATE.diary.push({ product: id, date: new Date().toISOString().slice(0,10) });
-                            saveState();
-                            renderApp();
-                        }
-                    });
-                });
-
-                document.querySelectorAll('[data-action="products"]').forEach(el => {
-                    el.addEventListener('click', ()=>document.querySelector('[data-tab="products"]').click());
-                });
-                document.querySelectorAll('[data-action="diary"]').forEach(el => {
-                    el.addEventListener('click', ()=>document.querySelector('[data-tab="diary"]').click());
-                });
-                document.querySelectorAll('[data-action="recipes"]').forEach(el => {
-                    el.addEventListener('click', ()=>document.querySelector('[data-tab="recipes"]').click());
-                });
-
-                document.querySelector('[data-action="reset-onboarding"]')?.addEventListener('click', function(){
-                    STATE.onboardingCompleted = false;
-                    saveState();
-                    renderApp();
-                });
-
-            } catch(e) {
-                console.error('Ошибка в renderApp:', e);
-                const app = document.getElementById('app');
-                if (app) app.innerHTML = `<div style="padding:20px;color:red;">Ошибка приложения: ${e.message}</div>`;
-                hideLoadingScreen();
+                console.error('❌ Не найдена initApp или renderApp');
             }
         }
 
-        // ============================================================
-        // ЗАПУСК
-        // ============================================================
-        renderApp();
-
+        // Дополнительная проверка обновлений (если updater не был вызван в app.js)
         setTimeout(() => {
-            const ls = document.getElementById('loading-screen');
-            if (ls && !ls.classList.contains('hidden')) {
-                ls.classList.add('hidden');
-                setTimeout(() => { ls.style.display = 'none'; }, 600);
+            if (typeof initUpdater === 'function') {
+                initUpdater();
             }
-        }, 3000);
+        }, 500);
     </script>
 </body>
 </html>
