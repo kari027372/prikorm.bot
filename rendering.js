@@ -1,5 +1,5 @@
 /* ============================================================
-   rendering.js v2.1.1 — красивые экраны с новыми классами
+   rendering.js v2.1.2 — исправлен для правильной загрузки продуктов
    ============================================================ */
 
 (function() {
@@ -18,7 +18,12 @@
         return getState().diary || [];
     }
     function getProducts() {
-        return window.PRODUCTS || [];
+        // Проверяем window.PRODUCTS и window.PRODUCT_DATABASE
+        const products = window.PRODUCTS || window.PRODUCT_DATABASE || [];
+        if (!products.length) {
+            console.warn('⚠️ PRODUCTS не загружены или пусты. Проверьте data/data_products.js');
+        }
+        return products;
     }
     function getRecipes() {
         return window.RECIPES || [];
@@ -134,10 +139,13 @@
         const diary = getDiary();
         const products = getProducts();
         const introducedCount = getState().products?.introduced?.length || 0;
-        const totalProducts = products.length || 1;
-        const progressPct = Math.min(Math.round(introducedCount / totalProducts * 100), 100);
+        const totalProducts = products.length || 1; // если 0, то показываем 1 для избежания деления на ноль
+        const progressPct = totalProducts > 0 ? Math.min(Math.round(introducedCount / totalProducts * 100), 100) : 0;
         const age = formatAge(baby);
         const todayEntries = diary.filter(e => e.date === new Date().toISOString().slice(0, 10));
+
+        // Отладка: выводим количество продуктов в консоль
+        console.log('📦 Продуктов загружено:', products.length);
 
         return `
         <div class="screen">
