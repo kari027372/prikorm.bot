@@ -36,22 +36,9 @@
         .onboarding .nav-buttons button:active{transform:scale(0.96)}
         .onboarding .nav-buttons button.prev{background:#f0ebe7;color:#555}
         .onboarding .nav-buttons button.next{background:#d4a373;color:#fff}
-
-        /* Подсветка выбранных чекбоксов */
-        .onboarding .btn-group label {
-            display:flex; align-items:center; gap:10px; font-weight:400; font-size:16px;
-            background:#fafafa; padding:12px; border-radius:12px;
-            border:2px solid transparent; transition: background 0.2s, border-color 0.2s;
-            cursor:pointer;
-        }
-        .onboarding .btn-group label:has(input:checked) {
-            background:#e8f5e9 !important;
-            border-color:#4caf50 !important;
-        }
-        .onboarding .btn-group label input[type="checkbox"] {
-            width:20px; height:20px; cursor:pointer;
-        }
-
+        .onboarding .btn-group label{display:flex;align-items:center;gap:10px;font-weight:400;font-size:16px;background:#fafafa;padding:12px;border-radius:12px;border:2px solid transparent;transition:background 0.2s,border-color 0.2s;cursor:pointer}
+        .onboarding .btn-group label:has(input:checked){background:#e8f5e9 !important;border-color:#4caf50 !important}
+        .onboarding .btn-group label input[type="checkbox"]{width:20px;height:20px;cursor:pointer}
         .dashboard{display:block}
         .welcome-card{background:linear-gradient(135deg,#fdf6f0,#f5ebe3);border-radius:24px;padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
         .welcome-card .info h1{font-size:24px;font-weight:700;color:#2d1f14;margin:0}
@@ -119,6 +106,21 @@
 
     <div id="app"></div>
 
+    <script src="config.js"></script>
+    <script src="products.js"></script>
+    <script src="recipes.js"></script>
+    <script src="diary.js"></script>
+    <script src="safety.js"></script>
+    <script src="recommendations.js"></script>
+    <script src="utils.js"></script>
+    <script src="state.js"></script>
+    <script src="onboarding.js"></script>
+    <script src="ui.js"></script>
+    <script src="rendering.js"></script>
+    <script src="handlers.js"></script>
+    <script src="theme.js"></script>
+    <script src="app.js"></script>
+
     <script>
         // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА КЭША ПРИ ПЕРВОМ ЗАПУСКЕ
         (function() {
@@ -133,51 +135,8 @@
         })();
 
         // ============================================================
-        // 1. СОСТОЯНИЕ
+        // ОСНОВНОЙ КОД ПРИЛОЖЕНИЯ (без онбординга)
         // ============================================================
-        const DEFAULT_STATE = {
-            baby: { name: '', birthDate: '', feedingType: 'ГВ', feedingStarted: false, feedingStartDate: '', approach: 'mixed' },
-            diary: [],
-            introduced: [],
-            favorites: [],
-            reactions: [],
-            settings: { theme: 'light' },
-            onboarding: {
-                readiness: {},
-                allergies: [],
-                diet: [],
-                favoriteFoods: [],
-                worries: [],
-                confidence: ''
-            },
-            onboardingCompleted: false
-        };
-
-        let STATE;
-        try {
-            const saved = localStorage.getItem('prikorm_app_state');
-            STATE = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_STATE));
-            if (!STATE.onboarding) {
-                STATE.onboarding = {
-                    readiness: {},
-                    allergies: [],
-                    diet: [],
-                    favoriteFoods: [],
-                    worries: [],
-                    confidence: ''
-                };
-            }
-        } catch(e) {
-            STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
-        }
-
-        function saveState() {
-            try {
-                localStorage.setItem('prikorm_app_state', JSON.stringify(STATE));
-            } catch(e) {}
-        }
-
-        // ПРОДУКТЫ (первые 20)
         const PRODUCTS = [
             { id:'courgette', name:'Кабачок', cat:'овощ', min_age:4, emoji:'🥒' },
             { id:'broccoli', name:'Брокколи', cat:'овощ', min_age:4, emoji:'🥦' },
@@ -231,321 +190,6 @@
             return total ? Math.round((introduced/total)*100) : 0;
         }
 
-        // ============================================================
-        // 2. ОНБОРДИНГ (11 шагов, все на русском)
-        // ============================================================
-        function renderOnboarding() {
-            try {
-                const app = document.getElementById('app');
-                if (!app) return;
-
-                let step = 0;
-                const totalSteps = 11;
-
-                const renderStep = (stepIndex) => {
-                    let html = `<div class="onboarding">`;
-                    html += `<div class="step-indicators">`;
-                    for (let i=0; i<totalSteps; i++) {
-                        html += `<span class="${i===stepIndex?'active':''}"></span>`;
-                    }
-                    html += `</div>`;
-
-                    switch (stepIndex) {
-                        case 0:
-                            html += `
-                                <div class="emoji-big">👶</div>
-                                <h1>Как зовут малыша?</h1>
-                                <p>Вы можете пропустить</p>
-                                <input type="text" id="onboarding-name" placeholder="Имя" value="${STATE.baby.name||''}">
-                                <button class="skip" data-action="skip-name">Пропустить →</button>
-                            `;
-                            break;
-                        case 1:
-                            html += `
-                                <div class="emoji-big">📅</div>
-                                <h1>Дата рождения</h1>
-                                <p>Мы рассчитаем возраст</p>
-                                <input type="date" id="onboarding-birth" value="${STATE.baby.birthDate||''}">
-                            `;
-                            break;
-                        case 2:
-                            html += `
-                                <div class="emoji-big">🍼</div>
-                                <h1>Тип вскармливания</h1>
-                                <div class="btn-group">
-                                    <button class="primary" data-value="ГВ">🤱 Грудное</button>
-                                    <button class="primary" data-value="ИВ">🍼 Искусственное</button>
-                                    <button class="primary" data-value="Смешанное">🤍 Смешанное</button>
-                                </div>
-                            `;
-                            break;
-                        case 3:
-                            html += `
-                                <div class="emoji-big">🌱</div>
-                                <h1>Вы уже начали прикорм?</h1>
-                                <div class="btn-group">
-                                    <button class="primary" data-value="yes">Да</button>
-                                    <button class="primary" data-value="no">Нет</button>
-                                </div>
-                                <div id="start-date-field" style="display:none; margin-top:16px;">
-                                    <label>Дата начала прикорма</label>
-                                    <input type="date" id="onboarding-start-date">
-                                </div>
-                            `;
-                            break;
-                        case 4:
-                            html += `
-                                <div class="emoji-big">🥄</div>
-                                <h1>Выберите подход</h1>
-                                <p>Можно изменить позже</p>
-                                <div class="btn-group">
-                                    <button class="primary" data-value="puree">🥄 Пюре</button>
-                                    <button class="primary" data-value="blw">🖐 BLW</button>
-                                    <button class="primary" data-value="mixed">🥣 Комбинированный</button>
-                                    <button class="secondary" data-value="unknown">🤷 Пока не знаю</button>
-                                </div>
-                            `;
-                            break;
-                        case 5: // признаки готовности
-                            const r = STATE.onboarding.readiness || {};
-                            html += `
-                                <div class="emoji-big">🧸</div>
-                                <h1>Признаки готовности</h1>
-                                <p>Какие признаки вы замечаете? (выберите все)</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    <label><input type="checkbox" id="readiness-sit" ${r.sitSupport?'checked':''}> Сидит с поддержкой</label>
-                                    <label><input type="checkbox" id="readiness-head" ${r.headControl?'checked':''}> Уверенно держит голову</label>
-                                    <label><input type="checkbox" id="readiness-reach" ${r.reachesFood?'checked':''}> Тянется к еде</label>
-                                    <label><input type="checkbox" id="readiness-mouth" ${r.opensMouth?'checked':''}> Открывает рот при виде еды</label>
-                                    <label><input type="checkbox" id="readiness-notsure" ${r.notSure?'checked':''}> Пока не уверена</label>
-                                </div>
-                            `;
-                            break;
-                        case 6: // аллергии (переведено на русский)
-                            const allergies = STATE.onboarding.allergies || [];
-                            html += `
-                                <div class="emoji-big">⚠️</div>
-                                <h1>Аллергии</h1>
-                                <p>Есть ли у малыша аллергия на что-то?</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    <label><input type="checkbox" class="allergy-check" value="Яйцо" ${allergies.includes('Яйцо')?'checked':''}> Яйцо</label>
-                                    <label><input type="checkbox" class="allergy-check" value="Молочные продукты" ${allergies.includes('Молочные продукты')?'checked':''}> Молочные продукты</label>
-                                    <label><input type="checkbox" class="allergy-check" value="Орехи" ${allergies.includes('Орехи')?'checked':''}> Орехи</label>
-                                    <label><input type="checkbox" class="allergy-check" value="Рыба" ${allergies.includes('Рыба')?'checked':''}> Рыба</label>
-                                    <label><input type="checkbox" class="allergy-check" value="Пшеница" ${allergies.includes('Пшеница')?'checked':''}> Пшеница</label>
-                                    <label><input type="checkbox" class="allergy-check" value="Соя" ${allergies.includes('Соя')?'checked':''}> Соя</label>
-                                    <label><input type="checkbox" class="allergy-check" value="Кунжут" ${allergies.includes('Кунжут')?'checked':''}> Кунжут</label>
-                                    <label><input type="checkbox" class="allergy-check" value="Цитрусовые" ${allergies.includes('Цитрусовые')?'checked':''}> Цитрусовые</label>
-                                    <label><input type="checkbox" id="allergy-none" ${allergies.length===0?'checked':''}> Нет</label>
-                                </div>
-                            `;
-                            break;
-                        case 7: // диета (переведено)
-                            const diet = STATE.onboarding.diet || [];
-                            html += `
-                                <div class="emoji-big">🥗</div>
-                                <h1>Диета</h1>
-                                <p>Есть ли особенности питания?</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    <label><input type="checkbox" class="diet-check" value="Рефлюкс" ${diet.includes('Рефлюкс')?'checked':''}> Рефлюкс</label>
-                                    <label><input type="checkbox" class="diet-check" value="Без молочных" ${diet.includes('Без молочных')?'checked':''}> Без молочных</label>
-                                    <label><input type="checkbox" class="diet-check" value="Без глютена" ${diet.includes('Без глютена')?'checked':''}> Без глютена</label>
-                                    <label><input type="checkbox" class="diet-check" value="При экземе" ${diet.includes('При экземе')?'checked':''}> При экземе</label>
-                                    <label><input type="checkbox" class="diet-check" value="Без свинины" ${diet.includes('Без свинины')?'checked':''}> Без свинины</label>
-                                    <label><input type="checkbox" class="diet-check" value="Богатое железом" ${diet.includes('Богатое железом')?'checked':''}> Богатое железом</label>
-                                    <label><input type="checkbox" class="diet-check" value="Без злаков" ${diet.includes('Без злаков')?'checked':''}> Без злаков</label>
-                                    <label><input type="checkbox" id="diet-none" ${diet.length===0?'checked':''}> Нет</label>
-                                </div>
-                            `;
-                            break;
-                        case 8: // любимые продукты (переведено)
-                            const favs = STATE.onboarding.favoriteFoods || [];
-                            html += `
-                                <div class="emoji-big">🍎</div>
-                                <h1>Любимые продукты</h1>
-                                <p>Что бы вы хотели предложить малышу в первую неделю?</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    <label><input type="checkbox" class="fav-check" value="Банан" ${favs.includes('Банан')?'checked':''}> Банан</label>
-                                    <label><input type="checkbox" class="fav-check" value="Манго" ${favs.includes('Манго')?'checked':''}> Манго</label>
-                                    <label><input type="checkbox" class="fav-check" value="Огурец" ${favs.includes('Огурец')?'checked':''}> Огурец</label>
-                                    <label><input type="checkbox" class="fav-check" value="Курица" ${favs.includes('Курица')?'checked':''}> Курица</label>
-                                    <label><input type="checkbox" class="fav-check" value="Яблоко" ${favs.includes('Яблоко')?'checked':''}> Яблоко</label>
-                                    <label><input type="checkbox" class="fav-check" value="Сыр" ${favs.includes('Сыр')?'checked':''}> Сыр</label>
-                                    <label><input type="checkbox" class="fav-check" value="Яйцо" ${favs.includes('Яйцо')?'checked':''}> Яйцо</label>
-                                    <label><input type="checkbox" class="fav-check" value="Авокадо" ${favs.includes('Авокадо')?'checked':''}> Авокадо</label>
-                                    <label><input type="checkbox" class="fav-check" value="Клубника" ${favs.includes('Клубника')?'checked':''}> Клубника</label>
-                                    <label><input type="checkbox" id="fav-none" ${favs.length===0?'checked':''}> Не знаю</label>
-                                </div>
-                            `;
-                            break;
-                        case 9: // страхи (переведено)
-                            const worries = STATE.onboarding.worries || [];
-                            html += `
-                                <div class="emoji-big">😰</div>
-                                <h1>Что вас беспокоит?</h1>
-                                <p>Выберите все, что вас волнует</p>
-                                <div class="btn-group" style="flex-direction:column; gap:8px;">
-                                    <label><input type="checkbox" class="worry-check" value="Удушье и попёрхивание" ${worries.includes('Удушье и попёрхивание')?'checked':''}> Удушье и попёрхивание</label>
-                                    <label><input type="checkbox" class="worry-check" value="Аллергические реакции" ${worries.includes('Аллергические реакции')?'checked':''}> Аллергические реакции</label>
-                                    <label><input type="checkbox" class="worry-check" value="Отказ от еды" ${worries.includes('Отказ от еды')?'checked':''}> Отказ от еды</label>
-                                    <label><input type="checkbox" class="worry-check" value="Нехватка железа и питательных веществ" ${worries.includes('Нехватка железа и питательных веществ')?'checked':''}> Нехватка железа и питательных веществ</label>
-                                    <label><input type="checkbox" class="worry-check" value="Делаю что-то не так" ${worries.includes('Делаю что-то не так')?'checked':''}> Делаю что-то не так</label>
-                                </div>
-                            `;
-                            break;
-                        case 10: // уверенность
-                            const confidence = STATE.onboarding.confidence || '';
-                            html += `
-                                <div class="emoji-big">💪</div>
-                                <h1>Как вы себя чувствуете?</h1>
-                                <p>Готовы начать прикорм?</p>
-                                <div class="btn-group">
-                                    <button class="${confidence==='nervous'?'primary':''}" data-value="nervous">😰 Нервничаю</button>
-                                    <button class="${confidence==='overwhelmed'?'primary':''}" data-value="overwhelmed">😵 Растеряна</button>
-                                    <button class="${confidence==='confident'?'primary':''}" data-value="confident">😊 Уверена</button>
-                                    <button class="${confidence==='very'?'primary':''}" data-value="very">💪 Очень уверена</button>
-                                </div>
-                            `;
-                            break;
-                    }
-
-                    html += `<div class="nav-buttons">`;
-                    if (stepIndex > 0) html += `<button class="prev" data-action="prev-step">← Назад</button>`;
-                    else html += `<div></div>`;
-                    if (stepIndex < totalSteps-1) html += `<button class="next" data-action="next-step">Далее →</button>`;
-                    else html += `<button class="next" data-action="finish-onboarding">🚀 Начать!</button>`;
-                    html += `</div></div>`;
-                    app.innerHTML = html;
-
-                    // Обработчики навигации
-                    document.querySelectorAll('[data-action="next-step"]').forEach(btn => {
-                        btn.addEventListener('click', ()=>{
-                            saveCurrentStepData(stepIndex);
-                            step = stepIndex+1;
-                            renderStep(step);
-                        });
-                    });
-                    document.querySelectorAll('[data-action="prev-step"]').forEach(btn => {
-                        btn.addEventListener('click', ()=>{
-                            saveCurrentStepData(stepIndex);
-                            step = stepIndex-1;
-                            renderStep(step);
-                        });
-                    });
-
-                    // Обработчики кнопок выбора (для шагов 2,3,4,10)
-                    document.querySelectorAll('[data-value]').forEach(btn => {
-                        btn.addEventListener('click', function(){
-                            const val = this.dataset.value;
-                            if (stepIndex===2) {
-                                STATE.baby.feedingType = val;
-                                saveState();
-                                document.querySelectorAll('.btn-group button').forEach(b=>b.style.border='none');
-                                this.style.border = '3px solid #d4a373';
-                            }
-                            if (stepIndex===3) {
-                                if (val==='yes') {
-                                    STATE.baby.feedingStarted = true;
-                                    document.getElementById('start-date-field').style.display = 'block';
-                                } else {
-                                    STATE.baby.feedingStarted = false;
-                                    STATE.baby.feedingStartDate = '';
-                                    document.getElementById('start-date-field').style.display = 'none';
-                                }
-                                saveState();
-                                this.style.border = '3px solid #d4a373';
-                            }
-                            if (stepIndex===4) {
-                                STATE.baby.approach = val;
-                                saveState();
-                                document.querySelectorAll('.btn-group button').forEach(b=>b.style.border='none');
-                                this.style.border = '3px solid #d4a373';
-                            }
-                            if (stepIndex===10) {
-                                STATE.onboarding.confidence = val;
-                                saveState();
-                                document.querySelectorAll('.btn-group button').forEach(b=>b.style.border='none');
-                                this.style.border = '3px solid #d4a373';
-                            }
-                        });
-                    });
-
-                    // Обработчик даты начала прикорма
-                    document.getElementById('onboarding-start-date')?.addEventListener('change', function(){
-                        STATE.baby.feedingStartDate = this.value;
-                        saveState();
-                    });
-
-                    // Пропуск имени
-                    document.querySelector('[data-action="skip-name"]')?.addEventListener('click', function(){
-                        step = 1;
-                        renderStep(step);
-                    });
-
-                    // Завершение онбординга
-                    document.querySelector('[data-action="finish-onboarding"]')?.addEventListener('click', function(){
-                        saveCurrentStepData(stepIndex);
-                        STATE.onboardingCompleted = true;
-                        saveState();
-                        renderApp();
-                    });
-                };
-
-                function saveCurrentStepData(stepIndex) {
-                    if (stepIndex===0) {
-                        STATE.baby.name = document.getElementById('onboarding-name')?.value.trim() || '';
-                        saveState();
-                    }
-                    if (stepIndex===1) {
-                        STATE.baby.birthDate = document.getElementById('onboarding-birth')?.value || '';
-                        if (STATE.baby.birthDate) STATE.baby.ageMonths = calcAge(STATE.baby.birthDate).months;
-                        saveState();
-                    }
-                    if (stepIndex===5) {
-                        const r = STATE.onboarding.readiness;
-                        r.sitSupport = document.getElementById('readiness-sit')?.checked || false;
-                        r.headControl = document.getElementById('readiness-head')?.checked || false;
-                        r.reachesFood = document.getElementById('readiness-reach')?.checked || false;
-                        r.opensMouth = document.getElementById('readiness-mouth')?.checked || false;
-                        r.notSure = document.getElementById('readiness-notsure')?.checked || false;
-                        saveState();
-                    }
-                    if (stepIndex===6) {
-                        const checks = document.querySelectorAll('.allergy-check:checked');
-                        STATE.onboarding.allergies = Array.from(checks).map(el=>el.value);
-                        if (document.getElementById('allergy-none')?.checked) STATE.onboarding.allergies = [];
-                        saveState();
-                    }
-                    if (stepIndex===7) {
-                        const checks = document.querySelectorAll('.diet-check:checked');
-                        STATE.onboarding.diet = Array.from(checks).map(el=>el.value);
-                        if (document.getElementById('diet-none')?.checked) STATE.onboarding.diet = [];
-                        saveState();
-                    }
-                    if (stepIndex===8) {
-                        const checks = document.querySelectorAll('.fav-check:checked');
-                        STATE.onboarding.favoriteFoods = Array.from(checks).map(el=>el.value);
-                        if (document.getElementById('fav-none')?.checked) STATE.onboarding.favoriteFoods = [];
-                        saveState();
-                    }
-                    if (stepIndex===9) {
-                        const checks = document.querySelectorAll('.worry-check:checked');
-                        STATE.onboarding.worries = Array.from(checks).map(el=>el.value);
-                        saveState();
-                    }
-                }
-
-                renderStep(0);
-            } catch(e) {
-                console.error('Ошибка в renderOnboarding:', e);
-                const app = document.getElementById('app');
-                if (app) app.innerHTML = `<div style="padding:20px;color:red;">Ошибка в онбординге: ${e.message}</div>`;
-            }
-        }
-
-        // ============================================================
-        // 3. СКРЫТИЕ ЗАГРУЗКИ
-        // ============================================================
         function hideLoadingScreen() {
             const el = document.getElementById('loading-screen');
             if (el) {
@@ -556,19 +200,71 @@
             }
         }
 
-        // ============================================================
-        // 4. ОСНОВНОЙ РЕНДЕРИНГ
-        // ============================================================
+        function renderProductsHTML() {
+            let html = `<h2>Продукты</h2><div class="product-grid">`;
+            PRODUCTS.forEach(p => {
+                const introduced = isIntroduced(p.id);
+                html += `<div class="product-item ${introduced?'introduced':''}" data-id="${p.id}">
+                    <span class="emoji">${p.emoji}</span>
+                    <div class="name">${p.name}</div>
+                    <div class="cat">${p.cat}, ${p.min_age}+ мес.</div>
+                </div>`;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        function renderDiaryHTML() {
+            let html = `<h2>Дневник</h2>`;
+            if (STATE.diary.length === 0) {
+                html += `<div class="empty-state"><div class="empty-icon">📖</div><h3>Дневник пуст</h3><p>Добавьте продукты</p></div>`;
+            } else {
+                STATE.diary.slice().reverse().forEach(entry => {
+                    const product = PRODUCTS.find(p=>p.id===entry.product);
+                    const name = product ? product.name : entry.product;
+                    html += `<div class="diary-entry"><div class="info"><strong>${name}</strong><br><small>${entry.date}</small></div></div>`;
+                });
+            }
+            return html;
+        }
+
+        function renderRecipesHTML() {
+            let html = `<h2>Рецепты</h2>`;
+            RECIPES.forEach(r => {
+                html += `<div style="background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px;"><strong>${r.name}</strong> (с ${r.age} мес.)<br><small>${r.desc}</small></div>`;
+            });
+            return html;
+        }
+
+        function renderBabyHTML() {
+            const baby = STATE.baby;
+            return `
+                <h2>Малыш</h2>
+                <div class="baby-card" style="display:flex;align-items:center;background:#fafafa;padding:16px;border-radius:12px;margin:12px 0;">
+                    <div class="baby-avatar" style="font-size:48px;margin-right:16px;">👶</div>
+                    <div><strong>${baby.name||'Имя не указано'}</strong><br>${calcAge(baby.birthDate).months} мес.</div>
+                </div>
+                <div class="settings-row"><span>🍼</span><div><strong>Тип кормления</strong><br><small>${baby.feedingType}</small></div></div>
+                <div class="settings-row"><span>🥄</span><div><strong>Подход</strong><br><small>${baby.approach}</small></div></div>
+                <div class="settings-row"><span>📅</span><div><strong>Прикорм начат</strong><br><small>${baby.feedingStarted ? baby.feedingStartDate||'Да' : 'Нет'}</small></div></div>
+                <button class="danger-button" data-action="reset-onboarding">Сбросить онбординг</button>
+            `;
+        }
+
         function renderApp() {
             try {
                 const app = document.getElementById('app');
                 if (!app) return;
 
-                // Скрываем загрузку в любом случае
                 hideLoadingScreen();
 
                 if (!STATE.onboardingCompleted || !STATE.baby.birthDate) {
-                    renderOnboarding();
+                    if (typeof renderOnboarding === 'function') {
+                        renderOnboarding();
+                    } else {
+                        console.error('❌ renderOnboarding не найдена!');
+                        app.innerHTML = `<div style="padding:20px;color:red;">Ошибка: онбординг не загружен</div>`;
+                    }
                     return;
                 }
 
@@ -635,7 +331,6 @@
 
                 app.innerHTML = html;
 
-                // Обработчики табов
                 document.querySelectorAll('.tab-bar button').forEach(btn => {
                     btn.addEventListener('click', function(){
                         const tab = this.dataset.tab;
@@ -646,7 +341,6 @@
                     });
                 });
 
-                // Кнопка "Добавить продукт"
                 document.querySelectorAll('[data-action="add-product"]').forEach(el => {
                     el.addEventListener('click', ()=>{
                         const firstAvailable = PRODUCTS.find(p => !isIntroduced(p.id));
@@ -661,7 +355,6 @@
                     });
                 });
 
-                // Добавить конкретный продукт
                 document.querySelectorAll('[data-action="add-specific"]').forEach(el => {
                     el.addEventListener('click', function(){
                         const id = this.dataset.id;
@@ -674,7 +367,6 @@
                     });
                 });
 
-                // Клик по продукту
                 document.querySelectorAll('.product-item').forEach(el => {
                     el.addEventListener('click', function(){
                         const id = this.dataset.id;
@@ -687,7 +379,6 @@
                     });
                 });
 
-                // Переключение на другие вкладки
                 document.querySelectorAll('[data-action="products"]').forEach(el => {
                     el.addEventListener('click', ()=>document.querySelector('[data-tab="products"]').click());
                 });
@@ -698,7 +389,6 @@
                     el.addEventListener('click', ()=>document.querySelector('[data-tab="recipes"]').click());
                 });
 
-                // Сброс онбординга
                 document.querySelector('[data-action="reset-onboarding"]')?.addEventListener('click', function(){
                     STATE.onboardingCompleted = false;
                     saveState();
@@ -714,65 +404,10 @@
         }
 
         // ============================================================
-        // 5. ФУНКЦИИ ДЛЯ СТРАНИЦ
-        // ============================================================
-        function renderProductsHTML() {
-            let html = `<h2>Продукты</h2><div class="product-grid">`;
-            PRODUCTS.forEach(p => {
-                const introduced = isIntroduced(p.id);
-                html += `<div class="product-item ${introduced?'introduced':''}" data-id="${p.id}">
-                    <span class="emoji">${p.emoji}</span>
-                    <div class="name">${p.name}</div>
-                    <div class="cat">${p.cat}, ${p.min_age}+ мес.</div>
-                </div>`;
-            });
-            html += `</div>`;
-            return html;
-        }
-
-        function renderDiaryHTML() {
-            let html = `<h2>Дневник</h2>`;
-            if (STATE.diary.length === 0) {
-                html += `<div class="empty-state"><div class="empty-icon">📖</div><h3>Дневник пуст</h3><p>Добавьте продукты</p></div>`;
-            } else {
-                STATE.diary.slice().reverse().forEach(entry => {
-                    const product = PRODUCTS.find(p=>p.id===entry.product);
-                    const name = product ? product.name : entry.product;
-                    html += `<div class="diary-entry"><div class="info"><strong>${name}</strong><br><small>${entry.date}</small></div></div>`;
-                });
-            }
-            return html;
-        }
-
-        function renderRecipesHTML() {
-            let html = `<h2>Рецепты</h2>`;
-            RECIPES.forEach(r => {
-                html += `<div style="background:#fafafa;padding:12px;border-radius:8px;margin-bottom:8px;"><strong>${r.name}</strong> (с ${r.age} мес.)<br><small>${r.desc}</small></div>`;
-            });
-            return html;
-        }
-
-        function renderBabyHTML() {
-            const baby = STATE.baby;
-            return `
-                <h2>Малыш</h2>
-                <div class="baby-card" style="display:flex;align-items:center;background:#fafafa;padding:16px;border-radius:12px;margin:12px 0;">
-                    <div class="baby-avatar" style="font-size:48px;margin-right:16px;">👶</div>
-                    <div><strong>${baby.name||'Имя не указано'}</strong><br>${calcAge(baby.birthDate).months} мес.</div>
-                </div>
-                <div class="settings-row"><span>🍼</span><div><strong>Тип кормления</strong><br><small>${baby.feedingType}</small></div></div>
-                <div class="settings-row"><span>🥄</span><div><strong>Подход</strong><br><small>${baby.approach}</small></div></div>
-                <div class="settings-row"><span>📅</span><div><strong>Прикорм начат</strong><br><small>${baby.feedingStarted ? baby.feedingStartDate||'Да' : 'Нет'}</small></div></div>
-                <button class="danger-button" data-action="reset-onboarding">Сбросить онбординг</button>
-            `;
-        }
-
-        // ============================================================
-        // 6. ЗАПУСК
+        // ЗАПУСК
         // ============================================================
         renderApp();
 
-        // Дополнительный таймаут для скрытия загрузки
         setTimeout(() => {
             const ls = document.getElementById('loading-screen');
             if (ls && !ls.classList.contains('hidden')) {
