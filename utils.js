@@ -1077,6 +1077,20 @@ function migrateData() {
 
 
 /* ============================================================
+   ФОРМАТИРОВАНИЕ ВОЗРАСТА (ДОБАВЛЕНО)
+   ============================================================ */
+
+function formatAge(birthDate) {
+    if (!birthDate) return 'Возраст не указан';
+    const age = calcAge(birthDate);
+    const parts = [];
+    if (age.months > 0) parts.push(age.months + 'м');
+    if (age.days > 0) parts.push(age.days + 'д');
+    return parts.length ? parts.join(' ') : '0д';
+}
+
+
+/* ============================================================
    GLOBAL
    ============================================================ */
 
@@ -1145,3 +1159,6 @@ window.createId =
 
 window.migrateData =
     migrateData;
+
+// ДОБАВЛЕНО
+window.formatAge = formatAge;
