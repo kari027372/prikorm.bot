@@ -1,6 +1,6 @@
 /* ============================================================
    app.js
-   Главная точка запуска приложения
+   Главная точка запуска приложения (исправлен)
    ============================================================ */
 
 var DEFAULT_SCREEN = "home";
@@ -24,26 +24,29 @@ function initApp() {
         return;
     }
 
+    // 1. Загружаем состояние (обязательно до проверки онбординга)
     initializeState();
 
+    // 2. Инициализируем тему
     if (typeof initTheme === 'function') {
         initTheme();
     }
 
-    // ============================================================
-    // ПРОВЕРКА ОНБОРДИНГА
-    // ============================================================
-    if (typeof STATE !== 'undefined' && STATE.onboardingCompleted === false) {
+    // 3. ПРОВЕРКА ОНБОРДИНГА (исправлено)
+    if (STATE && STATE.onboardingCompleted === false) {
         console.log('🔄 Онбординг не завершён, запускаем...');
         if (typeof renderOnboarding === 'function') {
-            renderOnboarding(); // вызываем из onboarding.js
-            return;
+            renderOnboarding(); // вызываем из screens/onboarding.js
+            return; // ВАЖНО: выходим, чтобы не запускать основное приложение
         } else {
             console.warn('⚠️ Функция renderOnboarding не найдена, пропускаем');
+            // Если функция не найдена, устанавливаем флаг, чтобы не зациклиться
+            STATE.onboardingCompleted = true;
+            saveState();
         }
     }
 
-    // Если онбординг пройден или функция отсутствует – запускаем основное приложение
+    // 4. Если онбординг пройден (или отсутствует) – запускаем основное приложение
     if (typeof buildApp === 'function') {
         buildApp();
     } else {
@@ -51,13 +54,15 @@ function initApp() {
         app.innerHTML = '<div id="app-content"></div><div id="modal-root"></div><div id="toast-root"></div>';
     }
 
+    // 5. Подключаем обработчики
     if (typeof setupEventListeners === 'function') {
         setupEventListeners();
     } else {
         console.warn('⚠️ setupEventListeners не найдена');
     }
 
-    var screen = (typeof STATE !== 'undefined' && STATE.ui && STATE.ui.screen) ? STATE.ui.screen : DEFAULT_SCREEN;
+    // 6. Показываем начальный экран
+    var screen = (STATE && STATE.ui && STATE.ui.screen) ? STATE.ui.screen : DEFAULT_SCREEN;
     if (typeof showScreen === 'function') {
         showScreen(screen);
     } else if (typeof render === 'function') {
@@ -66,6 +71,7 @@ function initApp() {
         console.error('❌ render или showScreen не найдены!');
     }
 
+    // 7. Обновляем профиль (если есть функция)
     if (typeof updateProfileUI === 'function') {
         updateProfileUI();
     }
@@ -74,9 +80,11 @@ function initApp() {
 }
 
 function initializeState() {
+    // Загружаем состояние из localStorage через loadState (если функция есть)
     if (typeof loadState === 'function') {
         loadState();
     } else {
+        // Если loadState нет – создаём STATE вручную
         if (typeof STATE === 'undefined') {
             window.STATE = {
                 baby: {},
@@ -92,11 +100,33 @@ function initializeState() {
                     worries: [],
                     confidence: ''
                 },
-                onboardingCompleted: false
+                onboardingCompleted: false // по умолчанию онбординг не пройден
             };
         }
     }
+
+    // Гарантируем, что все нужные поля существуют
     normalizeState();
+
+    // Если STATE всё ещё не определён – создаём заново
+    if (!window.STATE) {
+        window.STATE = {
+            baby: {},
+            diary: [],
+            products: { introduced: [], favorites: [] },
+            settings: { notifications: true },
+            ui: { screen: DEFAULT_SCREEN },
+            onboarding: {
+                readiness: {},
+                allergies: [],
+                diet: [],
+                favoriteFoods: [],
+                worries: [],
+                confidence: ''
+            },
+            onboardingCompleted: false
+        };
+    }
 }
 
 function normalizeState() {
@@ -124,6 +154,7 @@ function normalizeState() {
     if (!Array.isArray(STATE.onboarding.favoriteFoods)) STATE.onboarding.favoriteFoods = [];
     if (!Array.isArray(STATE.onboarding.worries)) STATE.onboarding.worries = [];
     if (typeof STATE.onboarding.confidence !== 'string') STATE.onboarding.confidence = '';
+    // Важно: если onboardingCompleted не задан, устанавливаем false
     if (typeof STATE.onboardingCompleted !== 'boolean') STATE.onboardingCompleted = false;
     if (!Array.isArray(STATE.brands)) STATE.brands = [];
     if (!Array.isArray(STATE.notes)) STATE.notes = [];
@@ -278,6 +309,7 @@ function migrateLegacyProfile() {
     }
 }
 
+// Событие изменения темы
 window.addEventListener('prikorm:themechange', function(event) {
     console.log('🎨 Тема:', event.detail?.theme);
 });
@@ -290,12 +322,14 @@ function startApplication() {
     }
 }
 
+// Запуск приложения
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', startApplication, { once: true });
 } else {
     startApplication();
 }
 
+// Экспорты для внешнего использования
 window.initApp = initApp;
 window.startApplication = startApplication;
 window.showScreen = showScreen;
@@ -306,3 +340,12 @@ window.setBaby = setBaby;
 window.toggleFavoriteProduct = toggleFavoriteProduct;
 window.resetState = resetState;
 window.migrateLegacyProfile = migrateLegacyProfile;
+
+// Функция для принудительного сброса онбординга (удобно для тестирования)
+window.resetOnboarding = function() {
+    if (STATE) {
+        STATE.onboardingCompleted = false;
+        saveState();
+        location.reload();
+    }
+};
