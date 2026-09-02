@@ -4,28 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#F8F5F1">
-    <title>Прикорм 🌸 (диагностика)</title>
+    <title>Прикорм — диагностика</title>
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Segoe UI',Roboto,sans-serif;background:#f5f0eb;display:flex;justify-content:center;padding:16px}
+        body{font-family:'Segoe UI',Roboto,sans-serif;background:#f5f0eb;display:flex;justify-content:center;padding:16px;min-height:100vh}
         #app{max-width:480px;width:100%;background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-        .log-entry{padding:4px 0;border-bottom:1px solid #f0ebe7;font-size:14px}
+        h1{font-size:24px;margin-bottom:12px;color:#2d1f14}
+        .log-entry{padding:6px 0;border-bottom:1px solid #f0ebe7;font-size:14px;line-height:1.4}
         .ok{color:#2e7d32}
         .error{color:#c62828;font-weight:bold}
         .warn{color:#f57c00}
         .info{color:#1976d2}
-        .spinner{display:inline-block;width:20px;height:20px;border:3px solid #ddd;border-top-color:#d4a373;border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:10px}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        #status{margin-top:16px;padding:12px;border-radius:8px;background:#f5f5f5;font-weight:bold}
+        #status{margin:16px 0;padding:12px;border-radius:8px;font-weight:bold;background:#f5f5f5}
         .success{background:#e8f5e9;color:#2e7d32}
         .fail{background:#ffebee;color:#c62828}
+        .spinner{display:inline-block;width:20px;height:20px;border:3px solid #ddd;border-top-color:#d4a373;border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:10px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        button{margin-top:12px;padding:10px 20px;background:#d4a373;border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;width:100%}
     </style>
 </head>
 <body>
     <div id="app">
-        <h2>🔍 Диагностика приложения</h2>
+        <h1>🔍 Диагностика приложения</h1>
         <div id="log"></div>
-        <div id="status">Загрузка...</div>
+        <div id="status">⏳ Загрузка...</div>
+        <button id="reloadBtn">🔄 Перезагрузить (сброс кэша)</button>
     </div>
 
     <script>
@@ -134,7 +137,8 @@
             } else {
                 setStatus('❌ Проблема: продукты не загружены', true);
                 log('⚠️ Проверьте, что файл data/products.js существует и содержит window.PRODUCTS = PRODUCTS;', 'warn');
-                log('💡 Попробуйте переименовать data_products.js в data/products.js', 'info');
+                log('💡 Возможно, файл называется data_products.js — переименуйте в data/products.js', 'info');
+                log('💡 Или в index.html указан неправильный путь', 'info');
             }
         }
 
@@ -148,10 +152,23 @@
         // ============================================================
         setTimeout(function() {
             if (loaded < total) {
-                log('⏳ Загрузка затянулась... Проверьте подключение', 'warn');
-                setStatus('⏳ Медленное соединение...', false);
+                log('⏳ Загрузка затянулась... Проверьте подключение или пути к файлам', 'warn');
+                setStatus('⏳ Медленное соединение или ошибка пути', false);
             }
         }, 5000);
+
+        // ============================================================
+        // 6. Кнопка перезагрузки с очисткой кэша
+        // ============================================================
+        document.getElementById('reloadBtn').addEventListener('click', function() {
+            // Очищаем localStorage и sessionStorage
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+            } catch(e) {}
+            // Перезагружаем с параметром, чтобы обойти кэш
+            location.href = location.pathname + '?v=' + Date.now();
+        });
     </script>
 </body>
 </html>
