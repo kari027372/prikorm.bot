@@ -4,1285 +4,190 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#F8F5F1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Прикорм 🌸</title>
+    <title>Прикорм 🌸 (отладка)</title>
     <style>
-        /* ============================================================
-           style.css v2.1.1 — единые стили (оригинал + дополнения)
-           ============================================================ */
-        /* ----- БАЗОВЫЕ ПЕРЕМЕННЫЕ ----- */
-        :root {
-            --bg-body: #f5f0eb;
-            --bg-app: #ffffff;
-            --bg-card: #fafafa;
-            --bg-hover: #f0ebe7;
-            --bg-input: #fafafa;
-            --bg-primary: #d4a373;
-            --bg-primary-hover: #c4956a;
-            --bg-success: #e8f5e9;
-            --bg-warning: #f5faf5;
-            --bg-danger: #e74c3c;
-            --bg-info: #e3f2fd;
-            --text-primary: #2d1f14;
-            --text-secondary: #555555;
-            --text-muted: #888888;
-            --text-light: #999999;
-            --text-on-primary: #ffffff;
-            --border-color: #f0ebe7;
-            --border-input: #e8e0d8;
-            --border-success: #a5d6a7;
-            --shadow: 0 2px 8px rgba(0,0,0,0.04);
-            --shadow-strong: 0 4px 12px rgba(0,0,0,0.06);
-            --shadow-up: 0 -2px 10px rgba(0,0,0,0.04);
-            --radius: 16px;
-            --radius-sm: 8px;
-            --radius-lg: 24px;
-            --font-family: 'Segoe UI', Roboto, sans-serif;
+        /* базовые стили для отладочной страницы */
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: #f5f0eb;
+            padding: 16px;
+            margin: 0;
         }
-        /* ----- ТЁМНАЯ ТЕМА ----- */
-        body.theme-dark {
-            --bg-body: #1a1a1a;
-            --bg-app: #2a2a2a;
-            --bg-card: #333333;
-            --bg-hover: #3a3a3a;
-            --bg-input: #3a3a3a;
-            --bg-primary: #b8946a;
-            --bg-primary-hover: #a8845a;
-            --bg-success: #1e3a2a;
-            --bg-warning: #2a3a2a;
-            --text-primary: #e8e0d8;
-            --text-secondary: #bbbbbb;
-            --text-muted: #999999;
-            --text-light: #777777;
-            --text-on-primary: #ffffff;
-            --border-color: #444444;
-            --border-input: #555555;
-            --shadow: 0 2px 8px rgba(0,0,0,0.2);
-            --shadow-strong: 0 4px 12px rgba(0,0,0,0.3);
-            --shadow-up: 0 -2px 10px rgba(0,0,0,0.2);
+        #debug {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        /* ----- ДЕТСКАЯ ТЕМА ----- */
-        body.theme-kids {
-            --bg-body: #fff7f0;
-            --bg-app: #ffffff;
-            --bg-card: #fef9f5;
-            --bg-hover: #f5ede5;
-            --bg-input: #fef9f5;
-            --bg-primary: #f0c8a0;
-            --bg-primary-hover: #e0b890;
-            --bg-success: #f0f7ea;
-            --bg-warning: #fdf6ed;
-            --text-primary: #3d2a1a;
-            --text-secondary: #6a5a4a;
-            --text-muted: #9a8a7a;
-            --text-light: #b0a090;
-            --text-on-primary: #ffffff;
-            --border-color: #f0e8e0;
-            --border-input: #e8ddd0;
-            --shadow: 0 2px 8px rgba(0,0,0,0.04);
-            --shadow-strong: 0 4px 12px rgba(0,0,0,0.06);
-            --shadow-up: 0 -2px 10px rgba(0,0,0,0.04);
+        .log-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid #f0ebe7;
+            font-size: 14px;
         }
-        /* ----- ОБЩИЕ СТИЛИ ----- */
+        .log-entry.ok { color: #2e7d32; }
+        .log-entry.error { color: #c62828; font-weight: bold; }
+        .log-entry.warn { color: #f57c00; }
+        .log-entry.info { color: #1976d2; }
+        .log-entry .time {
+            color: #999;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        #app {
+            margin-top: 20px;
+            background: var(--bg-app, #fff);
+            padding: 16px;
+            border-radius: 12px;
+            min-height: 100px;
+        }
+        /* сброс для основного интерфейса (если он появится) */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-tap-highlight-color: transparent;
         }
-        body {
-            font-family: var(--font-family);
-            background: var(--bg-body);
-            color: var(--text-primary);
-            display: flex;
-            justify-content: center;
-            padding: 0;
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-            -webkit-font-smoothing: antialiased;
-        }
-        #app {
-            max-width: 480px;
-            width: 100%;
-            background: var(--bg-app);
-            min-height: 100vh;
-            padding: 16px 16px 80px;
-            position: relative;
-            transition: background 0.3s;
-        }
-        /* ----- ЭКРАН ЗАГРУЗКИ ----- */
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg-body);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.6s;
-        }
-        #loading-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        /* простая загрузка */
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid var(--border-color);
-            border-top-color: var(--bg-primary);
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ddd;
+            border-top-color: #d4a373;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
+            margin: 20px auto;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .loading-text {
-            margin-top: 20px;
-            font-size: 18px;
-            color: var(--text-muted);
-        }
-        .loading-version {
-            margin-top: 8px;
-            font-size: 14px;
-            color: var(--text-light);
-        }
-        .progress-track {
-            width: 80%;
-            max-width: 300px;
-            margin-top: 16px;
-            background: var(--border-color);
-            border-radius: 10px;
-            overflow: hidden;
-            height: 8px;
-        }
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: var(--bg-primary);
-            transition: width 0.3s;
-        }
-        .progress-text {
-            margin-top: 8px;
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        .progress-file {
-            margin-top: 4px;
-            font-size: 12px;
-            color: var(--text-light);
-        }
-        /* ----- ОНБОРДИНГ ----- */
-        .onboarding {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-height: 80vh;
-            padding: 0 16px;
-            text-align: center;
-            animation: fadeIn 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .onboarding .step-indicators {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin: 20px 0 30px;
-        }
-        .onboarding .step-indicators span {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--bg-hover);
-            transition: 0.3s;
-        }
-        .onboarding .step-indicators span.active {
-            background: var(--bg-primary);
-            width: 24px;
-            border-radius: 12px;
-        }
-        .onboarding .emoji-big {
-            font-size: 72px;
-            margin-bottom: 16px;
-        }
-        .onboarding h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        .onboarding p {
-            font-size: 16px;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-        .onboarding .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .onboarding .btn-group button {
-            padding: 16px;
-            border: none;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: 600;
-            background: var(--bg-hover);
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-primary);
-        }
-        .onboarding .btn-group button:active {
-            transform: scale(0.96);
-        }
-        .onboarding .btn-group button.primary {
-            background: var(--bg-primary);
-            color: var(--text-on-primary);
-        }
-        .onboarding .btn-group button.primary:hover {
-            background: var(--bg-primary-hover);
-        }
-        .onboarding .btn-group button.secondary {
-            background: transparent;
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-        .onboarding input[type="date"],
-        .onboarding input[type="text"] {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid var(--border-input);
-            border-radius: 16px;
-            font-size: 18px;
-            text-align: center;
-            margin: 12px 0;
-            background: var(--bg-input);
-            color: var(--text-primary);
-            transition: border 0.2s;
-        }
-        .onboarding input:focus {
-            outline: none;
-            border-color: var(--bg-primary);
-        }
-        .onboarding .skip {
-            color: var(--text-light);
-            font-size: 14px;
-            margin-top: 16px;
-            background: none;
-            border: none;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-        .onboarding .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 24px;
-            gap: 12px;
-        }
-        .onboarding .nav-buttons button {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .onboarding .nav-buttons button:active {
-            transform: scale(0.96);
-        }
-        .onboarding .nav-buttons button.prev {
-            background: var(--bg-hover);
-            color: var(--text-secondary);
-        }
-        .onboarding .nav-buttons button.next {
-            background: var(--bg-primary);
-            color: var(--text-on-primary);
-        }
-        .onboarding .btn-group label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 400;
-            font-size: 16px;
-            background: var(--bg-card);
-            padding: 12px;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            transition: background 0.2s, border-color 0.2s;
-            cursor: pointer;
-            color: var(--text-primary);
-        }
-        .onboarding .btn-group label:has(input:checked) {
-            background: var(--bg-success) !important;
-            border-color: #4caf50 !important;
-        }
-        .onboarding .btn-group label input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-        /* ----- ДАШБОРД ----- */
-        .dashboard {
-            display: block;
-        }
-        .welcome-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-        .welcome-card .info h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0;
-        }
-        .welcome-card .info p {
-            font-size: 16px;
-            color: var(--text-muted);
-            margin: 4px 0 0;
-        }
-        .welcome-card .avatar {
-            font-size: 56px;
-        }
-        .status-card {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-        }
-        .status-card .row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .status-card .label {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        .status-card .value {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .progress-card {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-        }
-        .progress-card .header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        .progress-card .header span {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .progress-card .track {
-            background: var(--bg-hover);
-            height: 8px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .progress-card .track .fill {
-            background: var(--bg-primary);
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.4s;
-        }
-        .quick-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 16px 0;
-        }
-        .quick-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            color: var(--text-primary);
-        }
-        .quick-card:active {
-            transform: scale(0.96);
-        }
-        .quick-card .icon {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 6px;
-        }
-        .quick-card .label {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .quick-card .desc {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .recommendation-card {
-            background: var(--bg-warning);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin: 16px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid var(--border-color);
-        }
-        .recommendation-card .icon {
-            font-size: 40px;
-        }
-        .recommendation-card .content {
-            flex: 1;
-        }
-        .recommendation-card .content .tag {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-        }
-        .recommendation-card .content h3 {
-            font-size: 18px;
-            margin: 4px 0;
-            color: var(--text-primary);
-        }
-        .recommendation-card .content p {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-        .recommendation-card .action {
-            background: var(--bg-primary);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 30px;
-            color: var(--text-on-primary);
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        .recommendation-card .action:hover {
-            background: var(--bg-primary-hover);
-        }
-        .tab-bar {
-            display: flex;
-            gap: 10px;
-            background: var(--bg-card);
-            padding: 10px;
-            border-radius: var(--radius);
-            margin-bottom: 16px;
-            box-shadow: var(--shadow);
-        }
-        .tab-bar button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 10px;
-            background: var(--bg-hover);
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-            color: var(--text-secondary);
-        }
-        .tab-bar button.active {
-            background: var(--bg-primary);
-            color: var(--text-on-primary);
-        }
-        .tab-bar button:active {
-            transform: scale(0.96);
-        }
-        .page {
-            display: none;
-            padding-top: 12px;
-        }
-        .page.active {
-            display: block;
-        }
-        .product-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        .product-item {
-            background: var(--bg-card);
-            padding: 12px;
-            border-radius: var(--radius-sm);
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid transparent;
-            color: var(--text-primary);
-        }
-        .product-item:active {
-            transform: scale(0.96);
-        }
-        .product-item .emoji {
-            font-size: 30px;
-            display: block;
-        }
-        .product-item .name {
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 4px;
-        }
-        .product-item .cat {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .product-item.introduced {
-            background: var(--bg-success);
-            border-color: var(--border-success);
-        }
-        .diary-entry {
-            display: flex;
-            align-items: center;
-            background: var(--bg-card);
-            padding: 12px;
-            border-radius: var(--radius-sm);
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-        .diary-entry .info {
-            flex: 1;
-        }
-        .settings-row {
-            display: flex;
-            align-items: center;
-            background: var(--bg-card);
-            padding: 12px;
-            border-radius: var(--radius-sm);
-            margin-bottom: 6px;
-            border: none;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-            color: var(--text-primary);
-        }
-        .settings-row span:first-child {
-            font-size: 20px;
-            margin-right: 12px;
-        }
-        .settings-row div {
-            flex: 1;
-        }
-        .settings-row strong {
-            display: block;
-        }
-        .settings-row small {
-            color: var(--text-muted);
-        }
-        .danger-button {
-            background: var(--bg-danger);
-            color: #fff;
-            border: none;
-            border-radius: var(--radius-sm);
-            padding: 14px;
-            width: 100%;
-            font-weight: 700;
-            cursor: pointer;
-            margin: 16px 0;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-        .empty-state .empty-icon {
-            font-size: 64px;
-        }
-        .empty-state h3 {
-            font-size: 18px;
-            color: var(--text-secondary);
-        }
-        .empty-state p {
-            font-size: 14px;
-        }
-        /* ----- НИЖНЯЯ НАВИГАЦИЯ ----- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-width: 480px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-around;
-            background: var(--bg-app);
-            padding: 8px 0 12px;
-            border-top: 1px solid var(--border-color);
-            box-shadow: var(--shadow-up);
-            z-index: 100;
-        }
-        .bottom-nav button {
-            background: none;
-            border: none;
-            font-size: 12px;
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-        }
-        .bottom-nav button.active {
-            color: var(--bg-primary);
-            font-weight: 700;
-        }
-        .bottom-nav button .nav-icon {
-            font-size: 24px;
-        }
-        /* ----- МОДАЛКА ----- */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-sheet {
-            background: var(--bg-app);
-            max-width: 400px;
-            width: 90%;
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            box-shadow: var(--shadow-strong);
-            color: var(--text-primary);
-        }
-        .primary-button {
-            background: var(--bg-primary);
-            color: var(--text-on-primary);
-            border: none;
-            border-radius: var(--radius);
-            padding: 14px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .primary-button:hover {
-            background: var(--bg-primary-hover);
-        }
-        .secondary-button {
-            background: var(--bg-hover);
-            color: var(--text-secondary);
-            border: none;
-            border-radius: var(--radius);
-            padding: 14px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .secondary-button:hover {
-            background: var(--border-color);
-        }
-        /* ----- НОВЫЕ КЛАССЫ (для rendering.js) ----- */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-top: 8px;
-        }
-        .page-header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        .page-header .icon-button {
-            background: none;
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
-        .page-header .icon-button:active {
-            background: var(--bg-hover);
-        }
-        .icon-button {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 10px;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 36px;
-            min-height: 36px;
-        }
-        .icon-button:active {
-            background: var(--bg-hover);
-            transform: scale(0.95);
-        }
-        .baby-profile-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-        }
-        .baby-profile-card .baby-avatar {
-            font-size: 48px;
-            line-height: 1;
-        }
-        .baby-profile-card strong {
-            font-size: 18px;
-            color: var(--text-primary);
-        }
-        .baby-profile-card .muted {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        .quick-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 16px 0;
-        }
-        .quick-action {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-        }
-        .quick-action:active {
-            transform: scale(0.96);
-            background: var(--bg-hover);
-        }
-        .quick-action span {
-            font-size: 32px;
-            display: block;
-        }
-        .quick-action strong {
-            font-size: 14px;
-            color: var(--text-primary);
-            display: block;
-        }
-        .quick-action small {
-            font-size: 12px;
-            color: var(--text-muted);
-            display: block;
-        }
-        .product-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-        .product-card:active {
-            transform: scale(0.96);
-        }
-        .product-card .product-emoji {
-            font-size: 36px;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .product-card h3 {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        .product-card .product-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
-        }
-        .product-card .product-tags span {
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: var(--bg-hover);
-            color: var(--text-muted);
-        }
-        .product-card .introduced-label {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            background: var(--bg-success);
-            color: #2e7d32;
-            font-weight: 600;
-        }
-        .product-card.introduced {
-            border-color: var(--border-success);
-            background: var(--bg-success);
-        }
-        .diary-entry-icon {
-            font-size: 28px;
-            flex-shrink: 0;
-        }
-        .diary-entry-content {
-            flex: 1;
-            min-width: 0;
-        }
-        .diary-entry-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-        .diary-entry-header strong {
-            font-size: 15px;
-            color: var(--text-primary);
-        }
-        .diary-entry-header span {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        .diary-entry-meta {
-            font-size: 13px;
-            color: var(--text-muted);
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .meal-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 14px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-        .meal-item:active {
-            transform: scale(0.98);
-        }
-        .meal-item strong {
-            font-size: 15px;
-            color: var(--text-primary);
-            display: block;
-        }
-        .meal-item span {
-            font-size: 13px;
-            color: var(--text-muted);
-            display: block;
-            margin-top: 2px;
-        }
-        .meal-item .icon-button {
-            color: var(--text-muted);
-            font-size: 18px;
-        }
-        .category-chip {
-            white-space: nowrap;
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            font-size: 14px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .category-chip.active {
-            background: var(--bg-primary);
-            color: var(--text-on-primary);
-            border-color: var(--bg-primary);
-        }
-        .category-chip:active {
-            transform: scale(0.95);
-        }
-        .search-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .search-box input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 16px;
-            color: var(--text-primary);
-            outline: none;
-        }
-        .search-box input::placeholder {
-            color: var(--text-muted);
-        }
-        .date-navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-card);
-            padding: 12px 16px;
-            border-radius: var(--radius);
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-        }
-        .date-navigation button {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: var(--text-primary);
-            cursor: pointer;
-            padding: 4px 12px;
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
-        .date-navigation button:active {
-            background: var(--bg-hover);
-        }
-        .date-navigation span {
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--text-primary);
-        }
-        .daily-plan {
-            margin-top: 12px;
-        }
-        .recipe-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .recipe-card:active {
-            transform: scale(0.98);
-        }
-        .recipe-card h3 {
-            font-size: 17px;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-        }
-        .recipe-card p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        .recipe-card .meta {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        .settings-list {
-            margin-top: 8px;
-        }
-        .bottom-navigation {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-width: 480px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-around;
-            background: var(--bg-app);
-            padding: 8px 0 12px;
-            border-top: 1px solid var(--border-color);
-            box-shadow: var(--shadow-up);
-            z-index: 100;
-        }
-        .bottom-navigation .nav-item {
-            background: none;
-            border: none;
-            font-size: 11px;
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            padding: 4px 12px;
-            transition: color 0.2s;
-            flex: 1;
-        }
-        .bottom-navigation .nav-item span:first-child {
-            font-size: 22px;
-            display: block;
-        }
-        .bottom-navigation .nav-item.active {
-            color: var(--bg-primary);
-            font-weight: 700;
-        }
-        .bottom-navigation .nav-item:active {
-            transform: scale(0.95);
-        }
-        .section-heading {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .muted {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-        .full-width {
-            width: 100%;
-        }
-        .error-screen {
-            text-align: center;
-            padding: 60px 20px;
-        }
-        .error-screen .error-icon {
-            font-size: 72px;
-            margin-bottom: 16px;
-        }
-        .error-screen h2 {
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-        .error-screen p {
-            color: var(--text-muted);
-            margin-bottom: 24px;
-        }
-        .offline-indicator {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            max-width: 480px;
-            margin: 0 auto;
-            background: var(--bg-danger);
-            color: #fff;
-            text-align: center;
-            padding: 8px;
-            font-size: 13px;
-            z-index: 9998;
-            transform: translateY(-100%);
-            transition: transform 0.3s;
-        }
-        .offline-indicator.visible {
-            transform: translateY(0);
-        }
-        #toast-root {
-            position: fixed;
-            top: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            pointer-events: none;
-            width: 90%;
-            max-width: 400px;
-        }
-        .toast {
-            background: var(--text-primary);
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            text-align: center;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: all 0.3s;
-            box-shadow: var(--shadow-strong);
-        }
-        .toast.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .toast-success {
-            background: #2e7d32;
-        }
-        .toast-error {
-            background: var(--bg-danger);
-        }
-        .toast-warning {
-            background: #f57c00;
-        }
-        .toast-info {
-            background: #1976d2;
-        }
-        /* ----- АЛИАСЫ (для совместимости) ----- */
-        .bottom-navigation .nav-item {
-            color: var(--text-muted);
-        }
-        .bottom-navigation .nav-item.active {
-            color: var(--bg-primary);
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <!-- ЭКРАН ЗАГРУЗКИ -->
-    <div id="loading-screen">
-        <div class="spinner"></div>
-        <div class="loading-text">🌸 Загрузка приложения...</div>
-        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-        <div class="progress-text" id="progress-text">0%</div>
-        <div class="progress-file" id="progress-file">Загрузка файлов...</div>
-        <div class="loading-version">v2.1.0</div>
+    <div id="debug">
+        <h2>🔍 Отладка приложения</h2>
+        <div id="log-container"></div>
+        <div id="app"></div>
     </div>
 
-    <div id="app"></div>
-
-    <!-- ПОДКЛЮЧЕНИЕ СКРИПТОВ -->
-    <script src="config.js"></script>
-    <script src="products.js"></script>
-    <script src="recipes.js"></script>
-    <script src="diary.js"></script>
-    <script src="safety.js"></script>
-    <script src="recommendations.js"></script>
-    <script src="utils.js"></script>
-    <script src="state.js"></script>
-    <script src="onboarding.js"></script>
-    <script src="ui.js"></script>
-    <script src="rendering.js"></script>
-    <script src="handlers.js"></script>
-    <script src="theme.js"></script>
-    <script src="app.js"></script>
-
     <script>
-        // ЗАГРУЗЧИК С ПРОГРЕССОМ
-        (function() {
-            var FILES = [
-                'config.js',
-                'products.js',
-                'recipes.js',
-                'diary.js',
-                'safety.js',
-                'recommendations.js',
-                'utils.js',
-                'state.js',
-                'onboarding.js',
-                'ui.js',
-                'rendering.js',
-                'handlers.js',
-                'theme.js',
-                'app.js'
-            ];
-            var loaded = 0;
-            var total = FILES.length;
-            var fill = document.getElementById('progress-fill');
-            var text = document.getElementById('progress-text');
-            var fileInfo = document.getElementById('progress-file');
+        // ---- Отладочный логгер ----
+        const logContainer = document.getElementById('log-container');
+        function log(msg, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="time">${time}</span> ${msg}`;
+            logContainer.appendChild(entry);
+            console.log(msg);
+        }
 
-            function loadScript(src, callback) {
-                var script = document.createElement('script');
-                script.src = src;
-                script.onload = function() { callback(true); };
-                script.onerror = function() { callback(false); };
-                document.head.appendChild(script);
-            }
+        // перехват ошибок
+        window.onerror = function(message, source, line, col, error) {
+            log(`❌ ОШИБКА: ${message} (${source}:${line})`, 'error');
+            return true;
+        };
 
-            function loadNext(index) {
-                if (index >= total) {
-                    var failed = FILES.filter(function(f) { return f.loaded === false; });
-                    if (failed.length > 0) {
-                        fileInfo.textContent = '⚠️ Не удалось загрузить ' + failed.length + ' файлов';
-                        setTimeout(function() { location.reload(); }, 3000);
-                    } else {
-                        fileInfo.textContent = '✅ Все файлы загружены';
-                        setTimeout(function() {
-                            var ls = document.getElementById('loading-screen');
-                            ls.classList.add('hidden');
-                            setTimeout(function() { ls.style.display = 'none'; }, 600);
-                            // ЗАПУСК
-                            startApp();
-                        }, 400);
-                    }
-                    return;
+        log('🚀 Начало загрузки', 'info');
+
+        // ---- Список скриптов ----
+        const FILES = [
+            'config.js',
+            'products.js',
+            'recipes.js',
+            'diary.js',
+            'safety.js',
+            'recommendations.js',
+            'utils.js',
+            'state.js',
+            'onboarding.js',
+            'ui.js',
+            'rendering.js',
+            'handlers.js',
+            'theme.js',
+            'app.js'
+        ];
+
+        let loaded = 0;
+        const total = FILES.length;
+
+        function loadScript(src, callback) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = function() {
+                log(`✅ ${src} загружен`, 'ok');
+                callback(true);
+            };
+            script.onerror = function() {
+                log(`❌ ${src} НЕ ЗАГРУЗИЛСЯ (404)`, 'error');
+                callback(false);
+            };
+            document.head.appendChild(script);
+        }
+
+        function loadNext(index) {
+            if (index >= total) {
+                const failed = FILES.filter((f, i) => !f.loaded).length;
+                if (failed > 0) {
+                    log(`⚠️ Не удалось загрузить ${failed} файлов`, 'error');
+                } else {
+                    log('✅ Все файлы загружены', 'ok');
+                    // через секунду запускаем приложение
+                    setTimeout(startApp, 300);
                 }
-                var file = FILES[index];
-                fileInfo.textContent = 'Загрузка: ' + file;
-                loadScript(file, function(success) {
-                    file.loaded = success;
-                    loaded++;
-                    var percent = Math.round((loaded / total) * 100);
-                    fill.style.width = percent + '%';
-                    text.textContent = percent + '%';
-                    loadNext(index + 1);
-                });
+                return;
             }
+            const file = FILES[index];
+            loadScript(file, function(success) {
+                file.loaded = success;
+                loaded++;
+                loadNext(index + 1);
+            });
+        }
 
-            loadNext(0);
-
-            setTimeout(function() {
-                var ls = document.getElementById('loading-screen');
-                if (ls && !ls.classList.contains('hidden')) {
-                    fileInfo.textContent = '⏳ Медленное соединение...';
-                }
-            }, 5000);
-        })();
-
-        // ФУНКЦИЯ ЗАПУСКА
+        // ---- Функция запуска приложения ----
         function startApp() {
-            console.log('🚀 Запуск приложения...');
-            // Инициализация темы (если есть)
-            if (typeof initTheme === 'function') {
-                initTheme();
-            }
-            // Вызов рендеринга
-            if (typeof render === 'function') {
-                render('home');
-            } else if (typeof renderApp === 'function') {
-                renderApp();
-            } else if (typeof initApp === 'function') {
-                initApp();
-            } else {
-                console.error('❌ Не найдена render, renderApp или initApp');
-                document.getElementById('app').innerHTML = '<div style="padding:20px;color:red;text-align:center;"><h3>Ошибка загрузки</h3><p>Не найдены функции приложения.</p></div>';
+            log('🚀 Запуск приложения...', 'info');
+            try {
+                // проверяем наличие render
+                if (typeof render === 'function') {
+                    log('✅ render найден, вызываем render("home")', 'ok');
+                    render('home');
+                } else if (typeof renderApp === 'function') {
+                    log('✅ renderApp найден', 'ok');
+                    renderApp();
+                } else if (typeof initApp === 'function') {
+                    log('✅ initApp найден', 'ok');
+                    initApp();
+                } else {
+                    log('❌ Нет ни render, ни renderApp, ни initApp!', 'error');
+                    document.getElementById('app').innerHTML = `
+                        <div style="padding:20px;color:red;background:#ffe0e0;border-radius:12px;">
+                            <h3>Ошибка</h3>
+                            <p>Не найдены функции рендеринга.</p>
+                            <p>Проверьте, что файлы <b>rendering.js</b> и <b>app.js</b> загружены.</p>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                log(`❌ Исключение при запуске: ${e.message}`, 'error');
+                document.getElementById('app').innerHTML = `
+                    <div style="padding:20px;color:red;background:#ffe0e0;border-radius:12px;">
+                        <h3>Ошибка при запуске</h3>
+                        <p>${e.message}</p>
+                        <pre style="font-size:12px;white-space:pre-wrap;">${e.stack}</pre>
+                    </div>
+                `;
             }
         }
+
+        // ---- Запускаем загрузку ----
+        loadNext(0);
+
+        // таймаут на случай зависания
+        setTimeout(function() {
+            if (loaded < total) {
+                log('⏳ Загрузка затянулась... Проверьте подключение', 'warn');
+            }
+        }, 5000);
     </script>
 </body>
 </html>
