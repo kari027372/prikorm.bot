@@ -1,9 +1,11 @@
 /* ============================================================
-   rendering.js — диспетчер рендеринга (чистый)
+   rendering.js — диспетчер рендеринга (чистый) с логами
    ============================================================ */
 
 (function() {
     'use strict';
+
+    console.log('✅ rendering.js: начало выполнения');
 
     const DEFAULT_SCREEN = 'home';
     const VALID_SCREENS = ['home', 'products', 'today', 'diary', 'recipes', 'baby', 'settings', 'onboarding'];
@@ -107,9 +109,9 @@
     // ============================================================
 
     function render(screen) {
+        console.log('🔄 render() вызван с экраном:', screen);
         screen = screen || getUIState().screen || DEFAULT_SCREEN;
 
-        // Проверяем, что экран существует
         if (!VALID_SCREENS.includes(screen)) {
             console.warn('⚠️ Неизвестный экран:', screen);
             screen = DEFAULT_SCREEN;
@@ -121,7 +123,6 @@
             return;
         }
 
-        // Получаем функцию рендеринга из глобального объекта window
         const renderFnName = 'render' + screen.charAt(0).toUpperCase() + screen.slice(1);
         const renderFn = window[renderFnName];
 
@@ -138,17 +139,15 @@
             html = renderErrorScreen('Не удалось загрузить экран');
         }
 
-        // Добавляем нижнюю навигацию
         const navHtml = renderBottomNavigation(screen);
         app.innerHTML = html + navHtml;
 
-        // Обновляем состояние UI
         const ui = getUIState();
         ui.previousScreen = ui.screen;
         ui.screen = screen;
 
-        // Прокручиваем вверх
         window.scrollTo({ top: 0, behavior: 'instant' });
+        console.log('✅ render() завершён для экрана:', screen);
     }
 
     // ============================================================
@@ -174,6 +173,8 @@
     // ЭКСПОРТЫ
     // ============================================================
 
+    console.log('✅ rendering.js: присваиваю window.render и другие утилиты');
+
     window.render = render;
     window.getState = getState;
     window.getBaby = getBaby;
@@ -191,5 +192,8 @@
     window.formatAge = formatAge;
     window.renderBottomNavigation = renderBottomNavigation;
     window.renderErrorScreen = renderErrorScreen;
+
+    console.log('✅ render определена?', typeof window.render);
+    console.log('✅ rendering.js: завершён успешно');
 
 })();
