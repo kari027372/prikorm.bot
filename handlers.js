@@ -167,17 +167,14 @@ function handleDocumentClick(event) {
                     console.log('🗑️ Удаление: до deleteChild, children:', STATE.children.length);
                     window.deleteChild(childId);
                     console.log('🗑️ Удаление: после deleteChild, children:', STATE.children.length);
-                    if (typeof saveState === 'function') saveState();
-                    console.log('🗑️ Вызываю render("baby") через requestAnimationFrame');
-                    // Используем requestAnimationFrame для обновления DOM после текущего цикла событий
-                    requestAnimationFrame(function() {
-                        if (typeof render === 'function') {
-                            render('baby');
-                            console.log('🗑️ render("baby") вызван через requestAnimationFrame');
-                        } else {
-                            console.error('❌ render не определён');
-                        }
-                    });
+                    if (typeof saveState === 'function') {
+                        saveState();
+                        console.log('🗑️ saveState выполнен');
+                    }
+                    if (typeof render === 'function') {
+                        render('baby');
+                        console.log('🗑️ render("baby") вызван сразу');
+                    }
                 }
             }
             break;
@@ -538,8 +535,27 @@ function openSetting(setting) {
             }
             break;
         case "run-onboarding":
-            STATE._onboardingMode = 'add-child';
-            if (typeof saveState === 'function') saveState();
+            var newChild = window.addChild({
+                name: '',
+                birthDate: '',
+                sex: '',
+                feedingType: '',
+                feedingStarted: false,
+                approach: 'mixed',
+                readiness: {},
+                onboarding: {
+                    allergies: [],
+                    diet: [],
+                    favoriteFoods: [],
+                    worries: [],
+                    confidence: ''
+                }
+            });
+            if (newChild && newChild.id) {
+                STATE._onboardingChildId = newChild.id;
+                STATE.currentChildId = newChild.id;
+                if (typeof saveState === 'function') saveState();
+            }
             if (typeof render === 'function') render('onboarding');
             break;
     }
@@ -614,7 +630,14 @@ function showAddChildModal() {
                 feedingType: '',
                 feedingStarted: false,
                 approach: 'mixed',
-                readiness: {}
+                readiness: {},
+                onboarding: {
+                    allergies: [],
+                    diet: [],
+                    favoriteFoods: [],
+                    worries: [],
+                    confidence: ''
+                }
             });
             if (newChild && newChild.id) {
                 STATE.currentChildId = newChild.id;
@@ -638,19 +661,29 @@ function showAddChildModal() {
             return;
         }
         if (typeof window.addChild === 'function') {
-            window.addChild({
+            var newChild = window.addChild({
                 name: name,
                 birthDate: birthDate,
                 sex: sex,
                 feedingType: '',
                 feedingStarted: false,
                 approach: 'mixed',
-                readiness: {}
+                readiness: {},
+                onboarding: {
+                    allergies: [],
+                    diet: [],
+                    favoriteFoods: [],
+                    worries: [],
+                    confidence: ''
+                }
             });
             overlay.remove();
             document.body.classList.remove('modal-open');
-            STATE._onboardingMode = 'add-child';
-            if (typeof saveState === 'function') saveState();
+            if (newChild && newChild.id) {
+                STATE._onboardingChildId = newChild.id;
+                STATE.currentChildId = newChild.id;
+                if (typeof saveState === 'function') saveState();
+            }
             if (typeof render === 'function') render('onboarding');
         } else {
             alert('Ошибка: функция addChild не найдена');
