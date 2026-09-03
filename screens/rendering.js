@@ -1,5 +1,5 @@
 /* ============================================================
-   rendering.js — диспетчер рендеринга (с принудительным reflow)
+   rendering.js — диспетчер рендеринга (исправлен)
    ============================================================ */
 
 (function() {
@@ -115,12 +115,12 @@
             html = renderErrorScreen('Не удалось загрузить экран');
         }
 
-        const navHtml = renderBottomNavigation(screen);
-        console.log('📝 navHtml длина:', navHtml.length);
+        let navHtml = '';
+        if (screen !== 'onboarding') {
+            navHtml = renderBottomNavigation(screen);
+        }
 
-        // ПРИНУДИТЕЛЬНАЯ ЗАМЕНА innerHTML с reflow
         app.innerHTML = html + navHtml;
-        // Принудительный reflow – заставляет браузер пересчитать стили
         app.offsetHeight;
         console.log('✅ app.innerHTML обновлён, reflow выполнен');
 
@@ -146,8 +146,6 @@
     function renderErrorScreen(message) {
         return `<div class="screen"><div class="error-screen"><div class="error-icon">😔</div><h2>Что-то пошло не так</h2><p>${message || 'Неизвестная ошибка'}</p><button onclick="location.reload()" class="primary-button">Перезагрузить</button></div></div>`;
     }
-
-    console.log('✅ rendering.js: присваиваю window.render и другие утилиты');
 
     window.render = render;
     window.getState = getState;
