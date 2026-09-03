@@ -153,8 +153,8 @@ function handleDocumentClick(event) {
             var childId = target.dataset.childId;
             if (childId && typeof window.switchChild === 'function') {
                 window.switchChild(childId);
-                var currentScreen = STATE.navigation?.currentScreen || 'baby';
-                if (typeof render === 'function') render(currentScreen);
+                // Явный рендер экрана "Малыш"
+                if (typeof render === 'function') render('baby');
             }
             break;
         case "delete-child":
@@ -166,8 +166,8 @@ function handleDocumentClick(event) {
                     // Принудительное сохранение и мгновенное обновление
                     if (typeof saveState === 'function') saveState();
                     setTimeout(function() {
-                        var currentScreen = STATE.navigation?.currentScreen || 'baby';
-                        if (typeof render === 'function') render(currentScreen);
+                        // Явный рендер экрана "Малыш"
+                        if (typeof render === 'function') render('baby');
                     }, 50);
                 }
             }
@@ -613,8 +613,8 @@ function showAddChildModal() {
             }
             overlay.remove();
             document.body.classList.remove('modal-open');
-            var currentScreen = STATE.navigation?.currentScreen || 'baby';
-            if (typeof render === 'function') render(currentScreen);
+            // Явный рендер экрана "Малыш"
+            if (typeof render === 'function') render('baby');
             showToast('👶 Ребёнок добавлен (онбординг пропущен)', 'success');
         } else {
             alert('Ошибка: функция addChild не найдена');
