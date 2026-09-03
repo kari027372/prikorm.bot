@@ -13,9 +13,13 @@ function setupEventListeners() {
         }
     });
     window.addEventListener("prikorm:statechange", function() {
+        console.log('📡 prikorm:statechange сработал, STATE.ui.screen:', STATE.ui?.screen);
         updateProfileUI();
         if (typeof render === "function") {
-            render(STATE.ui?.screen || "home");
+            // Не перерисовываем home, если мы на baby (чтобы не сбросить изменения)
+            var screen = STATE.ui?.screen || "home";
+            console.log('📡 Вызываю render с экраном:', screen);
+            render(screen);
         }
     });
 }
@@ -162,12 +166,17 @@ function handleDocumentClick(event) {
             if (!childId) return;
             if (confirm('Удалить этого ребёнка? Все данные по нему будут потеряны.')) {
                 if (typeof window.deleteChild === 'function') {
+                    console.log('🗑️ Удаление: до deleteChild, children:', STATE.children.length);
                     window.deleteChild(childId);
+                    console.log('🗑️ Удаление: после deleteChild, children:', STATE.children.length);
                     if (typeof saveState === 'function') saveState();
-                    setTimeout(function() {
-                        // Явный рендер экрана "Малыш"
-                        if (typeof render === 'function') render('baby');
-                    }, 50);
+                    console.log('🗑️ Вызываю render("baby")');
+                    if (typeof render === 'function') {
+                        render('baby');
+                        console.log('🗑️ render("baby") вызван');
+                    } else {
+                        console.error('❌ render не определён');
+                    }
                 }
             }
             break;
