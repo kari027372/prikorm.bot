@@ -1,5 +1,5 @@
 /* ============================================================
-   rendering.js — диспетчер рендеринга (с принудительной перерисовкой)
+   rendering.js — диспетчер рендеринга (с принудительным reflow)
    ============================================================ */
 
 (function() {
@@ -118,9 +118,11 @@
         const navHtml = renderBottomNavigation(screen);
         console.log('📝 navHtml длина:', navHtml.length);
 
-        // ПРИНУДИТЕЛЬНАЯ ЗАМЕНА innerHTML
+        // ПРИНУДИТЕЛЬНАЯ ЗАМЕНА innerHTML с reflow
         app.innerHTML = html + navHtml;
-        console.log('✅ app.innerHTML обновлён');
+        // Принудительный reflow – заставляет браузер пересчитать стили
+        app.offsetHeight;
+        console.log('✅ app.innerHTML обновлён, reflow выполнен');
 
         const ui = getUIState();
         ui.previousScreen = ui.screen;
