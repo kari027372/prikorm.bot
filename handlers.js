@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js — финальная версия (прямое удаление)
+   handlers.js — финальная версия (принудительное обновление DOM)
    ============================================================ */
 
 function setupEventListeners() {
@@ -180,10 +180,18 @@ function handleDocumentClick(event) {
                 // Синхронизация экрана
                 STATE.ui.screen = 'baby';
                 STATE.navigation.currentScreen = 'baby';
-                // Мгновенный рендер
-                if (typeof render === 'function') {
-                    render('baby');
-                    console.log('🗑️ render("baby") вызван');
+                // ПРИНУДИТЕЛЬНАЯ ПЕРЕРИСОВКА DOM (минуя render)
+                var app = document.getElementById('app');
+                if (app && typeof window.renderBaby === 'function' && typeof window.renderBottomNavigation === 'function') {
+                    var html = window.renderBaby();
+                    var navHtml = window.renderBottomNavigation('baby');
+                    app.innerHTML = html + navHtml;
+                    console.log('🗑️ DOM обновлён принудительно');
+                } else {
+                    if (typeof render === 'function') {
+                        render('baby');
+                        console.log('🗑️ render("baby") вызван');
+                    }
                 }
             }
             break;
