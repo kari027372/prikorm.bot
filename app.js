@@ -26,7 +26,6 @@ function initApp() {
 
     initializeState();
 
-    // ===== СИНХРОНИЗАЦИЯ UI.SCREEN =====
     if (STATE.navigation && STATE.navigation.currentScreen && STATE.ui) {
         STATE.ui.screen = STATE.navigation.currentScreen;
         console.log('🔄 ui.screen синхронизирован с navigation.currentScreen:', STATE.ui.screen);
@@ -39,14 +38,35 @@ function initApp() {
     if (typeof STATE.onboardingCompleted !== 'boolean') {
         STATE.onboardingCompleted = false;
     }
-    // Если режим добавления не активен и онбординг не завершён – запускаем
-    if (!STATE._onboardingMode && STATE.onboardingCompleted === false) {
+
+    if (!STATE._onboardingChildId && STATE.onboardingCompleted === false) {
         console.log('🔄 Онбординг не завершён, запускаем...');
-        if (typeof renderOnboarding === 'function') {
-            renderOnboarding();
+        if (typeof window.addChild === 'function') {
+            var newChild = window.addChild({
+                name: '',
+                birthDate: '',
+                sex: '',
+                feedingType: '',
+                feedingStarted: false,
+                approach: 'mixed',
+                readiness: {},
+                onboarding: {
+                    allergies: [],
+                    diet: [],
+                    favoriteFoods: [],
+                    worries: [],
+                    confidence: ''
+                }
+            });
+            if (newChild && newChild.id) {
+                STATE._onboardingChildId = newChild.id;
+                STATE.currentChildId = newChild.id;
+                if (typeof saveState === 'function') saveState();
+            }
+            if (typeof render === 'function') render('onboarding');
             return;
         } else {
-            console.warn('⚠️ Функция renderOnboarding не найдена, пропускаем');
+            console.warn('⚠️ addChild не найдена, пропускаем онбординг');
             STATE.onboardingCompleted = true;
             if (typeof saveState === 'function') saveState();
         }
@@ -96,14 +116,9 @@ function initializeState() {
                 settings: { notifications: true },
                 ui: { screen: DEFAULT_SCREEN },
                 navigation: { currentScreen: DEFAULT_SCREEN, previousScreen: null, modal: null },
-                onboarding: {
-                    readiness: {},
-                    allergies: [],
-                    diet: [],
-                    favoriteFoods: [],
-                    worries: [],
-                    confidence: ''
-                },
+                children: [],
+                currentChildId: null,
+                _onboardingChildId: null,
                 onboardingCompleted: false
             };
         }
@@ -119,19 +134,13 @@ function initializeState() {
             settings: { notifications: true },
             ui: { screen: DEFAULT_SCREEN },
             navigation: { currentScreen: DEFAULT_SCREEN, previousScreen: null, modal: null },
-            onboarding: {
-                readiness: {},
-                allergies: [],
-                diet: [],
-                favoriteFoods: [],
-                worries: [],
-                confidence: ''
-            },
+            children: [],
+            currentChildId: null,
+            _onboardingChildId: null,
             onboardingCompleted: false
         };
     }
 
-    // ===== СИНХРОНИЗАЦИЯ UI.SCREEN (если navigation уже есть) =====
     if (STATE.navigation && STATE.navigation.currentScreen && STATE.ui) {
         STATE.ui.screen = STATE.navigation.currentScreen;
     }
@@ -151,26 +160,25 @@ function normalizeState() {
     if (!STATE.settings) STATE.settings = { notifications: true };
     if (!STATE.ui) STATE.ui = { screen: DEFAULT_SCREEN };
     if (!STATE.navigation) STATE.navigation = { currentScreen: DEFAULT_SCREEN, previousScreen: null, modal: null };
-    if (!STATE.onboarding) {
-        STATE.onboarding = {
-            readiness: {},
-            allergies: [],
-            diet: [],
-            favoriteFoods: [],
-            worries: [],
-            confidence: ''
-        };
-    }
-    if (!STATE.onboarding.readiness) STATE.onboarding.readiness = {};
-    if (!Array.isArray(STATE.onboarding.allergies)) STATE.onboarding.allergies = [];
-    if (!Array.isArray(STATE.onboarding.diet)) STATE.onboarding.diet = [];
-    if (!Array.isArray(STATE.onboarding.favoriteFoods)) STATE.onboarding.favoriteFoods = [];
-    if (!Array.isArray(STATE.onboarding.worries)) STATE.onboarding.worries = [];
-    if (typeof STATE.onboarding.confidence !== 'string') STATE.onboarding.confidence = '';
+    if (!STATE.children) STATE.children = [];
+    if (!STATE.currentChildId) STATE.currentChildId = null;
+    if (typeof STATE._onboardingChildId === 'undefined') STATE._onboardingChildId = null;
     if (typeof STATE.onboardingCompleted !== 'boolean') STATE.onboardingCompleted = false;
     if (!Array.isArray(STATE.brands)) STATE.brands = [];
     if (!Array.isArray(STATE.notes)) STATE.notes = [];
     if (!Array.isArray(STATE.waterLog)) STATE.waterLog = [];
+    if (STATE.onboarding) {
+        if (STATE.children.length > 0 && !STATE.children[0].onboarding) {
+            STATE.children[0].onboarding = {
+                allergies: STATE.onboarding.allergies || [],
+                diet: STATE.onboarding.diet || [],
+                favoriteFoods: STATE.onboarding.favoriteFoods || [],
+                worries: STATE.onboarding.worries || [],
+                confidence: STATE.onboarding.confidence || ''
+            };
+        }
+        delete STATE.onboarding;
+    }
 }
 
 function buildAppShell() {
@@ -264,14 +272,9 @@ function resetState() {
         settings: { notifications: true },
         ui: { screen: 'home' },
         navigation: { currentScreen: 'home', previousScreen: null, modal: null },
-        onboarding: {
-            readiness: {},
-            allergies: [],
-            diet: [],
-            favoriteFoods: [],
-            worries: [],
-            confidence: ''
-        },
+        children: [],
+        currentChildId: null,
+        _onboardingChildId: null,
         onboardingCompleted: false
     };
     if (typeof saveState === 'function') saveState();
@@ -332,7 +335,6 @@ function startApplication() {
     initApp();
     migrateLegacyProfile();
 
-    // ===== МИГРАЦИЯ baby → children =====
     if (STATE.baby && Object.keys(STATE.baby).length > 0) {
         console.log('🔄 Обнаружен старый объект baby, мигрируем в children...');
         if (typeof window.migrateBabyToChildren === 'function') {
@@ -349,7 +351,14 @@ function startApplication() {
                 approach: STATE.baby.approach || 'mixed',
                 readiness: STATE.baby.readiness || {},
                 notes: STATE.baby.notes || '',
-                photo: STATE.baby.photo || ''
+                photo: STATE.baby.photo || '',
+                onboarding: {
+                    allergies: [],
+                    diet: [],
+                    favoriteFoods: [],
+                    worries: [],
+                    confidence: ''
+                }
             };
             if (!STATE.children) STATE.children = [];
             STATE.children.push(newChild);
@@ -360,19 +369,20 @@ function startApplication() {
         }
     }
 
-    // ===== ЗАЩИТА ОТ ГЛОБАЛЬНОГО ОНБОРДИНГА =====
     if (STATE.children && STATE.children.length > 0 && STATE.onboardingCompleted === false) {
         console.log('🔄 Обнаружены дети, но онбординг не завершён. Исправляем...');
         STATE.onboardingCompleted = true;
         if (typeof saveState === 'function') saveState();
     }
 
-    if (STATE._onboardingMode) {
-        STATE._onboardingMode = null;
-        if (typeof saveState === 'function') saveState();
+    if (STATE._onboardingChildId) {
+        var exists = STATE.children.some(function(c) { return c.id === STATE._onboardingChildId; });
+        if (!exists) {
+            STATE._onboardingChildId = null;
+            if (typeof saveState === 'function') saveState();
+        }
     }
 
-    // ===== СИНХРОНИЗАЦИЯ UI.SCREEN =====
     if (STATE.navigation && STATE.navigation.currentScreen) {
         STATE.ui.screen = STATE.navigation.currentScreen;
         console.log('🔄 ui.screen синхронизирован с navigation.currentScreen:', STATE.ui.screen);
@@ -387,7 +397,6 @@ function startApplication() {
     }, 300);
 }
 
-// Запуск приложения
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', startApplication, { once: true });
 } else {
