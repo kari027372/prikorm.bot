@@ -1,4 +1,8 @@
-// screens/rendering.js
+/* ============================================================
+   screens/rendering.js
+   Рендер экранов приложения
+   ============================================================ */
+
 (function() {
     'use strict';
 
@@ -8,13 +12,12 @@
      *
      * Важно:
      * state.js хранит настоящий STATE во внутренней переменной.
-     * window.STATE может быть старой ссылкой.
+     * window.STATE может быть старой ссылкой после loadState/resetState.
      *
-     * Поэтому сначала используем STATE, и только если он
-     * недоступен — window.STATE.
+     * Поэтому сначала используем внутренний STATE.
      * ============================================================
      */
-    function getState() {
+    function getCurrentState() {
         if (typeof STATE !== 'undefined') {
             return STATE;
         }
@@ -24,33 +27,109 @@
 
     /*
      * ============================================================
+     * Находим контейнер именно для содержимого экрана
+     *
+     * НЕЛЬЗЯ рендерить прямо в #app:
+     *
+     * #app
+     * ├── #app-content
+     * ├── #modal-root
+     * └── #toast-root
+     *
+     * Если заменить innerHTML у #app целиком —
+     * мы удалим оболочку приложения.
+     * ============================================================
+     */
+    function getAppContent() {
+        var content =
+            document.getElementById('app-content');
+
+        /*
+         * Если оболочка уже создана — используем её.
+         */
+        if (content) {
+            return content;
+        }
+
+        /*
+         * Резервный вариант:
+         * если app-content почему-то отсутствует,
+         * создаём его внутри #app.
+         */
+        var app =
+            document.getElementById('app');
+
+        if (!app) {
+            return null;
+        }
+
+        content =
+            document.createElement('div');
+
+        content.id =
+            'app-content';
+
+        content.className =
+            'app-content';
+
+        /*
+         * Вставляем перед modal-root,
+         * чтобы сохранить существующие
+         * modal-root и toast-root.
+         */
+        var modalRoot =
+            document.getElementById('modal-root');
+
+        if (
+            modalRoot &&
+            modalRoot.parentElement === app
+        ) {
+            app.insertBefore(
+                content,
+                modalRoot
+            );
+        } else {
+            app.appendChild(content);
+        }
+
+        return content;
+    }
+
+    /*
+     * ============================================================
      * Рендер конкретного экрана
      * ============================================================
      */
 
     window.render = function(screen) {
-        const state = getState();
+        var state =
+            getCurrentState();
 
-        const app =
-            document.getElementById('app');
+        /*
+         * Получаем именно область содержимого,
+         * а НЕ весь #app.
+         */
+        var appContent =
+            getAppContent();
 
-        if (!app) {
+        if (!appContent) {
             console.error(
-                '❌ Не найден элемент #app'
+                '❌ Не найден #app-content и невозможно создать его внутри #app'
             );
-            return;
+
+            return '';
         }
 
         /*
-         * Сохраняем предыдущий экран
+         * Сохраняем предыдущий экран.
          */
-        const previousScreen =
+        var previousScreen =
             state.navigation?.currentScreen ||
             'home';
 
         /*
-         * Если экран не передан,
-         * используем текущий.
+         * Если экран не передан —
+         * используем текущий экран.
          */
         screen =
             screen ||
@@ -59,11 +138,11 @@
 
         /*
          * ========================================================
-         * Проверяем допустимый экран
+         * Допустимые экраны
          * ========================================================
          */
 
-        const validScreens = [
+        var validScreens = [
             'home',
             'products',
             'today',
@@ -85,7 +164,7 @@
 
         /*
          * ========================================================
-         * Обновляем navigation в АКТУАЛЬНОМ STATE
+         * Гарантируем наличие navigation
          * ========================================================
          */
 
@@ -97,6 +176,10 @@
             };
         }
 
+        /*
+         * Обновляем previousScreen только
+         * если действительно произошёл переход.
+         */
         if (
             state.navigation.currentScreen !==
             screen
@@ -110,16 +193,31 @@
 
         /*
          * ========================================================
-         * Вызываем соответствующий renderer
+         * Если есть ui.screen — синхронизируем его.
          * ========================================================
          */
 
-        let html = '';
+        if (!state.ui) {
+            state.ui = {};
+        }
+
+        state.ui.screen =
+            screen;
+
+        /*
+         * ========================================================
+         * Вызываем renderer нужного экрана
+         * ========================================================
+         */
+
+        var html = '';
 
         try {
+
             switch (screen) {
 
                 case 'home':
+
                     if (
                         typeof window.renderHome ===
                         'function'
@@ -127,9 +225,12 @@
                         html =
                             window.renderHome();
                     }
+
                     break;
 
+
                 case 'products':
+
                     if (
                         typeof window.renderProducts ===
                         'function'
@@ -137,9 +238,12 @@
                         html =
                             window.renderProducts();
                     }
+
                     break;
 
+
                 case 'today':
+
                     if (
                         typeof window.renderToday ===
                         'function'
@@ -147,9 +251,12 @@
                         html =
                             window.renderToday();
                     }
+
                     break;
 
+
                 case 'diary':
+
                     if (
                         typeof window.renderDiary ===
                         'function'
@@ -157,9 +264,12 @@
                         html =
                             window.renderDiary();
                     }
+
                     break;
 
+
                 case 'recipes':
+
                     if (
                         typeof window.renderRecipes ===
                         'function'
@@ -167,9 +277,12 @@
                         html =
                             window.renderRecipes();
                     }
+
                     break;
 
+
                 case 'baby':
+
                     if (
                         typeof window.renderBaby ===
                         'function'
@@ -177,9 +290,12 @@
                         html =
                             window.renderBaby();
                     }
+
                     break;
 
+
                 case 'settings':
+
                     if (
                         typeof window.renderSettings ===
                         'function'
@@ -187,9 +303,12 @@
                         html =
                             window.renderSettings();
                     }
+
                     break;
 
+
                 case 'onboarding':
+
                     if (
                         typeof window.renderOnboarding ===
                         'function'
@@ -197,9 +316,12 @@
                         html =
                             window.renderOnboarding();
                     }
+
                     break;
 
+
                 default:
+
                     if (
                         typeof window.renderHome ===
                         'function'
@@ -207,10 +329,12 @@
                         html =
                             window.renderHome();
                     }
+
                     break;
             }
 
         } catch (error) {
+
             console.error(
                 '❌ Ошибка рендера экрана:',
                 screen,
@@ -220,11 +344,19 @@
             html = `
                 <div class="screen active">
                     <div class="empty-state">
-                        <span class="empty-icon">⚠️</span>
-                        <h3>Что-то пошло не так</h3>
+
+                        <span class="empty-icon">
+                            ⚠️
+                        </span>
+
+                        <h3>
+                            Что-то пошло не так
+                        </h3>
+
                         <p>
                             Не удалось загрузить этот экран.
                         </p>
+
                     </div>
                 </div>
             `;
@@ -232,22 +364,32 @@
 
         /*
          * ========================================================
-         * Записываем HTML
+         * ВАЖНО:
+         *
+         * Меняем ТОЛЬКО #app-content.
+         *
+         * #app НЕ трогаем.
+         *
+         * Поэтому остаются:
+         * - нижняя навигация;
+         * - modal-root;
+         * - toast-root;
+         * - остальные элементы оболочки.
          * ========================================================
          */
 
-        if (
-            typeof html === 'string'
-        ) {
-            app.innerHTML = html;
+        if (typeof html === 'string') {
+            appContent.innerHTML =
+                html;
         } else {
+
             console.warn(
                 '⚠️ Renderer вернул не строку:',
                 screen,
                 html
             );
 
-            app.innerHTML = '';
+            appContent.innerHTML = '';
         }
 
         /*
@@ -261,6 +403,7 @@
             'object' &&
             window.ui
         ) {
+
             window.ui.previousScreen =
                 previousScreen;
 
@@ -270,7 +413,7 @@
 
         /*
          * ========================================================
-         * Дополнительная синхронизация
+         * Дополнительная синхронизация профиля
          * ========================================================
          */
 
@@ -278,20 +421,29 @@
             typeof window.updateProfileUI ===
             'function'
         ) {
+
             try {
+
                 window.updateProfileUI();
+
             } catch (error) {
+
                 console.warn(
                     '⚠️ Не удалось обновить профиль:',
                     error
                 );
+
             }
         }
 
         /*
-         * Лог для проверки детей
+         * ========================================================
+         * Логи для проверки детей
+         * ========================================================
          */
+
         if (screen === 'baby') {
+
             console.log(
                 '👶 render("baby"):',
                 'children =',
@@ -304,9 +456,13 @@
         }
 
         /*
-         * Лог для проверки onboarding
+         * ========================================================
+         * Логи для проверки onboarding
+         * ========================================================
          */
+
         if (screen === 'onboarding') {
+
             console.log(
                 '🌱 render("onboarding"):',
                 '_onboardingChildId =',
@@ -331,6 +487,7 @@
         window.render;
 
     console.log(
-        '✅ rendering.js загружен'
+        '✅ rendering.js загружен — безопасный рендер через #app-content'
     );
+
 })();
