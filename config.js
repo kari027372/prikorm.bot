@@ -11,7 +11,7 @@ const APP_CONFIG = {
 
     app: {
         name: "Прикорм",
-        version: "2.1.0",
+        version: "2.1.2",        // <-- изменено с 2.1.0 на 2.1.2
         language: "ru",
         storageKey: "prikorm_app_state",
         themeStorageKey: "prikorm_theme"
@@ -782,7 +782,7 @@ const APP_CONFIG = {
 
 
     /* ----------------------------------------------------------
-       ЛОКАЛЬНОЕ ХРАНЕНИЕ (исправлено)
+       ЛОКАЛЬНОЕ ХРАНЕНИЕ
        ---------------------------------------------------------- */
 
     storage: {
@@ -790,7 +790,7 @@ const APP_CONFIG = {
         version: 2,
 
         keys: {
-            state: "prikorm_state",        // <-- исправлено (было prikorm_app_state)
+            state: "prikorm_state",
             child: "prikorm_child",
             products: "prikorm_products",
             diary: "prikorm_diary",
