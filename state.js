@@ -1,337 +1,181 @@
 /* ============================================================
-   state.js
-   Единое состояние приложения (с поддержкой нескольких детей)
+   state.js – Единый источник данных
    ============================================================ */
-
-// ===== ИСПОЛЬЗУЕМ STORAGE SERVICE =====
-// Предполагаем, что storageService уже загружен
 
 (function() {
     'use strict';
 
-    // Получаем ссылку на сервис
-    const storage = window.storageService;
-    if (!storage) {
-        console.error('❌ storageService не загружен!');
-        return;
-    }
+    // ============================================================
+    // ДЕФОЛТНОЕ СОСТОЯНИЕ
+    // ============================================================
 
-    // ============================================================
-    // DEFAULT STATE (без изменений)
-    // ============================================================
     const DEFAULT_STATE = {
-        version: 2,
-        onboardingCompleted: false,
         children: [],
         currentChildId: null,
         _onboardingChildId: null,
-        baby: null,
-        navigation: {
-            currentScreen: "home",
-            previousScreen: null,
-            modal: null
-        },
+        _onboardingMode: null,
+        onboardingCompleted: false,
+        baby: null, // исторически объект одного ребёнка (для совместимости)
         products: {
             introduced: [],
-            planned: [],
-            favorites: [],
-            excluded: [],
-            reactions: [],
-            custom: []
+            favorites: []
         },
-        diary: [],        // будет мигрировано
-        plan: { days: {} }, // будет мигрировано
-        reactions: [],
-        recipes: { favorites: [], custom: [] },
-        pantry: [],
-        shopping: [],
-        water: { records: [] },
-        photos: [],
-        notes: [],
+        diary: [],
+        plan: {},
+        brands: [],
         settings: {
-            approach: "mixed",
-            notifications: false,
-            showAmount: false,
-            showWater: true,
-            showRecipes: true,
-            showProgress: true,
-            showRecommendations: true,
-            homeBlocks: [
-                "baby_header",
-                "next_step",
-                "today_meals",
-                "recommendation",
-                "at_home",
-                "progress"
-            ]
+            theme: 'light',
+            notifications: true
         },
-        session: {
-            selectedProduct: null,
-            selectedDate: null,
-            selectedMeal: null,
-            searchQuery: "",
-            activeCategory: "all",
-            activeFilter: "all"
+        ui: {
+            screen: 'home'
         },
-        // Удаляем поле onboarding из корня, оно будет мигрировано
+        navigation: {
+            currentScreen: 'home'
+        }
     };
+
+    // ============================================================
+    // ИНИЦИАЛИЗАЦИЯ window.STATE
+    // ============================================================
+
+    // Если window.STATE уже существует (из localStorage), используем его,
+    // иначе создаём новый.
+    if (!window.STATE) {
+        window.STATE = deepClone(DEFAULT_STATE);
+    }
+
+    // Для обратной совместимости: если какой-то код использует глобальную
+    // переменную STATE без window, делаем её ссылкой на window.STATE.
+    // Но лучше везде использовать window.STATE.
+    if (typeof STATE === 'undefined') {
+        window.STATE = window.STATE; // уже есть
+    } else {
+        // Если STATE уже определена, синхронизируем:
+        // присваиваем window.STATE значение STATE (если STATE более актуальна)
+        // или наоборот – но проще сделать так:
+        if (window.STATE !== STATE) {
+            // Если они разные – копируем из STATE в window.STATE (предполагаем, что STATE актуальнее)
+            // Но лучше перезаписать window.STATE из STATE
+            window.STATE = STATE;
+        }
+    }
 
     // ============================================================
     // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     // ============================================================
 
-    function deepClone(object) {
-        return JSON.parse(JSON.stringify(object));
+    function deepClone(obj) {
+        return JSON.parse(JSON.stringify(obj));
     }
 
-    function isObject(item) {
-        return item && typeof item === 'object' && !Array.isArray(item);
+    function getCurrentChild() {
+        if (!window.STATE || !window.STATE.currentChildId) return null;
+        return window.STATE.children.find(c => c.id === window.STATE.currentChildId) || null;
     }
 
-    // ============================================================
-    // СОЗДАНИЕ STATE
-    // ============================================================
-
-    let STATE = deepClone(DEFAULT_STATE);
-
-    // ============================================================
-    // ЗАГРУЗКА (с использованием storageService)
-    // ============================================================
-
-    function loadState() {
-        console.log('📥 loadState вызвана');
-
-        // 1. Загружаем сырые данные
-        const saved = storage.loadRawState();
-
-        // 2. Если данных нет – используем DEFAULT_STATE
-        if (!saved) {
-            STATE = deepClone(DEFAULT_STATE);
-            // Инициализируем onboardingCompleted
-            STATE.onboardingCompleted = false;
-            return STATE;
-        }
-
-        // 3. Применяем миграцию
-        const migrated = storage.migrateState(saved, DEFAULT_STATE);
-
-        // 4. Устанавливаем STATE
-        STATE = migrated;
-
-        // 5. Удаляем устаревшее поле _onboardingMode, если есть
-        if (STATE._onboardingMode !== undefined) {
-            delete STATE._onboardingMode;
-        }
-
-        // 6. Дополнительная проверка: если есть поле baby (старое), мигрируем в children
-        if (STATE.baby && Object.keys(STATE.baby).length > 0) {
-            if (typeof window.migrateBabyToChildren === 'function') {
-                window.migrateBabyToChildren();
-            } else {
-                // Ручная миграция
-                const newChild = {
-                    id: 'child_' + Date.now(),
-                    name: STATE.baby.name || '',
-                    birthDate: STATE.baby.birthDate || '',
-                    sex: STATE.baby.sex || '',
-                    feedingType: STATE.baby.feedingType || '',
-                    feedingStarted: STATE.baby.feedingStarted || false,
-                    feedingStartDate: STATE.baby.feedingStartDate || '',
-                    approach: STATE.baby.approach || 'mixed',
-                    readiness: STATE.baby.readiness || {},
-                    notes: STATE.baby.notes || '',
-                    photo: STATE.baby.photo || '',
-                    onboarding: {
-                        allergies: [],
-                        diet: [],
-                        favoriteFoods: [],
-                        worries: [],
-                        confidence: ''
-                    },
-                    diary: [],
-                    plan: { days: {} }
-                };
-                if (!STATE.children) STATE.children = [];
-                STATE.children.push(newChild);
-                STATE.currentChildId = newChild.id;
-                delete STATE.baby;
-                console.log('🔄 Ручная миграция baby → children выполнена');
-            }
-        }
-
-        // 7. Убеждаемся, что у каждого ребёнка есть необходимые поля
-        if (STATE.children) {
-            STATE.children.forEach(child => {
-                if (!child.diary) child.diary = [];
-                if (!child.plan) child.plan = { days: {} };
-                if (!child.onboarding) child.onboarding = {};
-                ['allergies', 'diet', 'favoriteFoods', 'worries', 'confidence'].forEach(field => {
-                    if (child.onboarding[field] === undefined) child.onboarding[field] = [];
-                });
-            });
-        }
-
-        // 8. Корректируем currentChildId, если он невалиден или отсутствует
-        if (STATE.children && STATE.children.length > 0) {
-            const exists = STATE.children.some(c => c.id === STATE.currentChildId);
-            if (!exists || !STATE.currentChildId) {
-                STATE.currentChildId = STATE.children[0].id;
-                console.log('🔄 currentChildId скорректирован на первого ребёнка');
-                // Сохраняем, чтобы синхронизировать localStorage
-                if (typeof saveState === 'function') saveState();
-            }
-        } else {
-            STATE.currentChildId = null;
-        }
-
-        console.log('📥 loadState завершена, STATE.children.length =', STATE.children ? STATE.children.length : 0);
-        return STATE;
+    function getState() {
+        return window.STATE;
     }
 
     // ============================================================
-    // СОХРАНЕНИЕ (с использованием storageService)
+    // СОХРАНЕНИЕ И ЗАГРУЗКА (через storageService)
     // ============================================================
 
     function saveState() {
-        try {
-            // Удаляем временные поля перед сохранением (например, _onboardingMode)
-            const stateToSave = { ...STATE };
-            // Можно удалить _onboardingMode, если он есть, но не обязательно
-            return storage.saveRawState(stateToSave);
-        } catch (error) {
-            console.error('Не удалось сохранить состояние:', error);
-            return false;
-        }
-    }
-
-    // ============================================================
-    // ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений)
-    // ============================================================
-
-    function resetState() {
-        STATE = deepClone(DEFAULT_STATE);
-        saveState();
-        emitStateChange();
-        return STATE;
-    }
-
-    function getState() { return STATE; }
-
-    function setState(path, value) {
-        const parts = path.split(".");
-        let target = STATE;
-        for (let i = 0; i < parts.length - 1; i++) {
-            const key = parts[i];
-            if (!target[key] || typeof target[key] !== "object") target[key] = {};
-            target = target[key];
-        }
-        target[parts[parts.length - 1]] = value;
-        saveState();
-        emitStateChange();
-        return value;
-    }
-
-    function getStateValue(path) {
-        const parts = path.split(".");
-        let value = STATE;
-        for (const part of parts) {
-            if (value === null || value === undefined) return undefined;
-            value = value[part];
-        }
-        return value;
-    }
-
-    function addToStateArray(path, item) {
-        const array = getStateValue(path);
-        if (!Array.isArray(array)) { console.error(`State path "${path}" не является массивом`); return false; }
-        array.push(item);
-        saveState();
-        emitStateChange();
-        return item;
-    }
-
-    function removeFromStateArray(path, predicate) {
-        const array = getStateValue(path);
-        if (!Array.isArray(array)) return false;
-        const index = typeof predicate === "function" ? array.findIndex(predicate) : array.findIndex(item => item === predicate);
-        if (index === -1) return false;
-        const removed = array.splice(index, 1)[0];
-        saveState();
-        emitStateChange();
-        return removed;
-    }
-
-    function toggleStateArrayItem(path, item) {
-        const array = getStateValue(path);
-        if (!Array.isArray(array)) return false;
-        const index = array.findIndex(existing => existing === item || (existing && item && existing.id && item.id && existing.id === item.id));
-        if (index === -1) { array.push(item); saveState(); emitStateChange(); return true; }
-        array.splice(index, 1);
-        saveState();
-        emitStateChange();
-        return false;
-    }
-
-    const stateListeners = [];
-
-    function subscribeToState(listener) {
-        if (typeof listener !== "function") return () => {};
-        stateListeners.push(listener);
-        return function unsubscribe() {
-            const index = stateListeners.indexOf(listener);
-            if (index !== -1) stateListeners.splice(index, 1);
-        };
-    }
-
-    function emitStateChange() {
-        stateListeners.forEach(listener => { try { listener(STATE); } catch (error) { console.error("Ошибка state listener:", error); } });
-        window.dispatchEvent(new CustomEvent('prikorm:statechange'));
-    }
-
-    // ============================================================
-    // ФУНКЦИИ ДЛЯ РАБОТЫ С ДЕТЬМИ (исправлена getCurrentChild)
-    // ============================================================
-
-    function getCurrentChild() {
-        // Если нет детей – возвращаем null
-        if (!STATE.children || STATE.children.length === 0) {
-            return null;
-        }
-
-        // Пытаемся найти по currentChildId
-        const child = STATE.children.find(c => c.id === STATE.currentChildId);
-        if (child) {
-            return child;
-        }
-
-        // Если не найден, берём первого и корректируем currentChildId
-        const firstChild = STATE.children[0];
-        if (firstChild) {
-            if (STATE.currentChildId !== firstChild.id) {
-                STATE.currentChildId = firstChild.id;
-                if (typeof saveState === 'function') saveState();
-                console.log('🔄 getCurrentChild: currentChildId скорректирован на первого ребёнка');
+        if (typeof storageService !== 'undefined' && storageService.saveState) {
+            storageService.saveState(window.STATE);
+        } else {
+            // Fallback: сохраняем в localStorage напрямую
+            try {
+                localStorage.setItem('prikorm_state', JSON.stringify(window.STATE));
+            } catch (e) {
+                console.warn('Не удалось сохранить STATE:', e);
             }
-            return firstChild;
         }
-
-        return null;
+        // Отправляем событие об изменении
+        if (typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('prikorm:statechange'));
+        }
     }
 
-    function addChild(childData) {
+    function loadState() {
+        let loaded = null;
+        if (typeof storageService !== 'undefined' && storageService.loadState) {
+            loaded = storageService.loadState();
+        } else {
+            try {
+                const raw = localStorage.getItem('prikorm_state');
+                if (raw) loaded = JSON.parse(raw);
+            } catch (e) {
+                console.warn('Не удалось загрузить STATE:', e);
+            }
+        }
+        if (loaded && typeof loaded === 'object') {
+            // Миграция: если loaded.baby – объект, а не массив – оставляем как есть
+            // Если loaded.children – массив, используем его
+            // Объединяем с DEFAULT_STATE, чтобы новые поля появились
+            window.STATE = mergeDeep(deepClone(DEFAULT_STATE), loaded);
+        } else {
+            window.STATE = deepClone(DEFAULT_STATE);
+        }
+        // После загрузки обновляем глобальную переменную STATE (если она используется)
+        if (typeof STATE !== 'undefined') {
+            // Чтобы сохранить совместимость, можно сделать STATE = window.STATE;
+            // Но лучше не использовать STATE без window.
+            // Однако некоторые файлы могут использовать STATE, поэтому:
+            if (typeof STATE === 'undefined') {
+                // Если STATE не определена, создадим её как ссылку
+                window.STATE = window.STATE; // уже
+            } else {
+                // Если STATE определена, но мы её перезаписали, обновим её
+                // Это опасно, но для совместимости делаем:
+                // STATE = window.STATE; // Но мы не можем переопределить const
+                // Лучше просто объявить var STATE = window.STATE; в глобальной области
+                // Этого мы не можем сделать здесь, поэтому оставляем как есть.
+                // Вместо этого все файлы должны использовать getState() или window.STATE.
+            }
+        }
+        // Отправляем событие
+        if (typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('prikorm:statechange'));
+        }
+        return window.STATE;
+    }
+
+    function mergeDeep(target, source) {
+        for (const key in source) {
+            if (source.hasOwnProperty(key)) {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    if (!target[key]) target[key] = {};
+                    mergeDeep(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            }
+        }
+        return target;
+    }
+
+    // ============================================================
+    // ОПЕРАЦИИ С ДЕТЬМИ
+    // ============================================================
+
+    function addChild(data) {
+        if (!window.STATE) window.STATE = deepClone(DEFAULT_STATE);
+        if (!Array.isArray(window.STATE.children)) window.STATE.children = [];
+
         const newChild = {
-            id: 'child_' + Date.now(),
-            name: '',
-            birthDate: '',
-            sex: '',
-            feedingType: '',
-            feedingStarted: false,
-            feedingStartDate: '',
-            approach: 'mixed',
-            readiness: {},
-            notes: '',
-            photo: '',
-            onboarding: {
+            id: 'child_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: data.name || '',
+            birthDate: data.birthDate || '',
+            sex: data.sex || '',
+            feedingType: data.feedingType || '',
+            feedingStarted: data.feedingStarted || false,
+            feedingStartDate: data.feedingStartDate || '',
+            approach: data.approach || 'mixed',
+            readiness: data.readiness || {},
+            onboarding: data.onboarding || {
                 allergies: [],
                 diet: [],
                 favoriteFoods: [],
@@ -339,167 +183,83 @@
                 confidence: ''
             },
             diary: [],
-            plan: { days: {} },
-            ...childData
+            plan: {},
+            settings: {}
         };
-        STATE.children.push(newChild);
-        if (!STATE.currentChildId) {
-            STATE.currentChildId = newChild.id;
+
+        window.STATE.children.push(newChild);
+        // Устанавливаем активным, если нет активного
+        if (!window.STATE.currentChildId) {
+            window.STATE.currentChildId = newChild.id;
         }
+        // Сохраняем и уведомляем
         saveState();
-        emitStateChange();
         return newChild;
     }
 
-    function switchChild(childId) {
-        if (STATE.children.some(c => c.id === childId)) {
-            STATE.currentChildId = childId;
-            saveState();
-            emitStateChange();
-            return true;
-        }
-        return false;
-    }
-
     function deleteChild(childId) {
-        const index = STATE.children.findIndex(c => c.id === childId);
+        if (!window.STATE || !Array.isArray(window.STATE.children)) return false;
+        const index = window.STATE.children.findIndex(c => c.id === childId);
         if (index === -1) return false;
-        STATE.children.splice(index, 1);
-        if (STATE.currentChildId === childId) {
-            STATE.currentChildId = STATE.children.length ? STATE.children[0].id : null;
+        window.STATE.children.splice(index, 1);
+        if (window.STATE.currentChildId === childId) {
+            window.STATE.currentChildId = window.STATE.children.length ? window.STATE.children[0].id : null;
         }
         saveState();
-        emitStateChange();
         return true;
     }
 
-    function migrateBabyToChildren() {
-        if (STATE.baby && Object.keys(STATE.baby).length > 0) {
-            const newChild = {
-                id: 'child_' + Date.now(),
-                name: STATE.baby.name || '',
-                birthDate: STATE.baby.birthDate || '',
-                sex: STATE.baby.sex || '',
-                feedingType: STATE.baby.feedingType || '',
-                feedingStarted: STATE.baby.feedingStarted || false,
-                feedingStartDate: STATE.baby.feedingStartDate || '',
-                approach: STATE.baby.approach || 'mixed',
-                readiness: STATE.baby.readiness || {},
-                notes: STATE.baby.notes || '',
-                photo: STATE.baby.photo || '',
-                onboarding: {
-                    allergies: [],
-                    diet: [],
-                    favoriteFoods: [],
-                    worries: [],
-                    confidence: ''
-                },
-                diary: [],
-                plan: { days: {} }
-            };
-            if (!STATE.children) STATE.children = [];
-            STATE.children.push(newChild);
-            STATE.currentChildId = newChild.id;
-            delete STATE.baby;
-            saveState();
-            emitStateChange();
-            console.log('✅ Миграция baby → children выполнена (state.js)');
-            return true;
-        }
-        return false;
+    function switchChild(childId) {
+        if (!window.STATE) return false;
+        const child = window.STATE.children.find(c => c.id === childId);
+        if (!child) return false;
+        window.STATE.currentChildId = childId;
+        saveState();
+        return true;
+    }
+
+    // Обновление ребёнка (дополнительно)
+    function updateChild(childId, updates) {
+        const child = window.STATE.children.find(c => c.id === childId);
+        if (!child) return false;
+        Object.assign(child, updates);
+        saveState();
+        return true;
     }
 
     // ============================================================
-    // ОСТАЛЬНЫЕ ФУНКЦИИ (продукты, дневник, план и т.д.)
-    // Пока оставляем без изменений, но они будут переработаны позже
+    // ПУБЛИЧНЫЙ API
     // ============================================================
 
-    function getBaby() {
-        // Для обратной совместимости
-        return getCurrentChild() || {};
-    }
-
-    function updateBaby(data) {
-        const child = getCurrentChild();
-        if (child) {
-            Object.assign(child, data);
-            saveState();
-            emitStateChange();
-        }
-        return child || {};
-    }
-
-    // Заглушки для продуктов и т.д. (они будут переработаны в следующих этапах)
-    function isProductIntroduced(productId) { return false; }
-    function isProductFavorite(productId) { return false; }
-    function isProductPlanned(productId) { return false; }
-    function markProductIntroduced(product) { return false; }
-    function toggleFavoriteProduct(productId) { return false; }
-    function planProduct(productId) { return false; }
-    function addDiaryEntry(entry) { return false; }
-    function getPlanForDate(date) { return []; }
-    function setPlanForDate(date, meals) { return []; }
-    function addMealToPlan(date, meal) { return false; }
-    function addReaction(reaction) { return false; }
-    function addToPantry(product) { return false; }
-    function removeFromPantry(productId) { return false; }
-    function addShoppingItem(item) { return false; }
-    function toggleShoppingItem(itemId) { return false; }
-    function setCurrentScreen(screen) { return false; }
-    function openModal(modal) { return false; }
-    function closeModal() { return false; }
-
-    // ============================================================
-    // ИНИЦИАЛИЗАЦИЯ
-    // ============================================================
-
-    loadState();
-
-    // ============================================================
-    // ЭКСПОРТЫ
-    // ============================================================
-
-    window.DEFAULT_STATE = DEFAULT_STATE;
-    window.STATE = STATE;
+    window.STATE = window.STATE; // уже
     window.getState = getState;
-    window.setState = setState;
-    window.updateState = function(updater) { if (typeof updater === 'function') { updater(STATE); saveState(); emitStateChange(); } };
-    window.getStateValue = getStateValue;
+    window.getCurrentChild = getCurrentChild;
     window.saveState = saveState;
     window.loadState = loadState;
-    window.resetState = resetState;
-    window.subscribeToState = subscribeToState;
-    window.emitStateChange = emitStateChange;
-    window.getBaby = getBaby;
-    window.updateBaby = updateBaby;
-    window.addToStateArray = addToStateArray;
-    window.removeFromStateArray = removeFromStateArray;
-    window.toggleStateArrayItem = toggleStateArrayItem;
-    window.isProductIntroduced = isProductIntroduced;
-    window.isProductFavorite = isProductFavorite;
-    window.isProductPlanned = isProductPlanned;
-    window.markProductIntroduced = markProductIntroduced;
-    window.toggleFavoriteProduct = toggleFavoriteProduct;
-    window.planProduct = planProduct;
-    window.addDiaryEntry = addDiaryEntry;
-    window.getPlanForDate = getPlanForDate;
-    window.setPlanForDate = setPlanForDate;
-    window.addMealToPlan = addMealToPlan;
-    window.addReaction = addReaction;
-    window.addToPantry = addToPantry;
-    window.removeFromPantry = removeFromPantry;
-    window.addShoppingItem = addShoppingItem;
-    window.toggleShoppingItem = toggleShoppingItem;
-    window.setCurrentScreen = setCurrentScreen;
-    window.openModal = openModal;
-    window.closeModal = closeModal;
-
-    // Дополнительные экспорты для детей
-    window.getCurrentChild = getCurrentChild;
     window.addChild = addChild;
-    window.switchChild = switchChild;
     window.deleteChild = deleteChild;
-    window.migrateBabyToChildren = migrateBabyToChildren;
+    window.switchChild = switchChild;
+    window.updateChild = updateChild;
 
-    console.log('✅ state.js обновлён (с использованием storage-service, исправлен getCurrentChild)');
+    // Для тех, кто использует STATE без window – сделаем глобальную переменную
+    // (но предупреждаем, что лучше использовать window.STATE)
+    if (typeof STATE === 'undefined') {
+        // Создаём глобальную переменную STATE как ссылку на window.STATE
+        // Используем var, чтобы можно было переопределить
+        var STATE = window.STATE;
+        // Но чтобы избежать конфликтов, лучше объявить через window
+        window.STATE = window.STATE;
+        // Для доступа через STATE (без window) – сделаем глобальную
+        // В браузере глобальные переменные являются свойствами window,
+        // поэтому window.STATE и STATE – одно и то же, если мы объявим var STATE = window.STATE;
+        // Но var STATE в модуле не создаст глобальную, поэтому лучше:
+        if (typeof window.STATE !== 'undefined') {
+            // Просто убедимся, что window.STATE существует
+        }
+    }
+
+    // Инициализация: загружаем состояние
+    loadState();
+
+    console.log('✅ state.js загружен (единый STATE)');
 })();
