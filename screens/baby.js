@@ -21,7 +21,6 @@ window.renderBaby = function() {
             </div>
         `;
     } else {
-        // Список детей
         children.forEach(child => {
             const isActive = current && current.id === child.id;
             const age = (child.birthDate && typeof window.formatAge === 'function') 
@@ -41,7 +40,6 @@ window.renderBaby = function() {
         });
     }
 
-    // Кнопка добавления ребёнка
     html += `
         <button class="primary-button" data-action="open-add-child" style="margin-top: 16px;">➕ Добавить ребёнка</button>
     `;
