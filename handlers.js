@@ -29,35 +29,25 @@ function setupEventListeners() {
     );
 
     /*
-     * ЕДИНЫЙ механизм обновления интерфейса после изменения STATE.
+     * ЕДИНАЯ точка обновления интерфейса.
+     *
+     * Когда children меняется:
+     * addChild/deleteChild/switchChild
+     * → statechange
+     * → render текущего экрана.
+     *
+     * Поэтому экран "Малыши" обновляется сразу.
      */
     window.addEventListener(
         "prikorm:statechange",
         function() {
-            var state =
-                typeof window.getState === "function"
-                    ? window.getState()
-                    : window.STATE;
-
-            state = state || {};
-
-            state.ui = state.ui || {};
-
-            var screen =
-                state.navigation?.currentScreen ||
-                state.ui?.screen ||
-                "home";
-
-            /*
-             * Если statechange пришёл во время onboarding,
-             * не уходим с него.
-             */
-            if (
-                state._onboardingChildId &&
-                screen !== "onboarding"
-            ) {
-                screen = "onboarding";
-            }
+            console.log(
+                "📡 prikorm:statechange",
+                "screen:",
+                STATE.ui?.screen,
+                "children:",
+                STATE.children?.length
+            );
 
             if (
                 typeof updateProfileUI ===
@@ -69,8 +59,12 @@ function setupEventListeners() {
             if (
                 typeof render === "function"
             ) {
+                var screen =
+                    STATE.ui?.screen ||
+                    "home";
+
                 console.log(
-                    "📡 STATE CHANGE → render:",
+                    "📡 Перерисовываю экран:",
                     screen
                 );
 
@@ -269,11 +263,11 @@ function handleDocumentClick(event) {
                 typeof CURRENT_DATE !==
                 "undefined"
                     ? CURRENT_DATE
-                        .toISOString()
-                        .slice(0, 10)
+                          .toISOString()
+                          .slice(0, 10)
                     : new Date()
-                        .toISOString()
-                        .slice(0, 10);
+                          .toISOString()
+                          .slice(0, 10);
 
             if (
                 !isNaN(idx) &&
@@ -312,27 +306,142 @@ function handleDocumentClick(event) {
             break;
 
         /*
-         * Редактирование текущего ребёнка.
+         * ====================================================
+         * СОХРАНЕНИЕ ПРОФИЛЯ ТЕКУЩЕГО РЕБЁНКА
+         * ====================================================
          */
-        case "save-baby":
-            saveCurrentBabyFromModal();
+        case "save-baby": {
+            var name =
+                document.getElementById(
+                    "baby-name-input"
+                )?.value?.trim() ||
+                document.getElementById(
+                    "baby-name"
+                )?.value?.trim() ||
+                "";
+
+            var birthDate =
+                document.getElementById(
+                    "baby-birth-input"
+                )?.value ||
+                document.getElementById(
+                    "baby-birth"
+                )?.value ||
+                "";
+
+            var feedingType =
+                document.getElementById(
+                    "baby-feeding-input"
+                )?.value ||
+                document.getElementById(
+                    "baby-feeding"
+                )?.value ||
+                "";
+
+            if (
+                !name &&
+                !birthDate &&
+                !feedingType
+            ) {
+                showToast(
+                    "Заполните хотя бы одно поле",
+                    "error"
+                );
+                break;
+            }
+
+            var age = {
+                months: 0,
+                days: 0
+            };
+
+            if (
+                birthDate &&
+                typeof calcAge ===
+                    "function"
+            ) {
+                age =
+                    calcAge(
+                        birthDate
+                    );
+            }
+
+            /*
+             * Сначала устанавливаем экран,
+             * потом updateBaby().
+             *
+             * updateBaby() отправит statechange,
+             * и render сразу нарисует baby.
+             */
+            STATE.ui.screen = "baby";
+            STATE.navigation.currentScreen =
+                "baby";
+
+            if (
+                typeof updateBaby ===
+                "function"
+            ) {
+                updateBaby({
+                    name: name,
+                    birthDate: birthDate,
+                    feedingType:
+                        feedingType,
+                    ageMonths:
+                        age.months || 0,
+                    ageDays:
+                        age.days || 0
+                });
+            } else {
+                setBaby({
+                    name: name,
+                    birthDate: birthDate,
+                    feedingType:
+                        feedingType,
+                    ageMonths:
+                        age.months || 0,
+                    ageDays:
+                        age.days || 0
+                });
+            }
+
+            closeModal();
+
+            showToast(
+                "Профиль сохранён ❤️",
+                "success"
+            );
+
             break;
+        }
 
         /*
-         * Переключение ребёнка.
-         *
-         * switchChild() сам сохраняет STATE и вызывает
-         * statechange, поэтому второй render здесь НЕ нужен.
+         * ====================================================
+         * ПЕРЕКЛЮЧЕНИЕ РЕБЁНКА
+         * ====================================================
          */
         case "switch-child": {
             var switchId =
                 target.dataset.childId;
 
+            if (!switchId) {
+                return;
+            }
+
             if (
-                switchId &&
                 typeof window.switchChild ===
-                    "function"
+                "function"
             ) {
+                /*
+                 * Сначала задаём нужный экран.
+                 * switchChild() сохранит состояние
+                 * и отправит statechange.
+                 *
+                 * statechange сам вызовет render('baby').
+                 */
+                STATE.ui.screen = "baby";
+                STATE.navigation.currentScreen =
+                    "baby";
+
                 window.switchChild(
                     switchId
                 );
@@ -342,68 +451,106 @@ function handleDocumentClick(event) {
         }
 
         /*
-         * Удаление ребёнка.
-         *
-         * ВАЖНО:
-         * больше НЕ меняем STATE.children вручную
-         * и НЕ вставляем HTML вручную.
+         * ====================================================
+         * УДАЛЕНИЕ РЕБЁНКА
+         * ====================================================
          */
         case "delete-child": {
             var deleteId =
                 target.dataset.childId;
 
-            if (!deleteId) return;
+            if (!deleteId) {
+                return;
+            }
 
             /*
-             * Не даём клику на кнопку удаления
-             * всплыть до строки ребёнка.
+             * На всякий случай не даём клику
+             * провалиться в родительский row.
              */
             event.stopPropagation();
 
             if (
-                !window.confirm(
+                !confirm(
                     "Удалить этого ребёнка? Все данные по нему будут потеряны."
                 )
             ) {
                 return;
             }
 
+            console.log(
+                "🗑️ Удаление ребёнка:",
+                deleteId
+            );
+
+            /*
+             * ВАЖНО:
+             * больше НЕ меняем STATE.children вручную.
+             *
+             * deleteChild():
+             * 1. удалит ребёнка;
+             * 2. выберет нового currentChildId;
+             * 3. сохранит STATE;
+             * 4. отправит statechange;
+             * 5. handlers автоматически вызовет render('baby').
+             */
+            STATE.ui.screen = "baby";
+            STATE.navigation.currentScreen =
+                "baby";
+
             if (
                 typeof window.deleteChild ===
                 "function"
             ) {
-                console.log(
-                    "🗑️ Удаляем ребёнка:",
-                    deleteId
-                );
-
                 window.deleteChild(
                     deleteId
                 );
-
-                /*
-                 * deleteChild() уже:
-                 * 1. удаляет ребёнка
-                 * 2. корректирует currentChildId
-                 * 3. сохраняет
-                 * 4. вызывает statechange
-                 *
-                 * Поэтому render здесь НЕ вызываем.
-                 */
-                showToast(
-                    "👶 Ребёнок удалён",
-                    "success"
-                );
             } else {
-                showToast(
-                    "Ошибка: функция удаления ребёнка не найдена",
-                    "error"
+                /*
+                 * Резервный вариант, если функция
+                 * state.js вдруг недоступна.
+                 */
+                STATE.children =
+                    STATE.children.filter(
+                        function(child) {
+                            return (
+                                child.id !==
+                                deleteId
+                            );
+                        }
+                    );
+
+                if (
+                    STATE.currentChildId ===
+                    deleteId
+                ) {
+                    STATE.currentChildId =
+                        STATE.children.length
+                            ? STATE.children[0].id
+                            : null;
+                }
+
+                if (
+                    typeof saveState ===
+                    "function"
+                ) {
+                    saveState();
+                }
+
+                window.dispatchEvent(
+                    new CustomEvent(
+                        "prikorm:statechange"
+                    )
                 );
             }
 
             break;
         }
 
+        /*
+         * ====================================================
+         * ДОБАВЛЕНИЕ РЕБЁНКА
+         * ====================================================
+         */
         case "open-add-child":
             showAddChildModal();
             break;
@@ -423,77 +570,8 @@ function handleDocumentClick(event) {
     }
 }
 
-function saveCurrentBabyFromModal() {
-    var name =
-        document
-            .getElementById("baby-name-input")
-            ?.value.trim();
-
-    var birthDate =
-        document.getElementById(
-            "baby-birth-input"
-        )?.value;
-
-    var feedingType =
-        document.getElementById(
-            "baby-feeding-input"
-        )?.value;
-
-    var ageMonths = 0;
-    var ageDays = 0;
-
-    if (
-        birthDate &&
-        typeof calcAge === "function"
-    ) {
-        var age =
-            calcAge(birthDate);
-
-        ageMonths =
-            age.months || 0;
-
-        ageDays =
-            age.days || 0;
-    }
-
-    /*
-     * Используем новую multi-child систему.
-     */
-    if (
-        typeof updateBaby ===
-        "function"
-    ) {
-        updateBaby({
-            name: name || "",
-            birthDate: birthDate || "",
-            feedingType:
-                feedingType || "",
-            ageMonths: ageMonths,
-            ageDays: ageDays
-        });
-
-        closeModal();
-
-        showToast(
-            "Профиль сохранён ❤️",
-            "success"
-        );
-
-        /*
-         * updateBaby() сам вызовет statechange.
-         */
-        return;
-    }
-
-    showToast(
-        "Ошибка: updateBaby не найдена",
-        "error"
-    );
-}
-
 function handleDocumentInput(event) {
-    var id =
-        event.target.id;
+    var id = event.target.id;
 
     switch (id) {
         case "product-search":
@@ -517,8 +595,7 @@ function handleDocumentInput(event) {
 }
 
 function handleDocumentChange(event) {
-    var target =
-        event.target;
+    var target = event.target;
 
     if (
         target.id ===
@@ -587,10 +664,12 @@ function getProductByName(name) {
         PRODUCTS.find(
             function(product) {
                 return (
-                    String(product.name)
-                        .toLowerCase() ===
-                    String(name)
-                        .toLowerCase()
+                    String(
+                        product.name
+                    ).toLowerCase() ===
+                    String(
+                        name
+                    ).toLowerCase()
                 );
             }
         ) || null
@@ -624,19 +703,21 @@ function openProductDetails(product) {
         typeof getSafetyWarning ===
         "function"
             ? getSafetyWarning(
-                product.name
-            )
+                  product.name
+              )
             : null;
 
     var introduced =
         STATE.products.introduced.some(
             function(item) {
                 return (
-                    typeof item ===
-                    "object"
-                        ? item.id
-                        : item
-                ) === product.id;
+                    (
+                        typeof item ===
+                        "object"
+                            ? item.id
+                            : item
+                    ) === product.id
+                );
             }
         );
 
@@ -647,61 +728,61 @@ function openProductDetails(product) {
         '<div>' +
         '<span class="product-large-emoji">' +
         (product.emoji || "🥣") +
-        '</span>' +
-        '<h2>' +
+        "</span>" +
+        "<h2>" +
         escapeHTML(product.name) +
-        '</h2>' +
-        '</div>' +
+        "</h2>" +
+        "</div>" +
         '<button type="button" class="icon-button" data-action="close-modal">×</button>' +
-        '</div>' +
+        "</div>" +
         '<div class="modal-body">' +
         '<div class="product-info-grid">' +
-        '<div><span>Категория</span><strong>' +
+        "<div><span>Категория</span><strong>" +
         escapeHTML(
             product.cat ||
-            product.category ||
-            "—"
+                product.category ||
+                "—"
         ) +
-        '</strong></div>' +
-        '<div><span>Возраст</span><strong>' +
+        "</strong></div>" +
+        "<div><span>Возраст</span><strong>" +
         (
             product.min_age
                 ? product.min_age +
                   "+ мес."
                 : "—"
         ) +
-        '</strong></div>' +
-        '<div><span>Железо</span><strong>' +
+        "</strong></div>" +
+        "<div><span>Железо</span><strong>" +
         (
             product.iron
                 ? "✓"
                 : "—"
         ) +
-        '</strong></div>' +
-        '</div>' +
+        "</strong></div>" +
+        "</div>" +
         (
             product.desc
                 ? '<div class="info-block"><h3>О продукте</h3><p>' +
                   escapeHTML(
                       product.desc
                   ) +
-                  '</p></div>'
-                : ''
+                  "</p></div>"
+                : ""
         ) +
         (
             safety
                 ? '<div class="warning-block"><strong>⚠️ Безопасность</strong><p>' +
                   escapeHTML(
                       safety.warning ||
-                      safety
+                          safety
                   ) +
-                  '</p></div>'
-                : ''
+                  "</p></div>"
+                : ""
         ) +
         (
             product.allergen
                 ? '<div class="warning-block"><strong>⚠️ Аллерген</strong><p>Вводите продукт внимательно и наблюдайте за реакцией малыша.</p></div>'
-                : ''
+                : ""
         ) +
         '<div class="modal-actions">' +
         (
@@ -713,10 +794,10 @@ function openProductDetails(product) {
                   ) +
                   '">+ Добавить продукт</button>'
         ) +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>';
+        "</div>" +
+        "</div>" +
+        "</div>" +
+        "</div>";
 }
 
 function toggleFavoriteHandler(productId) {
@@ -746,7 +827,8 @@ function toggleFavoriteHandler(productId) {
     }
 }
 
-var CURRENT_PRODUCTS_TAB = "all";
+var CURRENT_PRODUCTS_TAB =
+    "all";
 
 function changeProductsTab(tab) {
     CURRENT_PRODUCTS_TAB =
@@ -774,7 +856,8 @@ function changeProductsTab(tab) {
     }
 }
 
-var CURRENT_PRODUCT_CATEGORY = "all";
+var CURRENT_PRODUCT_CATEGORY =
+    "all";
 
 function changeProductCategory(
     category,
@@ -805,7 +888,8 @@ function changeProductCategory(
     }
 }
 
-var CURRENT_PRODUCT_SEARCH = "";
+var CURRENT_PRODUCT_SEARCH =
+    "";
 
 function searchProducts(value) {
     CURRENT_PRODUCT_SEARCH =
@@ -1056,7 +1140,9 @@ function saveFoodHandler() {
 
     updateState(
         function(state) {
-            state.diary.push(entry);
+            state.diary.push(
+                entry
+            );
 
             if (
                 isNew &&
@@ -1066,12 +1152,14 @@ function saveFoodHandler() {
                     state.products.introduced.some(
                         function(item) {
                             return (
-                                typeof item ===
-                                "object"
-                                    ? item.id
-                                    : item
-                            ) ===
-                                product.id;
+                                (
+                                    typeof item ===
+                                    "object"
+                                        ? item.id
+                                        : item
+                                ) ===
+                                product.id
+                            );
                         }
                     );
 
@@ -1080,8 +1168,10 @@ function saveFoodHandler() {
                         {
                             id:
                                 product.id,
+
                             name:
                                 product.name,
+
                             introducedAt:
                                 entry.date
                         }
@@ -1098,8 +1188,9 @@ function saveFoodHandler() {
                     state.brands.some(
                         function(item) {
                             return (
-                                String(item)
-                                    .toLowerCase() ===
+                                String(
+                                    item
+                                ).toLowerCase() ===
                                 brand.toLowerCase()
                             );
                         }
@@ -1126,7 +1217,9 @@ function saveFoodHandler() {
     showScreen("diary");
 }
 
-function renderProductPicker(query) {
+function renderProductPicker(
+    query
+) {
     var container =
         document.getElementById(
             "picker-products"
@@ -1192,28 +1285,30 @@ function renderProductPicker(query) {
                             product.id
                         ) +
                         '">' +
-                        '<span>' +
+                        "<span>" +
                         (
                             product.emoji ||
                             "🥣"
                         ) +
-                        '</span>' +
-                        '<strong>' +
+                        "</span>" +
+                        "<strong>" +
                         escapeHTML(
                             product.name
                         ) +
-                        '</strong>' +
-                        '<span>' +
+                        "</strong>" +
+                        "<span>" +
                         icon("arrow") +
-                        '</span>' +
-                        '</button>'
+                        "</span>" +
+                        "</button>"
                     );
                 }
             )
             .join("");
 }
 
-function searchProductPicker(query) {
+function searchProductPicker(
+    query
+) {
     renderProductPicker(
         query
     );
@@ -1237,7 +1332,6 @@ document.addEventListener(
         if (!product) return;
 
         closeModal();
-
         openAddFoodModal(
             product
         );
@@ -1248,7 +1342,9 @@ function openDiaryAddModal() {
     openAddFoodModal();
 }
 
-function openDiaryEditModal(entryId) {
+function openDiaryEditModal(
+    entryId
+) {
     var entry =
         STATE.diary.find(
             function(item) {
@@ -1296,7 +1392,7 @@ function changeDay(direction) {
 
     CURRENT_DATE.setDate(
         CURRENT_DATE.getDate() +
-        direction
+            direction
     );
 
     if (
@@ -1362,6 +1458,7 @@ function openDatePicker() {
         );
 
     input.type = "date";
+
     input.value =
         formatDate(
             CURRENT_DATE
@@ -1384,7 +1481,7 @@ function openDatePicker() {
                 CURRENT_DATE =
                     new Date(
                         input.value +
-                        "T12:00:00"
+                            "T12:00:00"
                     );
 
                 updateTodayDate();
@@ -1437,7 +1534,9 @@ function changeRecipeCategory(
     }
 }
 
-function searchRecipes(query) {
+function searchRecipes(
+    query
+) {
     window.CURRENT_RECIPE_SEARCH =
         String(query || "")
             .trim()
@@ -1452,22 +1551,17 @@ function searchRecipes(query) {
 }
 
 /*
- * Редактирование текущего ребёнка.
+ * ============================================================
+ * РЕДАКТИРОВАНИЕ ТЕКУЩЕГО РЕБЁНКА
+ * ============================================================
  */
+
 function openBabyEditModal() {
     var baby =
-        typeof getCurrentChild ===
+        typeof window.getCurrentChild ===
         "function"
-            ? getCurrentChild()
-            : null;
-
-    if (!baby) {
-        showToast(
-            "Ребёнок не найден.",
-            "error"
-        );
-        return;
-    }
+            ? window.getCurrentChild()
+            : STATE.baby || {};
 
     var root =
         document.getElementById(
@@ -1482,29 +1576,29 @@ function openBabyEditModal() {
         '<div class="modal-header">' +
         '<h2>Профиль малыша</h2>' +
         '<button type="button" class="icon-button" data-action="close-modal">×</button>' +
-        '</div>' +
+        "</div>" +
         '<div class="modal-body">' +
 
         '<label class="form-label">' +
-        'Имя малыша' +
+        "Имя малыша" +
         '<input id="baby-name-input" value="' +
         escapeHTML(
             baby.name || ""
         ) +
         '" placeholder="Имя">' +
-        '</label>' +
+        "</label>" +
 
         '<label class="form-label">' +
-        'Дата рождения' +
+        "Дата рождения" +
         '<input id="baby-birth-input" type="date" value="' +
         escapeHTML(
             baby.birthDate || ""
         ) +
         '">' +
-        '</label>' +
+        "</label>" +
 
         '<label class="form-label">' +
-        'Тип кормления' +
+        "Тип кормления" +
         '<select id="baby-feeding-input">' +
 
         '<option value="ГВ"' +
@@ -1514,7 +1608,9 @@ function openBabyEditModal() {
                 ? " selected"
                 : ""
         ) +
-        '>Грудное вскармливание</option>' +
+        ">" +
+        "Грудное вскармливание" +
+        "</option>" +
 
         '<option value="ИВ"' +
         (
@@ -1523,7 +1619,9 @@ function openBabyEditModal() {
                 ? " selected"
                 : ""
         ) +
-        '>Искусственное</option>' +
+        ">" +
+        "Искусственное" +
+        "</option>" +
 
         '<option value="Смешанное"' +
         (
@@ -1532,18 +1630,20 @@ function openBabyEditModal() {
                 ? " selected"
                 : ""
         ) +
-        '>Смешанное</option>' +
+        ">" +
+        "Смешанное" +
+        "</option>" +
 
-        '</select>' +
-        '</label>' +
+        "</select>" +
+        "</label>" +
 
         '<button type="button" class="primary-button full-width" data-action="save-baby">' +
-        'Сохранить' +
-        '</button>' +
+        "Сохранить" +
+        "</button>" +
 
-        '</div>' +
-        '</div>' +
-        '</div>';
+        "</div>" +
+        "</div>" +
+        "</div>";
 }
 
 function openSetting(setting) {
@@ -1609,140 +1709,165 @@ function openSetting(setting) {
                         : "light";
 
                 setTheme(
-                    current === "light"
+                    current ===
+                        "light"
                         ? "dark"
                         : "light"
                 );
             }
             break;
 
-        case "run-onboarding":
-            startNewChildOnboarding();
-            break;
-    }
-}
+        case "run-onboarding": {
+            var newChild =
+                window.addChild({
+                    name: "",
+                    birthDate: "",
+                    sex: "",
+                    feedingType: "",
+                    feedingStarted: false,
+                    feedingStartDate: "",
+                    approach: "mixed",
+                    readiness: {},
+                    onboarding: {
+                        allergies: [],
+                        diet: [],
+                        favoriteFoods: [],
+                        worries: [],
+                        confidence: ""
+                    }
+                });
 
-function startNewChildOnboarding() {
-    if (
-        typeof window.addChild !==
-        "function"
-    ) {
-        showToast(
-            "Ошибка: функция addChild не найдена",
-            "error"
-        );
-        return;
-    }
+            if (
+                newChild &&
+                newChild.id
+            ) {
+                STATE._onboardingChildId =
+                    newChild.id;
 
-    var newChild =
-        window.addChild({
-            name: '',
-            birthDate: '',
-            sex: '',
-            feedingType: '',
-            feedingStarted: false,
-            feedingStartDate: '',
-            approach: 'mixed',
-            readiness: {},
-            onboarding: {
-                allergies: [],
-                diet: [],
-                favoriteFoods: [],
-                worries: [],
-                confidence: ''
+                STATE.currentChildId =
+                    newChild.id;
+
+                STATE.ui.screen =
+                    "onboarding";
+
+                STATE.navigation.currentScreen =
+                    "onboarding";
+
+                if (
+                    typeof saveState ===
+                    "function"
+                ) {
+                    saveState();
+                }
             }
-        });
 
-    if (
-        !newChild ||
-        !newChild.id
-    ) {
-        return;
-    }
+            if (
+                typeof render ===
+                "function"
+            ) {
+                render(
+                    "onboarding"
+                );
+            }
 
-    STATE._onboardingChildId =
-        newChild.id;
-
-    STATE.currentChildId =
-        newChild.id;
-
-    if (typeof saveState === 'function') {
-        saveState();
-    }
-
-    STATE.ui = STATE.ui || {};
-    STATE.navigation =
-        STATE.navigation || {};
-
-    STATE.ui.screen =
-        'onboarding';
-
-    STATE.navigation.currentScreen =
-        'onboarding';
-
-    if (
-        typeof render ===
-        "function"
-    ) {
-        render(
-            'onboarding'
-        );
+            break;
+        }
     }
 }
 
-/* ============================================================
-   ДОБАВЛЕНИЕ РЕБЁНКА
-   ============================================================ */
+function confirmReset() {
+    var answer =
+        window.confirm(
+            "Удалить все данные прикорма? Это действие нельзя отменить."
+        );
+
+    if (!answer) return;
+
+    resetState();
+
+    showToast(
+        "Данные удалены.",
+        "success"
+    );
+
+    setTimeout(
+        function() {
+            location.reload();
+        },
+        300
+    );
+}
+
+/*
+ * ============================================================
+ * ДОБАВЛЕНИЕ РЕБЁНКА
+ * ============================================================
+ */
 
 function showAddChildModal() {
     var overlay =
         document.createElement(
-            'div'
+            "div"
         );
 
     overlay.className =
-        'modal-overlay active';
+        "modal-overlay active";
 
     overlay.innerHTML = `
         <div class="modal-sheet">
+
             <h3>👶 Добавить ребёнка</h3>
 
-            <div style="margin:16px 0;">
+            <div style="margin: 16px 0;">
                 <label>Имя</label>
+
                 <input
                     type="text"
                     id="add-child-name"
                     placeholder="Имя"
-                    style="width:100%;padding:12px;border:1px solid var(--border-input);border-radius:8px;margin-top:4px;"
+                    style="width:100%; padding:12px; border:1px solid var(--border-input); border-radius:8px; margin-top:4px;"
                 >
             </div>
 
-            <div style="margin:16px 0;">
+            <div style="margin: 16px 0;">
                 <label>Дата рождения</label>
+
                 <input
                     type="date"
                     id="add-child-birth"
-                    style="width:100%;padding:12px;border:1px solid var(--border-input);border-radius:8px;margin-top:4px;"
+                    style="width:100%; padding:12px; border:1px solid var(--border-input); border-radius:8px; margin-top:4px;"
                 >
             </div>
 
-            <div style="margin:16px 0;">
+            <div style="margin: 16px 0;">
                 <label>Пол</label>
+
                 <select
                     id="add-child-sex"
-                    style="width:100%;padding:12px;border:1px solid var(--border-input);border-radius:8px;margin-top:4px;"
+                    style="width:100%; padding:12px; border:1px solid var(--border-input); border-radius:8px; margin-top:4px;"
                 >
-                    <option value="">Не указан</option>
-                    <option value="male">Мальчик</option>
-                    <option value="female">Девочка</option>
+                    <option value="">
+                        Не указан
+                    </option>
+
+                    <option value="male">
+                        Мальчик
+                    </option>
+
+                    <option value="female">
+                        Девочка
+                    </option>
                 </select>
             </div>
 
-            <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+            <div
+                style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;"
+            >
                 <button
                     class="secondary-button"
                     data-action="close-modal"
                     style="flex:1;"
+                    type="button"
                 >
                     Отмена
                 </button>
@@ -1751,6 +1876,7 @@ function showAddChildModal() {
                     class="secondary-button"
                     id="skip-onboarding-btn"
                     style="flex:1;"
+                    type="button"
                 >
                     Пропустить онбординг
                 </button>
@@ -1759,10 +1885,12 @@ function showAddChildModal() {
                     class="primary-button"
                     id="save-child-btn"
                     style="flex:1;"
+                    type="button"
                 >
                     Сохранить
                 </button>
             </div>
+
         </div>
     `;
 
@@ -1771,17 +1899,20 @@ function showAddChildModal() {
     );
 
     document.body.classList.add(
-        'modal-open'
+        "modal-open"
     );
 
     overlay.addEventListener(
-        'click',
+        "click",
         function(e) {
-            if (e.target === overlay) {
+            if (
+                e.target ===
+                overlay
+            ) {
                 overlay.remove();
 
                 document.body.classList.remove(
-                    'modal-open'
+                    "modal-open"
                 );
             }
         }
@@ -1792,239 +1923,267 @@ function showAddChildModal() {
             '[data-action="close-modal"]'
         )
         .addEventListener(
-            'click',
+            "click",
             function() {
                 overlay.remove();
 
                 document.body.classList.remove(
-                    'modal-open'
+                    "modal-open"
                 );
             }
         );
 
     /*
+     * ========================================================
      * ПРОПУСТИТЬ ОНБОРДИНГ
+     * ========================================================
      */
+
     overlay
         .querySelector(
-            '#skip-onboarding-btn'
+            "#skip-onboarding-btn"
         )
         .addEventListener(
-            'click',
+            "click",
             function() {
                 var name =
                     document.getElementById(
-                        'add-child-name'
+                        "add-child-name"
                     )?.value.trim() ||
-                    'Ребёнок';
+                    "Ребёнок";
 
                 var birthDate =
                     document.getElementById(
-                        'add-child-birth'
+                        "add-child-birth"
                     )?.value ||
-                    '';
+                    "";
 
                 var sex =
                     document.getElementById(
-                        'add-child-sex'
+                        "add-child-sex"
                     )?.value ||
-                    '';
+                    "";
 
                 if (!birthDate) {
                     alert(
-                        'Пожалуйста, укажите дату рождения'
+                        "Пожалуйста, укажите дату рождения"
                     );
+
                     return;
                 }
 
-                var newChild =
-                    window.addChild({
-                        name:
-                            name,
-                        birthDate:
-                            birthDate,
-                        sex:
-                            sex,
-                        feedingType:
-                            '',
-                        feedingStarted:
-                            false,
-                        feedingStartDate:
-                            '',
-                        approach:
-                            'mixed',
-                        readiness:
-                            {},
-                        onboarding: {
-                            allergies: [],
-                            diet: [],
-                            favoriteFoods: [],
-                            worries: [],
-                            confidence: ''
-                        }
-                    });
-
                 if (
-                    !newChild ||
-                    !newChild.id
+                    typeof window.addChild ===
+                    "function"
                 ) {
-                    return;
-                }
+                    var newChild =
+                        window.addChild({
+                            name:
+                                name,
 
-                STATE.currentChildId =
-                    newChild.id;
+                            birthDate:
+                                birthDate,
 
-                STATE.ui =
-                    STATE.ui || {};
+                            sex:
+                                sex,
 
-                STATE.navigation =
-                    STATE.navigation || {};
+                            feedingType:
+                                "",
 
-                STATE.ui.screen =
-                    'baby';
+                            feedingStarted:
+                                false,
 
-                STATE.navigation.currentScreen =
-                    'baby';
+                            feedingStartDate:
+                                "",
 
-                if (
-                    typeof saveState ===
-                    'function'
-                ) {
-                    saveState();
-                }
+                            approach:
+                                "mixed",
 
-                overlay.remove();
+                            readiness:
+                                {},
 
-                document.body.classList.remove(
-                    'modal-open'
-                );
+                            onboarding: {
+                                allergies: [],
+                                diet: [],
+                                favoriteFoods: [],
+                                worries: [],
+                                confidence: ""
+                            }
+                        });
 
-                /*
-                 * addChild() уже вызвал statechange,
-                 * но теперь явно фиксируем baby screen.
-                 */
-                if (
-                    typeof render ===
-                    'function'
-                ) {
-                    render(
-                        'baby'
+                    if (
+                        newChild &&
+                        newChild.id
+                    ) {
+                        STATE.currentChildId =
+                            newChild.id;
+                    }
+
+                    /*
+                     * Ставим baby ДО финального render.
+                     */
+                    STATE.ui.screen =
+                        "baby";
+
+                    STATE.navigation.currentScreen =
+                        "baby";
+
+                    if (
+                        typeof saveState ===
+                        "function"
+                    ) {
+                        saveState();
+                    }
+
+                    overlay.remove();
+
+                    document.body.classList.remove(
+                        "modal-open"
+                    );
+
+                    /*
+                     * Именно здесь гарантируем
+                     * моментальное появление ребёнка
+                     * на странице "Малыши".
+                     */
+                    if (
+                        typeof render ===
+                        "function"
+                    ) {
+                        render("baby");
+                    }
+
+                    showToast(
+                        "👶 Ребёнок добавлен (онбординг пропущен)",
+                        "success"
+                    );
+                } else {
+                    alert(
+                        "Ошибка: функция addChild не найдена"
                     );
                 }
-
-                showToast(
-                    '👶 Ребёнок добавлен (онбординг пропущен)',
-                    'success'
-                );
             }
         );
 
     /*
+     * ========================================================
      * СОХРАНИТЬ → ОНБОРДИНГ
+     * ========================================================
      */
+
     overlay
         .querySelector(
-            '#save-child-btn'
+            "#save-child-btn"
         )
         .addEventListener(
-            'click',
+            "click",
             function() {
                 var name =
                     document.getElementById(
-                        'add-child-name'
+                        "add-child-name"
                     )?.value.trim() ||
-                    'Ребёнок';
+                    "Ребёнок";
 
                 var birthDate =
                     document.getElementById(
-                        'add-child-birth'
+                        "add-child-birth"
                     )?.value ||
-                    '';
+                    "";
 
                 var sex =
                     document.getElementById(
-                        'add-child-sex'
+                        "add-child-sex"
                     )?.value ||
-                    '';
+                    "";
 
                 if (!birthDate) {
                     alert(
-                        'Пожалуйста, укажите дату рождения'
+                        "Пожалуйста, укажите дату рождения"
                     );
+
                     return;
                 }
 
-                var newChild =
-                    window.addChild({
-                        name:
-                            name,
-                        birthDate:
-                            birthDate,
-                        sex:
-                            sex,
-                        feedingType:
-                            '',
-                        feedingStarted:
-                            false,
-                        feedingStartDate:
-                            '',
-                        approach:
-                            'mixed',
-                        readiness:
-                            {},
-                        onboarding: {
-                            allergies: [],
-                            diet: [],
-                            favoriteFoods: [],
-                            worries: [],
-                            confidence: ''
+                if (
+                    typeof window.addChild ===
+                    "function"
+                ) {
+                    var newChild =
+                        window.addChild({
+                            name:
+                                name,
+
+                            birthDate:
+                                birthDate,
+
+                            sex:
+                                sex,
+
+                            feedingType:
+                                "",
+
+                            feedingStarted:
+                                false,
+
+                            feedingStartDate:
+                                "",
+
+                            approach:
+                                "mixed",
+
+                            readiness:
+                                {},
+
+                            onboarding: {
+                                allergies: [],
+                                diet: [],
+                                favoriteFoods: [],
+                                worries: [],
+                                confidence: ""
+                            }
+                        });
+
+                    overlay.remove();
+
+                    document.body.classList.remove(
+                        "modal-open"
+                    );
+
+                    if (
+                        newChild &&
+                        newChild.id
+                    ) {
+                        STATE._onboardingChildId =
+                            newChild.id;
+
+                        STATE.currentChildId =
+                            newChild.id;
+
+                        STATE.ui.screen =
+                            "onboarding";
+
+                        STATE.navigation.currentScreen =
+                            "onboarding";
+
+                        if (
+                            typeof saveState ===
+                            "function"
+                        ) {
+                            saveState();
                         }
-                    });
+                    }
 
-                if (
-                    !newChild ||
-                    !newChild.id
-                ) {
-                    return;
-                }
-
-                STATE._onboardingChildId =
-                    newChild.id;
-
-                STATE.currentChildId =
-                    newChild.id;
-
-                STATE.ui =
-                    STATE.ui || {};
-
-                STATE.navigation =
-                    STATE.navigation || {};
-
-                STATE.ui.screen =
-                    'onboarding';
-
-                STATE.navigation.currentScreen =
-                    'onboarding';
-
-                if (
-                    typeof saveState ===
-                    'function'
-                ) {
-                    saveState();
-                }
-
-                overlay.remove();
-
-                document.body.classList.remove(
-                    'modal-open'
-                );
-
-                if (
-                    typeof render ===
-                    'function'
-                ) {
-                    render(
-                        'onboarding'
+                    if (
+                        typeof render ===
+                        "function"
+                    ) {
+                        render(
+                            "onboarding"
+                        );
+                    }
+                } else {
+                    alert(
+                        "Ошибка: функция addChild не найдена"
                     );
                 }
             }
