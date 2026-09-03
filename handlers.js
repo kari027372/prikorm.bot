@@ -598,7 +598,7 @@ function showAddChildModal() {
             return;
         }
         if (typeof window.addChild === 'function') {
-            window.addChild({
+            var newChild = window.addChild({
                 name: name,
                 birthDate: birthDate,
                 sex: sex,
@@ -607,7 +607,11 @@ function showAddChildModal() {
                 approach: 'mixed',
                 readiness: {}
             });
-            if (typeof saveState === 'function') saveState();
+            // Сразу переключаем на нового ребёнка
+            if (newChild && newChild.id) {
+                STATE.currentChildId = newChild.id;
+                if (typeof saveState === 'function') saveState();
+            }
             overlay.remove();
             document.body.classList.remove('modal-open');
             var currentScreen = STATE.navigation?.currentScreen || 'baby';
@@ -619,7 +623,7 @@ function showAddChildModal() {
     });
 }
 
-// Обработчик сохранения через кнопку "Сохранить"
+// Обработчик сохранения через кнопку "Сохранить" (запускает онбординг)
 document.addEventListener('click', function(event) {
     var target = event.target.closest('#save-child-btn');
     if (!target) return;
