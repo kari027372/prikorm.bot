@@ -248,10 +248,14 @@
         tempData = {};
         targetChildId = null;
 
+        // Синхронизация экрана перед рендером
+        STATE.ui.screen = 'baby';
+        STATE.navigation.currentScreen = 'baby';
+
         if (typeof render === 'function') {
             render('baby');
         }
     }
 
-    console.log('✅ onboarding.js загружен (исправлен)');
+    console.log('✅ onboarding.js загружен (финальная версия)');
 })();
