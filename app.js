@@ -26,6 +26,12 @@ function initApp() {
 
     initializeState();
 
+    // ===== СИНХРОНИЗАЦИЯ UI.SCREEN =====
+    if (STATE.navigation && STATE.navigation.currentScreen && STATE.ui) {
+        STATE.ui.screen = STATE.navigation.currentScreen;
+        console.log('🔄 ui.screen синхронизирован с navigation.currentScreen:', STATE.ui.screen);
+    }
+
     if (typeof initTheme === 'function') {
         initTheme();
     }
@@ -89,6 +95,7 @@ function initializeState() {
                 products: { introduced: [], favorites: [] },
                 settings: { notifications: true },
                 ui: { screen: DEFAULT_SCREEN },
+                navigation: { currentScreen: DEFAULT_SCREEN, previousScreen: null, modal: null },
                 onboarding: {
                     readiness: {},
                     allergies: [],
@@ -111,6 +118,7 @@ function initializeState() {
             products: { introduced: [], favorites: [] },
             settings: { notifications: true },
             ui: { screen: DEFAULT_SCREEN },
+            navigation: { currentScreen: DEFAULT_SCREEN, previousScreen: null, modal: null },
             onboarding: {
                 readiness: {},
                 allergies: [],
@@ -121,6 +129,11 @@ function initializeState() {
             },
             onboardingCompleted: false
         };
+    }
+
+    // ===== СИНХРОНИЗАЦИЯ UI.SCREEN (если navigation уже есть) =====
+    if (STATE.navigation && STATE.navigation.currentScreen && STATE.ui) {
+        STATE.ui.screen = STATE.navigation.currentScreen;
     }
 
     if (typeof STATE.onboardingCompleted !== 'boolean') {
@@ -137,6 +150,7 @@ function normalizeState() {
     if (!Array.isArray(STATE.products.favorites)) STATE.products.favorites = [];
     if (!STATE.settings) STATE.settings = { notifications: true };
     if (!STATE.ui) STATE.ui = { screen: DEFAULT_SCREEN };
+    if (!STATE.navigation) STATE.navigation = { currentScreen: DEFAULT_SCREEN, previousScreen: null, modal: null };
     if (!STATE.onboarding) {
         STATE.onboarding = {
             readiness: {},
@@ -173,6 +187,8 @@ function showScreen(screen) {
     if (window.STATE) {
         STATE.ui = STATE.ui || {};
         STATE.ui.screen = screen;
+        STATE.navigation = STATE.navigation || {};
+        STATE.navigation.currentScreen = screen;
     }
     if (typeof saveState === 'function') saveState();
     if (typeof render === 'function') {
@@ -247,6 +263,7 @@ function resetState() {
         waterLog: [],
         settings: { notifications: true },
         ui: { screen: 'home' },
+        navigation: { currentScreen: 'home', previousScreen: null, modal: null },
         onboarding: {
             readiness: {},
             allergies: [],
@@ -352,6 +369,13 @@ function startApplication() {
 
     if (STATE._onboardingMode) {
         STATE._onboardingMode = null;
+        if (typeof saveState === 'function') saveState();
+    }
+
+    // ===== СИНХРОНИЗАЦИЯ UI.SCREEN =====
+    if (STATE.navigation && STATE.navigation.currentScreen) {
+        STATE.ui.screen = STATE.navigation.currentScreen;
+        console.log('🔄 ui.screen синхронизирован с navigation.currentScreen:', STATE.ui.screen);
         if (typeof saveState === 'function') saveState();
     }
 
