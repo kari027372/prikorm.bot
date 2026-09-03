@@ -638,7 +638,7 @@
 
     /*
      * ============================================================
-     * ПУБЛИЧНЫЙ РЕНДЕР
+     * ПУБЛИЧНЫЙ РЕНДЕР (ИЗМЕНЕНО: добавлен fallback на currentChildId)
      * ============================================================
      */
 
@@ -653,9 +653,12 @@
          * что происходит с _onboardingChildId.
          */
         if (!targetChildId) {
-            targetChildId =
-                state._onboardingChildId ||
-                null;
+            targetChildId = state._onboardingChildId || null;
+            // fallback на currentChildId, если _onboardingChildId не задан
+            if (!targetChildId && state.currentChildId) {
+                targetChildId = state.currentChildId;
+                console.log('🔄 Онбординг: используем currentChildId как fallback', targetChildId);
+            }
         }
 
         return renderStep();
