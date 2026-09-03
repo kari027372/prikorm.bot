@@ -7,14 +7,18 @@ var DEFAULT_SCREEN = "home";
 
 if (typeof buildApp === 'undefined') {
     console.warn('⚠️ buildApp не определена, создаём заглушку');
+
     window.buildApp = function() {
         var app = document.getElementById('app');
+
         if (app) {
             app.innerHTML =
                 '<div id="app-content"></div>' +
                 '<div id="modal-root"></div>' +
                 '<div id="toast-root"></div>';
         }
+
+        console.log('✅ buildApp (заглушка) выполнена');
     };
 }
 
@@ -25,10 +29,19 @@ function initApp() {
 
     if (!app) {
         console.error('❌ Не найден #app');
-        return;
+        return 'error';
     }
 
     initializeState();
+
+    if (STATE.navigation && STATE.navigation.currentScreen && STATE.ui) {
+        STATE.ui.screen = STATE.navigation.currentScreen;
+
+        console.log(
+            '🔄 ui.screen синхронизирован с navigation.currentScreen:',
+            STATE.ui.screen
+        );
+    }
 
     if (typeof initTheme === 'function') {
         initTheme();
@@ -39,17 +52,17 @@ function initApp() {
     }
 
     /*
-     * ПЕРВЫЙ РЕБЁНОК
+     * ПЕРВЫЙ ЗАПУСК
      *
      * Если детей ещё нет и онбординг не завершён —
-     * создаём первого ребёнка и запускаем онбординг.
+     * создаём первого ребёнка и сразу открываем онбординг.
      */
     if (
-        STATE.children.length === 0 &&
+        !STATE._onboardingChildId &&
         STATE.onboardingCompleted === false &&
-        !STATE._onboardingChildId
+        (!Array.isArray(STATE.children) || STATE.children.length === 0)
     ) {
-        console.log('🔄 Первый запуск: создаём ребёнка для онбординга...');
+        console.log('🔄 Первый запуск: создаём первого ребёнка...');
 
         if (typeof window.addChild === 'function') {
             var newChild = window.addChild({
@@ -74,6 +87,14 @@ function initApp() {
                 STATE._onboardingChildId = newChild.id;
                 STATE.currentChildId = newChild.id;
 
+                if (STATE.ui) {
+                    STATE.ui.screen = 'onboarding';
+                }
+
+                if (STATE.navigation) {
+                    STATE.navigation.currentScreen = 'onboarding';
+                }
+
                 if (typeof saveState === 'function') {
                     saveState();
                 }
@@ -83,84 +104,56 @@ function initApp() {
                 render('onboarding');
             }
 
-            return;
-        }
-
-        console.warn('⚠️ addChild не найдена');
-        STATE.onboardingCompleted = true;
-
-        if (typeof saveState === 'function') {
-            saveState();
-        }
-    }
-
-    /*
-     * Если приложение было закрыто прямо во время онбординга,
-     * продолжаем его после перезапуска.
-     */
-    if (STATE._onboardingChildId) {
-        var onboardingChildExists = STATE.children.some(function(child) {
-            return child.id === STATE._onboardingChildId;
-        });
-
-        if (onboardingChildExists) {
-            console.log(
-                '🔄 Продолжаем незавершённый онбординг:',
-                STATE._onboardingChildId
+            /*
+             * Очень важно:
+             * не продолжаем запуск и не вызываем home через таймер.
+             */
+            return 'onboarding';
+        } else {
+            console.warn(
+                '⚠️ addChild не найдена, пропускаем онбординг'
             );
 
-            if (typeof render === 'function') {
-                render('onboarding');
+            STATE.onboardingCompleted = true;
+
+            if (typeof saveState === 'function') {
+                saveState();
             }
-
-            return;
-        }
-
-        STATE._onboardingChildId = null;
-
-        if (typeof saveState === 'function') {
-            saveState();
         }
     }
 
     if (typeof buildApp === 'function') {
         buildApp();
+    } else {
+        console.warn(
+            '⚠️ buildApp не найдена, создаём заглушку вручную'
+        );
+
+        app.innerHTML =
+            '<div id="app-content" class="app-content"></div>' +
+            '<div id="modal-root"></div>' +
+            '<div id="toast-root"></div>';
     }
 
     if (typeof setupEventListeners === 'function') {
         setupEventListeners();
+    } else {
+        console.warn('⚠️ setupEventListeners не найдена');
     }
 
-    /*
-     * Восстанавливаем реально сохранённый экран.
-     * НИКАКОГО принудительного render('home') через 300 мс.
-     */
-    var screen = DEFAULT_SCREEN;
-
-    if (
-        STATE.navigation &&
-        STATE.navigation.currentScreen
-    ) {
-        screen = STATE.navigation.currentScreen;
-    } else if (
+    var screen =
+        STATE &&
         STATE.ui &&
         STATE.ui.screen
-    ) {
-        screen = STATE.ui.screen;
-    }
-
-    /*
-     * После завершённого онбординга не возвращаем пользователя
-     * обратно на onboarding.
-     */
-    if (screen === 'onboarding') {
-        screen = STATE.children.length ? 'baby' : 'home';
-    }
+            ? STATE.ui.screen
+            : DEFAULT_SCREEN;
 
     if (typeof showScreen === 'function') {
         showScreen(screen);
     } else if (typeof render === 'function') {
         render(screen);
+    } else {
+        console.error('❌ render или showScreen не найдены!');
     }
 
     if (typeof updateProfileUI === 'function') {
@@ -168,11 +161,39 @@ function initApp() {
     }
 
     console.log('✅ Приложение запущено');
+
+    return 'ready';
 }
 
 function initializeState() {
     if (typeof loadState === 'function') {
         loadState();
+    } else {
+        if (typeof STATE === 'undefined') {
+            window.STATE = {
+                baby: {},
+                diary: [],
+                products: {
+                    introduced: [],
+                    favorites: []
+                },
+                settings: {
+                    notifications: true
+                },
+                ui: {
+                    screen: DEFAULT_SCREEN
+                },
+                navigation: {
+                    currentScreen: DEFAULT_SCREEN,
+                    previousScreen: null,
+                    modal: null
+                },
+                children: [],
+                currentChildId: null,
+                _onboardingChildId: null,
+                onboardingCompleted: false
+            };
+        }
     }
 
     normalizeState();
@@ -203,56 +224,12 @@ function initializeState() {
         };
     }
 
-    /*
-     * Гарантируем наличие всех основных объектов.
-     */
-    STATE.children = Array.isArray(STATE.children)
-        ? STATE.children
-        : [];
-
-    STATE.navigation = STATE.navigation || {
-        currentScreen: DEFAULT_SCREEN,
-        previousScreen: null,
-        modal: null
-    };
-
-    STATE.ui = STATE.ui || {
-        screen: STATE.navigation.currentScreen || DEFAULT_SCREEN
-    };
+    if (STATE.navigation && STATE.navigation.currentScreen && STATE.ui) {
+        STATE.ui.screen = STATE.navigation.currentScreen;
+    }
 
     if (typeof STATE.onboardingCompleted !== 'boolean') {
         STATE.onboardingCompleted = false;
-    }
-
-    if (typeof STATE._onboardingChildId === 'undefined') {
-        STATE._onboardingChildId = null;
-    }
-
-    /*
-     * Если currentChildId указывает на несуществующего ребёнка —
-     * выбираем первого.
-     */
-    if (
-        STATE.currentChildId &&
-        !STATE.children.some(function(child) {
-            return child.id === STATE.currentChildId;
-        })
-    ) {
-        STATE.currentChildId =
-            STATE.children.length
-                ? STATE.children[0].id
-                : null;
-    }
-
-    if (!STATE.currentChildId && STATE.children.length) {
-        STATE.currentChildId = STATE.children[0].id;
-    }
-
-    /*
-     * Экран хранится в одном месте и синхронизируется.
-     */
-    if (STATE.navigation.currentScreen) {
-        STATE.ui.screen = STATE.navigation.currentScreen;
     }
 }
 
@@ -308,7 +285,7 @@ function normalizeState() {
         STATE.children = [];
     }
 
-    if (typeof STATE.currentChildId === 'undefined') {
+    if (!STATE.currentChildId) {
         STATE.currentChildId = null;
     }
 
@@ -333,7 +310,7 @@ function normalizeState() {
     }
 
     /*
-     * Миграция старого onboarding.
+     * Старый формат onboarding → onboarding первого ребёнка.
      */
     if (STATE.onboarding) {
         if (
@@ -343,9 +320,11 @@ function normalizeState() {
             STATE.children[0].onboarding = {
                 allergies: STATE.onboarding.allergies || [],
                 diet: STATE.onboarding.diet || [],
-                favoriteFoods: STATE.onboarding.favoriteFoods || [],
+                favoriteFoods:
+                    STATE.onboarding.favoriteFoods || [],
                 worries: STATE.onboarding.worries || [],
-                confidence: STATE.onboarding.confidence || ''
+                confidence:
+                    STATE.onboarding.confidence || ''
             };
         }
 
@@ -365,6 +344,9 @@ function buildAppShell() {
 }
 
 function showScreen(screen) {
+    /*
+     * onboarding тоже является допустимым экраном.
+     */
     var validScreens = [
         'home',
         'products',
@@ -388,15 +370,8 @@ function showScreen(screen) {
         STATE.navigation.currentScreen = screen;
     }
 
-    /*
-     * Onboarding — технический экран.
-     * Не сохраняем его как обычный экран навигации,
-     * чтобы после завершения приложение не возвращалось туда.
-     */
-    if (screen !== 'onboarding') {
-        if (typeof saveState === 'function') {
-            saveState();
-        }
+    if (typeof saveState === 'function') {
+        saveState();
     }
 
     if (typeof render === 'function') {
@@ -461,9 +436,8 @@ function showToast(message, type) {
 }
 
 /*
- * Старый setBaby оставляем для совместимости со старым кодом.
- * Для текущего приложения основным источником профиля является
- * updateBaby() из state.js.
+ * Совместимость со старым кодом.
+ * Если есть текущий ребёнок — обновляем именно его.
  */
 function setBaby(data) {
     if (!window.STATE) return;
@@ -482,13 +456,9 @@ function setBaby(data) {
         saveState();
     }
 
-    if (typeof emitStateChange === 'function') {
-        emitStateChange();
-    } else {
-        window.dispatchEvent(
-            new CustomEvent('prikorm:statechange')
-        );
-    }
+    window.dispatchEvent(
+        new CustomEvent('prikorm:statechange')
+    );
 }
 
 function toggleFavoriteProduct(productId) {
@@ -511,13 +481,9 @@ function toggleFavoriteProduct(productId) {
         saveState();
     }
 
-    if (typeof emitStateChange === 'function') {
-        emitStateChange();
-    } else {
-        window.dispatchEvent(
-            new CustomEvent('prikorm:statechange')
-        );
-    }
+    window.dispatchEvent(
+        new CustomEvent('prikorm:statechange')
+    );
 }
 
 function resetState() {
@@ -604,38 +570,33 @@ function migrateLegacyProfile() {
                 oldProfile.feeding_strategy;
         }
 
-        if (
-            Array.isArray(oldProfile.introduced_foods)
-        ) {
+        if (Array.isArray(oldProfile.introduced_foods)) {
             oldProfile.introduced_foods.forEach(
                 function(name) {
                     var product =
                         typeof PRODUCTS !== 'undefined'
                             ? PRODUCTS.find(
-                                function(p) {
-                                    return p.name === name;
-                                }
-                            )
+                                  function(p) {
+                                      return p.name === name;
+                                  }
+                              )
                             : null;
 
                     var value = product
                         ? {
-                            id: product.id,
-                            name: product.name
-                        }
+                              id: product.id,
+                              name: product.name
+                          }
                         : {
-                            name: name
-                        };
+                              name: name
+                          };
 
                     var exists =
                         STATE.products.introduced.some(
                             function(item) {
                                 return (
-                                    item.id ||
-                                    item.name
-                                ) === (
-                                    value.id ||
-                                    value.name
+                                    (item.id || item.name) ===
+                                    (value.id || value.name)
                                 );
                             }
                         );
@@ -649,18 +610,16 @@ function migrateLegacyProfile() {
             );
         }
 
-        if (
-            Array.isArray(oldProfile.loved_foods)
-        ) {
+        if (Array.isArray(oldProfile.loved_foods)) {
             oldProfile.loved_foods.forEach(
                 function(name) {
                     var product =
                         typeof PRODUCTS !== 'undefined'
                             ? PRODUCTS.find(
-                                function(p) {
-                                    return p.name === name;
-                                }
-                            )
+                                  function(p) {
+                                      return p.name === name;
+                                  }
+                              )
                             : null;
 
                     if (
@@ -697,8 +656,7 @@ function migrateLegacyProfile() {
                             productName:
                                 item.product || '',
                             liked: null,
-                            notes:
-                                item.notes || '',
+                            notes: item.notes || '',
                             reaction:
                                 item.reaction || null,
                             source: 'legacy'
@@ -726,7 +684,7 @@ function migrateLegacyProfile() {
         );
     } catch (error) {
         console.warn(
-            'Не удалось перенести старые данные:',
+            'Не удалось перенести данные:',
             error
         );
     }
@@ -743,22 +701,33 @@ window.addEventListener(
 );
 
 function startApplication() {
-    initApp();
+    var result = initApp();
+
+    /*
+     * Если сейчас идёт онбординг,
+     * больше ничего после initApp не запускаем.
+     *
+     * Это убирает старый баг, когда через 300 мс
+     * home перерисовывал поверх onboarding.
+     */
+    if (result === 'onboarding') {
+        console.log(
+            '👶 Приложение запущено в режиме онбординга'
+        );
+        return;
+    }
 
     migrateLegacyProfile();
 
     /*
-     * Старый baby → children.
-     * Выполняем только если действительно есть старые данные
-     * и детей ещё нет.
+     * Дополнительная защита для старых данных.
      */
     if (
         STATE.baby &&
-        Object.keys(STATE.baby).length > 0 &&
-        STATE.children.length === 0
+        Object.keys(STATE.baby).length > 0
     ) {
         console.log(
-            '🔄 Обнаружен старый объект baby, мигрируем в children...'
+            '🔄 Обнаружен старый объект baby, мигрируем...'
         );
 
         if (
@@ -771,30 +740,41 @@ function startApplication() {
                 id:
                     'child_' +
                     Date.now(),
+
                 name:
                     STATE.baby.name || '',
+
                 birthDate:
                     STATE.baby.birthDate || '',
+
                 sex:
                     STATE.baby.sex || '',
+
                 feedingType:
                     STATE.baby.feedingType || '',
+
                 feedingStarted:
                     STATE.baby.feedingStarted ||
                     false,
+
                 feedingStartDate:
                     STATE.baby.feedingStartDate ||
                     '',
+
                 approach:
                     STATE.baby.approach ||
                     'mixed',
+
                 readiness:
                     STATE.baby.readiness ||
                     {},
+
                 notes:
                     STATE.baby.notes || '',
+
                 photo:
                     STATE.baby.photo || '',
+
                 onboarding: {
                     allergies: [],
                     diet: [],
@@ -804,31 +784,37 @@ function startApplication() {
                 }
             };
 
+            if (!STATE.children) {
+                STATE.children = [];
+            }
+
             STATE.children.push(newChild);
+
             STATE.currentChildId =
                 newChild.id;
+
+            delete STATE.baby;
 
             if (typeof saveState === 'function') {
                 saveState();
             }
 
             console.log(
-                '✅ Миграция выполнена'
+                '✅ Миграция выполнена:',
+                newChild
             );
         }
     }
 
-    /*
-     * Если дети уже есть — считаем первоначальный onboarding
-     * завершённым.
-     *
-     * Исключение: если сейчас реально идёт onboarding.
-     */
     if (
+        STATE.children &&
         STATE.children.length > 0 &&
-        STATE.onboardingCompleted === false &&
-        !STATE._onboardingChildId
+        STATE.onboardingCompleted === false
     ) {
+        console.log(
+            '🔄 Обнаружены дети, но онбординг не завершён'
+        );
+
         STATE.onboardingCompleted = true;
 
         if (typeof saveState === 'function') {
@@ -836,16 +822,12 @@ function startApplication() {
         }
     }
 
-    /*
-     * Проверяем существование ребёнка,
-     * на которого указывает onboarding.
-     */
     if (STATE._onboardingChildId) {
         var exists =
             STATE.children.some(
-                function(child) {
+                function(c) {
                     return (
-                        child.id ===
+                        c.id ===
                         STATE._onboardingChildId
                     );
                 }
@@ -860,27 +842,51 @@ function startApplication() {
         }
     }
 
-    /*
-     * Нормализуем текущего ребёнка.
-     */
     if (
-        !STATE.currentChildId &&
-        STATE.children.length
+        STATE.navigation &&
+        STATE.navigation.currentScreen
     ) {
-        STATE.currentChildId =
-            STATE.children[0].id;
+        STATE.ui.screen =
+            STATE.navigation.currentScreen;
+    }
+
+    /*
+     * Больше НЕТ принудительного render('home')
+     * через setTimeout.
+     *
+     * Открывается именно сохранённый экран.
+     */
+    var screen =
+        STATE?.ui?.screen ||
+        DEFAULT_SCREEN;
+
+    if (screen === 'onboarding') {
+        screen = 'home';
+        STATE.ui.screen = 'home';
+        STATE.navigation.currentScreen = 'home';
 
         if (typeof saveState === 'function') {
             saveState();
         }
     }
+
+    if (typeof render === 'function') {
+        render(screen);
+    }
+
+    console.log(
+        '✅ Финальный экран:',
+        screen
+    );
 }
 
 if (document.readyState === 'loading') {
     document.addEventListener(
         'DOMContentLoaded',
         startApplication,
-        { once: true }
+        {
+            once: true
+        }
     );
 } else {
     startApplication();
@@ -900,7 +906,7 @@ window.migrateLegacyProfile =
     migrateLegacyProfile;
 
 window.resetOnboarding = function() {
-    if (window.STATE) {
+    if (STATE) {
         STATE.onboardingCompleted = false;
 
         if (typeof saveState === 'function') {
