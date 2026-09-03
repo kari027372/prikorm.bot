@@ -13,53 +13,18 @@
     }
 
     function createChild(data) {
-        if (!window.STATE) {
-            console.error('STATE не определён');
-            return null;
+        if (typeof window.addChild === 'function') {
+            return window.addChild(data);
         }
-        if (!Array.isArray(window.STATE.children)) {
-            window.STATE.children = [];
-        }
-        const id = 'child_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-        const newChild = {
-            id: id,
-            name: data.name || '',
-            birthDate: data.birthDate || '',
-            sex: data.sex || '',
-            feedingType: data.feedingType || '',
-            feedingStarted: data.feedingStarted || false,
-            feedingStartDate: data.feedingStartDate || '',
-            approach: data.approach || 'mixed',
-            readiness: data.readiness || {},
-            onboarding: data.onboarding || {
-                allergies: [],
-                diet: [],
-                favoriteFoods: [],
-                worries: [],
-                confidence: ''
-            },
-            diary: [],
-            plan: {},
-            settings: {}
-        };
-        window.STATE.children.push(newChild);
-        window.STATE.currentChildId = newChild.id;
-        // Синхронизируем STATE.baby как массив всех детей
-        window.STATE.baby = window.STATE.children.slice();
-        if (typeof window.saveState === 'function') {
-            window.saveState();
-        }
-        if (typeof window.dispatchEvent === 'function') {
-            window.dispatchEvent(new CustomEvent('prikorm:statechange'));
-        }
-        console.log('✅ Ребёнок создан через childService:', newChild);
-        return newChild;
+        console.error('❌ addChild не доступен');
+        return null;
     }
 
     function setActiveChild(childId) {
         if (typeof window.switchChild === 'function') {
             return window.switchChild(childId);
         }
+        // Fallback
         const child = getChild(childId);
         if (!child) return false;
         window.STATE.currentChildId = childId;
@@ -69,6 +34,10 @@
     }
 
     function updateChild(childId, updates) {
+        if (typeof window.updateChild === 'function') {
+            return window.updateChild(childId, updates);
+        }
+        // Fallback
         const child = getChild(childId);
         if (!child) return false;
         Object.assign(child, updates);
@@ -78,24 +47,19 @@
     }
 
     function deleteChild(childId) {
-        if (!window.STATE || !Array.isArray(window.STATE.children)) {
-            console.error('STATE.children не найден');
-            return false;
+        if (typeof window.deleteChild === 'function') {
+            return window.deleteChild(childId);
         }
+        // Fallback (реализован в state.js, но если нет – делаем сами)
+        if (!window.STATE || !Array.isArray(window.STATE.children)) return false;
         const index = window.STATE.children.findIndex(c => c.id === childId);
-        if (index === -1) {
-            console.warn('Ребёнок не найден для удаления:', childId);
-            return false;
-        }
+        if (index === -1) return false;
         window.STATE.children.splice(index, 1);
         if (window.STATE.currentChildId === childId) {
             window.STATE.currentChildId = window.STATE.children.length ? window.STATE.children[0].id : null;
         }
-        // Синхронизируем STATE.baby
-        window.STATE.baby = window.STATE.children.slice();
         if (typeof window.saveState === 'function') window.saveState();
         window.dispatchEvent(new CustomEvent('prikorm:statechange'));
-        console.log('🗑️ Ребёнок удалён:', childId);
         return true;
     }
 
@@ -123,6 +87,10 @@
         return getActiveChild();
     }
 
+    // ============================================================
+    // ПУБЛИЧНЫЙ API
+    // ============================================================
+
     window.childService = {
         getChildren: getChildren,
         getActiveChild: getActiveChild,
@@ -134,5 +102,5 @@
         ensureActiveChild: ensureActiveChild
     };
 
-    console.log('✅ child-service загружен (исправленная версия)');
+    console.log('✅ child-service загружен (исправлен, без синхронизации baby)');
 })();
