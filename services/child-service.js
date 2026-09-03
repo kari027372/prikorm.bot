@@ -1,14 +1,5 @@
-/* ============================================================
-   services/child-service.js
-   Централизованные операции с детьми
-   ============================================================ */
-
 (function() {
     'use strict';
-
-    // ============================================================
-    // ОБЁРТКИ НАД СУЩЕСТВУЮЩИМИ ФУНКЦИЯМИ
-    // ============================================================
 
     function getChildren() {
         return window.STATE?.children || [];
@@ -22,43 +13,82 @@
     }
 
     function createChild(data) {
-        if (typeof window.addChild !== 'function') {
-            console.error('❌ addChild не определена');
+        if (!window.STATE) {
+            console.error('STATE не определён');
             return null;
         }
-        return window.addChild(data);
+        if (!Array.isArray(window.STATE.children)) {
+            window.STATE.children = [];
+        }
+        const id = 'child_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const newChild = {
+            id: id,
+            name: data.name || '',
+            birthDate: data.birthDate || '',
+            sex: data.sex || '',
+            feedingType: data.feedingType || '',
+            feedingStarted: data.feedingStarted || false,
+            feedingStartDate: data.feedingStartDate || '',
+            approach: data.approach || 'mixed',
+            readiness: data.readiness || {},
+            onboarding: data.onboarding || {
+                allergies: [],
+                diet: [],
+                favoriteFoods: [],
+                worries: [],
+                confidence: ''
+            },
+            diary: [],
+            plan: {},
+            settings: {}
+        };
+        window.STATE.children.push(newChild);
+        window.STATE.currentChildId = newChild.id;
+        if (typeof window.saveState === 'function') {
+            window.saveState();
+        }
+        if (typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('prikorm:statechange'));
+        }
+        console.log('✅ Ребёнок создан через childService:', newChild);
+        return newChild;
     }
 
     function setActiveChild(childId) {
-        if (typeof window.switchChild !== 'function') {
-            console.error('❌ switchChild не определена');
-            return false;
+        if (typeof window.switchChild === 'function') {
+            return window.switchChild(childId);
         }
-        return window.switchChild(childId);
+        const child = getChild(childId);
+        if (!child) return false;
+        window.STATE.currentChildId = childId;
+        if (typeof window.saveState === 'function') window.saveState();
+        window.dispatchEvent(new CustomEvent('prikorm:statechange'));
+        return true;
     }
 
     function updateChild(childId, updates) {
         const child = getChild(childId);
-        if (!child) {
-            console.warn('Ребёнок не найден:', childId);
-            return false;
-        }
+        if (!child) return false;
         Object.assign(child, updates);
-        if (typeof window.saveState === 'function') {
-            window.saveState();
-        }
-        if (typeof window.emitStateChange === 'function') {
-            window.emitStateChange();
-        }
+        if (typeof window.saveState === 'function') window.saveState();
+        window.dispatchEvent(new CustomEvent('prikorm:statechange'));
         return true;
     }
 
     function deleteChild(childId) {
-        if (typeof window.deleteChild !== 'function') {
-            console.error('❌ deleteChild не определена');
-            return false;
+        if (typeof window.deleteChild === 'function') {
+            return window.deleteChild(childId);
         }
-        return window.deleteChild(childId);
+        const children = getChildren();
+        const index = children.findIndex(c => c.id === childId);
+        if (index === -1) return false;
+        children.splice(index, 1);
+        if (window.STATE.currentChildId === childId) {
+            window.STATE.currentChildId = children.length ? children[0].id : null;
+        }
+        if (typeof window.saveState === 'function') window.saveState();
+        window.dispatchEvent(new CustomEvent('prikorm:statechange'));
+        return true;
     }
 
     function getChild(childId) {
@@ -66,41 +96,24 @@
         return children.find(c => c.id === childId) || null;
     }
 
-    // ============================================================
-    // ДОПОЛНИТЕЛЬНЫЕ ПРОВЕРКИ
-    // ============================================================
-
     function ensureActiveChild() {
         const children = getChildren();
         if (!children.length) {
-            // Нет детей – обнуляем активного
-            const state = window.STATE;
-            if (state) {
-                state.currentChildId = null;
-                if (typeof window.saveState === 'function') window.saveState();
-            }
+            if (window.STATE) window.STATE.currentChildId = null;
+            if (typeof window.saveState === 'function') window.saveState();
             return null;
         }
-
         const state = window.STATE;
         if (!state) return null;
-
         const exists = children.some(c => c.id === state.currentChildId);
         if (!exists) {
-            // Если активный не существует, выбираем первого
-            const firstChild = children[0];
-            state.currentChildId = firstChild.id;
+            state.currentChildId = children[0].id;
             if (typeof window.saveState === 'function') window.saveState();
             console.log('🔄 child-service: currentChildId скорректирован на первого ребёнка');
-            return firstChild;
+            return children[0];
         }
-
         return getActiveChild();
     }
-
-    // ============================================================
-    // ПУБЛИЧНЫЙ API
-    // ============================================================
 
     window.childService = {
         getChildren: getChildren,
@@ -113,5 +126,5 @@
         ensureActiveChild: ensureActiveChild
     };
 
-    console.log('✅ child-service загружен');
+    console.log('✅ child-service загружен (исправленная версия)');
 })();
