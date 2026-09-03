@@ -128,6 +128,11 @@
         ui.previousScreen = ui.screen;
         ui.screen = screen;
 
+        // Синхронизируем navigation.currentScreen
+        if (STATE.navigation) {
+            STATE.navigation.currentScreen = screen;
+        }
+
         window.scrollTo({ top: 0, behavior: 'instant' });
         console.log('✅ render() завершён для экрана:', screen);
     }
