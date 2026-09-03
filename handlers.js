@@ -1,6 +1,5 @@
 /* ============================================================
-   handlers.js
-   Все интерактивные действия приложения
+   handlers.js — финальная версия (мгновенное обновление UI)
    ============================================================ */
 
 function setupEventListeners() {
@@ -14,7 +13,7 @@ function setupEventListeners() {
     });
     window.addEventListener("prikorm:statechange", function() {
         console.log('📡 prikorm:statechange сработал, STATE.ui.screen:', STATE.ui?.screen);
-        updateProfileUI();
+        if (typeof updateProfileUI === 'function') updateProfileUI();
         if (typeof render === "function") {
             var screen = STATE.ui?.screen || "home";
             console.log('📡 Вызываю render с экраном:', screen);
@@ -142,6 +141,9 @@ function handleDocumentClick(event) {
                 if (typeof updateBaby === 'function') {
                     updateBaby({ name: name, birthDate: birthDate, feedingType: feedingType, ageMonths: age.months, ageDays: age.days });
                     closeModal();
+                    // Синхронизация экрана
+                    STATE.ui.screen = 'baby';
+                    STATE.navigation.currentScreen = 'baby';
                     render('baby');
                     showToast('Профиль сохранён', 'success');
                 } else {
@@ -156,6 +158,8 @@ function handleDocumentClick(event) {
             var childId = target.dataset.childId;
             if (childId && typeof window.switchChild === 'function') {
                 window.switchChild(childId);
+                STATE.ui.screen = 'baby';
+                STATE.navigation.currentScreen = 'baby';
                 if (typeof render === 'function') render('baby');
             }
             break;
@@ -171,9 +175,13 @@ function handleDocumentClick(event) {
                         saveState();
                         console.log('🗑️ saveState выполнен');
                     }
+                    // Принудительная синхронизация экрана
+                    STATE.ui.screen = 'baby';
+                    STATE.navigation.currentScreen = 'baby';
+                    // Мгновенный рендер без задержки
                     if (typeof render === 'function') {
                         render('baby');
-                        console.log('🗑️ render("baby") вызван сразу');
+                        console.log('🗑️ render("baby") вызван');
                     }
                 }
             }
@@ -501,6 +509,8 @@ document.addEventListener("click", function(event) {
     closeModal();
     updateProfileUI();
     showToast("Профиль сохранён ❤️", "success");
+    STATE.ui.screen = 'baby';
+    STATE.navigation.currentScreen = 'baby';
     showScreen("baby");
 });
 
@@ -645,6 +655,9 @@ function showAddChildModal() {
             }
             overlay.remove();
             document.body.classList.remove('modal-open');
+            // Синхронизация экрана
+            STATE.ui.screen = 'baby';
+            STATE.navigation.currentScreen = 'baby';
             if (typeof render === 'function') render('baby');
             showToast('👶 Ребёнок добавлен (онбординг пропущен)', 'success');
         } else {
@@ -684,6 +697,7 @@ function showAddChildModal() {
                 STATE.currentChildId = newChild.id;
                 if (typeof saveState === 'function') saveState();
             }
+            // Переход на онбординг
             if (typeof render === 'function') render('onboarding');
         } else {
             alert('Ошибка: функция addChild не найдена');
