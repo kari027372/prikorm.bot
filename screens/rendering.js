@@ -1,5 +1,5 @@
 /* ============================================================
-   rendering.js — диспетчер рендеринга (чистый) с логами
+   rendering.js — диспетчер рендеринга (с принудительной перерисовкой)
    ============================================================ */
 
 (function() {
@@ -84,7 +84,7 @@
     }
 
     function render(screen) {
-        console.log('🔄 render() вызван с экраном:', screen);
+        console.log('🔄 render() вызван с экраном:', screen, 'текущий ui.screen:', getUIState().screen);
         screen = screen || getUIState().screen || DEFAULT_SCREEN;
 
         if (!VALID_SCREENS.includes(screen)) {
@@ -105,6 +105,7 @@
         try {
             if (typeof renderFn === 'function') {
                 html = renderFn();
+                console.log('📝 HTML от ' + renderFnName + ' получен, длина:', html.length);
             } else {
                 console.error('❌ Функция ' + renderFnName + ' не найдена');
                 html = renderErrorScreen('Ошибка: ' + renderFnName + ' не определена');
@@ -115,7 +116,11 @@
         }
 
         const navHtml = renderBottomNavigation(screen);
+        console.log('📝 navHtml длина:', navHtml.length);
+
+        // ПРИНУДИТЕЛЬНАЯ ЗАМЕНА innerHTML
         app.innerHTML = html + navHtml;
+        console.log('✅ app.innerHTML обновлён');
 
         const ui = getUIState();
         ui.previousScreen = ui.screen;
@@ -156,11 +161,9 @@
     window.addMealToPlan = addMealToPlan;
     window.removeMealFromPlan = removeMealFromPlan;
     window.getDiaryStats = getDiaryStats;
-    // window.formatAge = formatAge;   <-- УБРАНО, чтобы не переопределять функцию из utils.js
     window.renderBottomNavigation = renderBottomNavigation;
     window.renderErrorScreen = renderErrorScreen;
 
     console.log('✅ render определена?', typeof window.render);
     console.log('✅ rendering.js: завершён успешно');
-
 })();
