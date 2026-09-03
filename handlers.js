@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js — финальная версия (мгновенное обновление UI)
+   handlers.js — финальная версия (прямое удаление)
    ============================================================ */
 
 function setupEventListeners() {
@@ -141,7 +141,6 @@ function handleDocumentClick(event) {
                 if (typeof updateBaby === 'function') {
                     updateBaby({ name: name, birthDate: birthDate, feedingType: feedingType, ageMonths: age.months, ageDays: age.days });
                     closeModal();
-                    // Синхронизация экрана
                     STATE.ui.screen = 'baby';
                     STATE.navigation.currentScreen = 'baby';
                     render('baby');
@@ -167,22 +166,24 @@ function handleDocumentClick(event) {
             var childId = target.dataset.childId;
             if (!childId) return;
             if (confirm('Удалить этого ребёнка? Все данные по нему будут потеряны.')) {
-                if (typeof window.deleteChild === 'function') {
-                    console.log('🗑️ Удаление: до deleteChild, children:', STATE.children.length);
-                    window.deleteChild(childId);
-                    console.log('🗑️ Удаление: после deleteChild, children:', STATE.children.length);
-                    if (typeof saveState === 'function') {
-                        saveState();
-                        console.log('🗑️ saveState выполнен');
-                    }
-                    // Принудительная синхронизация экрана
-                    STATE.ui.screen = 'baby';
-                    STATE.navigation.currentScreen = 'baby';
-                    // Мгновенный рендер без задержки
-                    if (typeof render === 'function') {
-                        render('baby');
-                        console.log('🗑️ render("baby") вызван');
-                    }
+                console.log('🗑️ Удаление: до удаления, children:', STATE.children.length);
+                // Удаляем напрямую из STATE.children
+                STATE.children = STATE.children.filter(function(c) { return c.id !== childId; });
+                if (STATE.currentChildId === childId) {
+                    STATE.currentChildId = STATE.children.length ? STATE.children[0].id : null;
+                }
+                console.log('🗑️ Удаление: после удаления, children:', STATE.children.length);
+                if (typeof saveState === 'function') {
+                    saveState();
+                    console.log('🗑️ saveState выполнен');
+                }
+                // Синхронизация экрана
+                STATE.ui.screen = 'baby';
+                STATE.navigation.currentScreen = 'baby';
+                // Мгновенный рендер
+                if (typeof render === 'function') {
+                    render('baby');
+                    console.log('🗑️ render("baby") вызван');
                 }
             }
             break;
@@ -655,7 +656,6 @@ function showAddChildModal() {
             }
             overlay.remove();
             document.body.classList.remove('modal-open');
-            // Синхронизация экрана
             STATE.ui.screen = 'baby';
             STATE.navigation.currentScreen = 'baby';
             if (typeof render === 'function') render('baby');
@@ -697,7 +697,6 @@ function showAddChildModal() {
                 STATE.currentChildId = newChild.id;
                 if (typeof saveState === 'function') saveState();
             }
-            // Переход на онбординг
             if (typeof render === 'function') render('onboarding');
         } else {
             alert('Ошибка: функция addChild не найдена');
