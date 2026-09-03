@@ -16,7 +16,6 @@ function setupEventListeners() {
         console.log('📡 prikorm:statechange сработал, STATE.ui.screen:', STATE.ui?.screen);
         updateProfileUI();
         if (typeof render === "function") {
-            // Не перерисовываем home, если мы на baby (чтобы не сбросить изменения)
             var screen = STATE.ui?.screen || "home";
             console.log('📡 Вызываю render с экраном:', screen);
             render(screen);
@@ -157,7 +156,6 @@ function handleDocumentClick(event) {
             var childId = target.dataset.childId;
             if (childId && typeof window.switchChild === 'function') {
                 window.switchChild(childId);
-                // Явный рендер экрана "Малыш"
                 if (typeof render === 'function') render('baby');
             }
             break;
@@ -170,13 +168,16 @@ function handleDocumentClick(event) {
                     window.deleteChild(childId);
                     console.log('🗑️ Удаление: после deleteChild, children:', STATE.children.length);
                     if (typeof saveState === 'function') saveState();
-                    console.log('🗑️ Вызываю render("baby")');
-                    if (typeof render === 'function') {
-                        render('baby');
-                        console.log('🗑️ render("baby") вызван');
-                    } else {
-                        console.error('❌ render не определён');
-                    }
+                    console.log('🗑️ Вызываю render("baby") через requestAnimationFrame');
+                    // Используем requestAnimationFrame для обновления DOM после текущего цикла событий
+                    requestAnimationFrame(function() {
+                        if (typeof render === 'function') {
+                            render('baby');
+                            console.log('🗑️ render("baby") вызван через requestAnimationFrame');
+                        } else {
+                            console.error('❌ render не определён');
+                        }
+                    });
                 }
             }
             break;
