@@ -2,6 +2,8 @@
 window.renderBaby = function() {
     const state = window.STATE || {};
     const children = state.children || [];
+    console.log('👶 renderBaby: children.length =', children.length, 'children:', children.map(c => c.name).join(', '));
+
     const current = window.getCurrentChild ? window.getCurrentChild() : null;
 
     let html = `
