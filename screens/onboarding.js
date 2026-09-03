@@ -124,19 +124,27 @@
     }
 
     window.renderOnboarding = function() {
-        currentStep = 0;
-        tempData = {};
-        targetChildId = STATE._onboardingChildId || null;
+        if (!targetChildId) {
+            targetChildId = STATE._onboardingChildId || null;
+        }
         return renderStep();
     };
+
+    function refreshOnboarding() {
+        if (typeof render === 'function') {
+            render('onboarding');
+        }
+    }
 
     document.addEventListener('click', function(e) {
         const target = e.target.closest('[data-action]');
         if (!target) return;
         const action = target.dataset.action;
 
+        const onboardingEl = document.querySelector('.onboarding');
+        if (!onboardingEl) return;
+
         if (action === 'next-step' || action === 'prev-step' || action === 'skip-step' || action === 'finish-onboarding') {
-            // Проверка на экран онбординга убрана, чтобы не блокировать
             const step = STEPS[currentStep];
             if (!step) return;
 
@@ -183,18 +191,18 @@
             if (action === 'skip-step') {
                 currentStep++;
                 if (currentStep >= STEPS.length) currentStep = STEPS.length - 1;
-                renderAndUpdate();
+                refreshOnboarding();
                 return;
             }
             if (action === 'prev-step') {
                 if (currentStep > 0) currentStep--;
-                renderAndUpdate();
+                refreshOnboarding();
                 return;
             }
             if (action === 'next-step') {
                 currentStep++;
                 if (currentStep >= STEPS.length) currentStep = STEPS.length - 1;
-                renderAndUpdate();
+                refreshOnboarding();
                 return;
             }
             if (action === 'finish-onboarding') {
@@ -203,12 +211,6 @@
             }
         }
     });
-
-    function renderAndUpdate() {
-        if (typeof render === 'function') {
-            render('onboarding');
-        }
-    }
 
     function finishOnboarding() {
         const child = getTargetChild();
@@ -241,6 +243,10 @@
             STATE.onboardingCompleted = true;
             if (typeof saveState === 'function') saveState();
         }
+
+        currentStep = 0;
+        tempData = {};
+        targetChildId = null;
 
         if (typeof render === 'function') {
             render('baby');
