@@ -1935,7 +1935,7 @@ function showAddChildModal() {
 
     /*
      * ========================================================
-     * ПРОПУСТИТЬ ОНБОРДИНГ
+     * ПРОПУСТИТЬ ОНБОРДИНГ (ИЗМЕНЕНО: используем childService)
      * ========================================================
      */
 
@@ -1972,56 +1972,50 @@ function showAddChildModal() {
                     return;
                 }
 
-                if (
-                    typeof window.addChild ===
-                    "function"
-                ) {
-                    var newChild =
-                        window.addChild({
-                            name:
-                                name,
-
-                            birthDate:
-                                birthDate,
-
-                            sex:
-                                sex,
-
-                            feedingType:
-                                "",
-
-                            feedingStarted:
-                                false,
-
-                            feedingStartDate:
-                                "",
-
-                            approach:
-                                "mixed",
-
-                            readiness:
-                                {},
-
-                            onboarding: {
-                                allergies: [],
-                                diet: [],
-                                favoriteFoods: [],
-                                worries: [],
-                                confidence: ""
-                            }
-                        });
-
-                    if (
-                        newChild &&
-                        newChild.id
-                    ) {
-                        STATE.currentChildId =
-                            newChild.id;
+                // Создаём ребёнка через сервис (если доступен) или через legacy addChild
+                var newChild = null;
+                var childData = {
+                    name: name,
+                    birthDate: birthDate,
+                    sex: sex,
+                    feedingType: "",
+                    feedingStarted: false,
+                    feedingStartDate: "",
+                    approach: "mixed",
+                    readiness: {},
+                    onboarding: {
+                        allergies: [],
+                        diet: [],
+                        favoriteFoods: [],
+                        worries: [],
+                        confidence: ""
                     }
+                };
 
-                    /*
-                     * Ставим baby ДО финального render.
-                     */
+                if (typeof childService !== 'undefined' && childService.createChild) {
+                    newChild = childService.createChild(childData);
+                    console.log('✅ Ребёнок создан через childService', newChild);
+                } else if (typeof window.addChild === "function") {
+                    newChild = window.addChild(childData);
+                    console.log('✅ Ребёнок создан через addChild (legacy)', newChild);
+                } else {
+                    alert('Ошибка: функция создания ребёнка не найдена');
+                    return;
+                }
+
+                overlay.remove();
+
+                document.body.classList.remove(
+                    "modal-open"
+                );
+
+                if (
+                    newChild &&
+                    newChild.id
+                ) {
+                    STATE.currentChildId =
+                        newChild.id;
+
                     STATE.ui.screen =
                         "baby";
 
@@ -2034,40 +2028,25 @@ function showAddChildModal() {
                     ) {
                         saveState();
                     }
-
-                    overlay.remove();
-
-                    document.body.classList.remove(
-                        "modal-open"
-                    );
-
-                    /*
-                     * Именно здесь гарантируем
-                     * моментальное появление ребёнка
-                     * на странице "Малыши".
-                     */
-                    if (
-                        typeof render ===
-                        "function"
-                    ) {
-                        render("baby");
-                    }
-
-                    showToast(
-                        "👶 Ребёнок добавлен (онбординг пропущен)",
-                        "success"
-                    );
-                } else {
-                    alert(
-                        "Ошибка: функция addChild не найдена"
-                    );
                 }
+
+                if (
+                    typeof render ===
+                    "function"
+                ) {
+                    render("baby");
+                }
+
+                showToast(
+                    "👶 Ребёнок добавлен (онбординг пропущен)",
+                    "success"
+                );
             }
         );
 
     /*
      * ========================================================
-     * СОХРАНИТЬ → ОНБОРДИНГ
+     * СОХРАНИТЬ → ОНБОРДИНГ (ИЗМЕНЕНО: используем childService)
      * ========================================================
      */
 
@@ -2104,86 +2083,73 @@ function showAddChildModal() {
                     return;
                 }
 
-                if (
-                    typeof window.addChild ===
-                    "function"
-                ) {
-                    var newChild =
-                        window.addChild({
-                            name:
-                                name,
-
-                            birthDate:
-                                birthDate,
-
-                            sex:
-                                sex,
-
-                            feedingType:
-                                "",
-
-                            feedingStarted:
-                                false,
-
-                            feedingStartDate:
-                                "",
-
-                            approach:
-                                "mixed",
-
-                            readiness:
-                                {},
-
-                            onboarding: {
-                                allergies: [],
-                                diet: [],
-                                favoriteFoods: [],
-                                worries: [],
-                                confidence: ""
-                            }
-                        });
-
-                    overlay.remove();
-
-                    document.body.classList.remove(
-                        "modal-open"
-                    );
-
-                    if (
-                        newChild &&
-                        newChild.id
-                    ) {
-                        STATE._onboardingChildId =
-                            newChild.id;
-
-                        STATE.currentChildId =
-                            newChild.id;
-
-                        STATE.ui.screen =
-                            "onboarding";
-
-                        STATE.navigation.currentScreen =
-                            "onboarding";
-
-                        if (
-                            typeof saveState ===
-                            "function"
-                        ) {
-                            saveState();
-                        }
+                // Создаём ребёнка через сервис (если доступен) или через legacy addChild
+                var newChild = null;
+                var childData = {
+                    name: name,
+                    birthDate: birthDate,
+                    sex: sex,
+                    feedingType: "",
+                    feedingStarted: false,
+                    feedingStartDate: "",
+                    approach: "mixed",
+                    readiness: {},
+                    onboarding: {
+                        allergies: [],
+                        diet: [],
+                        favoriteFoods: [],
+                        worries: [],
+                        confidence: ""
                     }
+                };
+
+                if (typeof childService !== 'undefined' && childService.createChild) {
+                    newChild = childService.createChild(childData);
+                    console.log('✅ Ребёнок создан через childService', newChild);
+                } else if (typeof window.addChild === "function") {
+                    newChild = window.addChild(childData);
+                    console.log('✅ Ребёнок создан через addChild (legacy)', newChild);
+                } else {
+                    alert('Ошибка: функция создания ребёнка не найдена');
+                    return;
+                }
+
+                overlay.remove();
+
+                document.body.classList.remove(
+                    "modal-open"
+                );
+
+                if (
+                    newChild &&
+                    newChild.id
+                ) {
+                    STATE._onboardingChildId =
+                        newChild.id;
+
+                    STATE.currentChildId =
+                        newChild.id;
+
+                    STATE.ui.screen =
+                        "onboarding";
+
+                    STATE.navigation.currentScreen =
+                        "onboarding";
 
                     if (
-                        typeof render ===
+                        typeof saveState ===
                         "function"
                     ) {
-                        render(
-                            "onboarding"
-                        );
+                        saveState();
                     }
-                } else {
-                    alert(
-                        "Ошибка: функция addChild не найдена"
+                }
+
+                if (
+                    typeof render ===
+                    "function"
+                ) {
+                    render(
+                        "onboarding"
                     );
                 }
             }
