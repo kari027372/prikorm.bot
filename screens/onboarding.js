@@ -43,7 +43,6 @@
 
     let currentStep = 0;
     let tempData = {};
-    // ID ребёнка, для которого идёт онбординг – берём из STATE._onboardingChildId
     let targetChildId = null;
 
     function calcAge(birthDate) {
@@ -55,7 +54,6 @@
         return { months: Math.max(0, months) };
     }
 
-    // Получить целевого ребёнка (или null)
     function getTargetChild() {
         const id = STATE._onboardingChildId;
         if (!id) return null;
@@ -67,7 +65,6 @@
         if (!step) return '';
 
         const child = getTargetChild();
-        // Если ребёнок ещё не создан (не должно случиться), возвращаем ошибку
         if (!child) {
             return `<div class="onboarding"><h1>Ошибка</h1><p>Ребёнок не найден для онбординга</p></div>`;
         }
@@ -126,30 +123,23 @@
         return html;
     }
 
-    // Главная функция рендеринга – возвращает HTML (без вставки в DOM)
     window.renderOnboarding = function() {
-        // Инициализируем данные для онбординга
         currentStep = 0;
         tempData = {};
-        // Определяем targetChildId из STATE._onboardingChildId
         targetChildId = STATE._onboardingChildId || null;
         return renderStep();
     };
 
-    // ===== Обработчики событий (навешиваем один раз) =====
     document.addEventListener('click', function(e) {
         const target = e.target.closest('[data-action]');
         if (!target) return;
         const action = target.dataset.action;
 
         if (action === 'next-step' || action === 'prev-step' || action === 'skip-step' || action === 'finish-onboarding') {
-            // Убедимся, что мы на экране онбординга
             if (STATE.navigation.currentScreen !== 'onboarding') return;
-            // Получаем текущий шаг
             const step = STEPS[currentStep];
             if (!step) return;
 
-            // Сохраняем данные с текущего шага
             if (step.type === 'input') {
                 const input = document.getElementById('onboarding-input');
                 if (input) {
@@ -163,7 +153,6 @@
                 if (selected) {
                     tempData[key] = selected.dataset.value;
                 }
-                // Дополнительно для feedingStarted
                 if (key === 'feedingStarted') {
                     const started = tempData.feedingStarted === 'Да';
                     const field = document.getElementById('start-date-field');
@@ -191,7 +180,6 @@
                 }
             }
 
-            // Обработка навигации
             if (action === 'skip-step') {
                 currentStep++;
                 if (currentStep >= STEPS.length) currentStep = STEPS.length - 1;
@@ -216,14 +204,12 @@
         }
     });
 
-    // Обновить экран онбординга через рендерер
     function renderAndUpdate() {
         if (typeof render === 'function') {
             render('onboarding');
         }
     }
 
-    // Завершение онбординга
     function finishOnboarding() {
         const child = getTargetChild();
         if (!child) {
@@ -232,7 +218,6 @@
             return;
         }
 
-        // Применяем собранные данные к ребёнку
         if (tempData.name !== undefined) child.name = tempData.name;
         if (tempData.birthDate !== undefined) child.birthDate = tempData.birthDate;
         if (tempData.sex !== undefined) child.sex = tempData.sex;
@@ -241,7 +226,6 @@
         if (tempData.feedingStartDate !== undefined) child.feedingStartDate = tempData.feedingStartDate;
         if (tempData.approach !== undefined) child.approach = tempData.approach;
         if (tempData.readiness !== undefined) child.readiness = tempData.readiness;
-        // Онбординговые данные
         if (!child.onboarding) child.onboarding = {};
         if (tempData.allergies !== undefined) child.onboarding.allergies = tempData.allergies;
         if (tempData.diet !== undefined) child.onboarding.diet = tempData.diet;
@@ -249,19 +233,15 @@
         if (tempData.worries !== undefined) child.onboarding.worries = tempData.worries;
         if (tempData.confidence !== undefined) child.onboarding.confidence = tempData.confidence;
 
-        // Сохраняем состояние
         if (typeof saveState === 'function') saveState();
 
-        // Сбрасываем режим онбординга
         STATE._onboardingChildId = null;
 
-        // Если это первый ребёнок и онбординг не был завершён глобально – отмечаем
         if (STATE.children.length === 1 && !STATE.onboardingCompleted) {
             STATE.onboardingCompleted = true;
             if (typeof saveState === 'function') saveState();
         }
 
-        // Переходим на экран "Малыш"
         if (typeof render === 'function') {
             render('baby');
         }
