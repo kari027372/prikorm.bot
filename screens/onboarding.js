@@ -228,7 +228,7 @@
         }
     }
 
-    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАВЕРШЕНИЯ ===
+    // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАВЕРШЕНИЯ (добавлена установка currentChildId) ===
     function finishOnboarding() {
         const childData = {
             name: tempData.name || '',
@@ -249,7 +249,10 @@
                 var lastChild = STATE.children[STATE.children.length - 1];
                 if (lastChild) {
                     Object.assign(lastChild, childData);
+                    // Устанавливаем нового ребёнка как текущего
+                    STATE.currentChildId = lastChild.id;
                 } else {
+                    // Если почему-то нет – добавляем нового
                     if (typeof window.addChild === 'function') {
                         window.addChild(childData);
                     } else {
@@ -257,6 +260,7 @@
                     }
                 }
             } else {
+                // Если детей нет – создаём первого
                 if (typeof window.addChild === 'function') {
                     window.addChild(childData);
                 } else {
@@ -272,7 +276,7 @@
             return;
         }
 
-        // Обычный режим
+        // Обычный режим (первый запуск)
         if (typeof window.addChild === 'function') {
             window.addChild(childData);
         } else {
