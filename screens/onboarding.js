@@ -1,5 +1,4 @@
 // screens/onboarding.js
-
 (function() {
     'use strict';
 
@@ -120,8 +119,7 @@
             id: 'readiness',
             emoji: '🧸',
             title: 'Признаки готовности',
-            desc:
-                'Какие признаки вы замечаете? (выберите все)',
+            desc: 'Какие признаки вы замечаете? (выберите все)',
             type: 'checkboxes',
             options: [
                 'Сидит с поддержкой',
@@ -132,20 +130,11 @@
             ],
             key: 'readiness',
             mapping: {
-                'Сидит с поддержкой':
-                    'sitSupport',
-
-                'Уверенно держит голову':
-                    'headControl',
-
-                'Тянется к еде':
-                    'reachesFood',
-
-                'Открывает рот при виде еды':
-                    'opensMouth',
-
-                'Пока не уверена':
-                    'notSure'
+                'Сидит с поддержкой': 'sitSupport',
+                'Уверенно держит голову': 'headControl',
+                'Тянется к еде': 'reachesFood',
+                'Открывает рот при виде еды': 'opensMouth',
+                'Пока не уверена': 'notSure'
             }
         },
 
@@ -153,8 +142,7 @@
             id: 'allergies',
             emoji: '⚠️',
             title: 'Аллергии',
-            desc:
-                'Есть ли у малыша аллергия на что-то?',
+            desc: 'Есть ли у малыша аллергия на что-то?',
             type: 'checkboxes',
             options: [
                 ...ALLERGENS_LIST,
@@ -168,8 +156,7 @@
             id: 'diet',
             emoji: '🥗',
             title: 'Диета',
-            desc:
-                'Есть ли особенности питания?',
+            desc: 'Есть ли особенности питания?',
             type: 'checkboxes',
             options: [
                 ...DIET_OPTIONS,
@@ -183,8 +170,7 @@
             id: 'favorites',
             emoji: '🍎',
             title: 'Любимые продукты',
-            desc:
-                'Что бы вы хотели предложить малышу в первую неделю?',
+            desc: 'Что бы вы хотели предложить малышу в первую неделю?',
             type: 'checkboxes',
             options: [
                 ...FAVORITE_FOODS,
@@ -198,8 +184,7 @@
             id: 'worries',
             emoji: '😰',
             title: 'Что вас беспокоит?',
-            desc:
-                'Выберите все, что вас волнует',
+            desc: 'Выберите все, что вас волнует',
             type: 'checkboxes',
             options: WORRY_OPTIONS,
             key: 'worries'
@@ -209,8 +194,7 @@
             id: 'confidence',
             emoji: '💪',
             title: 'Как вы себя чувствуете?',
-            desc:
-                'Готовы начать прикорм?',
+            desc: 'Готовы начать прикорм?',
             type: 'choice',
             options: [
                 'Нервничаю',
@@ -233,101 +217,139 @@
             };
         }
 
-        const birth =
-            new Date(birthDate);
-
-        const now =
-            new Date();
+        const birth = new Date(birthDate);
+        const now = new Date();
 
         let months =
-            (now.getFullYear() -
-                birth.getFullYear()) *
-                12 +
-            (
-                now.getMonth() -
-                birth.getMonth()
-            );
+            (now.getFullYear() - birth.getFullYear()) * 12 +
+            (now.getMonth() - birth.getMonth());
 
-        if (
-            now.getDate() <
-            birth.getDate()
-        ) {
+        if (now.getDate() < birth.getDate()) {
             months--;
         }
 
         return {
-            months: Math.max(
-                0,
-                months
-            )
+            months: Math.max(0, months)
         };
     }
 
+    /*
+     * ============================================================
+     * ВАЖНО
+     *
+     * Всегда используем именно STATE.
+     * Не window.getState(), потому что state.js может
+     * переassign-ить внутренний STATE.
+     * ============================================================
+     */
+
     function getState() {
-        return (
-            typeof window.getState ===
-            'function'
-                ? window.getState()
-                : window.STATE
-        );
+        if (typeof STATE !== 'undefined') {
+            return STATE;
+        }
+
+        return window.STATE || {};
     }
 
-    function getTargetChild() {
-        const state =
-            getState() || {};
+    /*
+     * ============================================================
+     * Получаем ребёнка, для которого сейчас идёт онбординг
+     * ============================================================
+     */
 
+    function getTargetChild() {
+        const state = getState();
+
+        /*
+         * Сначала берём локальный targetChildId,
+         * если он уже установлен.
+         *
+         * Если нет — берём его из STATE.
+         */
         const id =
+            targetChildId ||
             state._onboardingChildId;
 
         if (!id) {
+            console.error(
+                '❌ Нет _onboardingChildId',
+                state
+            );
+
             return null;
         }
 
         const children =
-            Array.isArray(
-                state.children
-            )
+            Array.isArray(state.children)
                 ? state.children
                 : [];
 
-        return (
-            children.find(
-                function(child) {
-                    return (
-                        child.id ===
-                        id
-                    );
+        const child =
+            children.find(function(child) {
+                return child.id === id;
+            }) || null;
+
+        if (!child) {
+            console.error(
+                '❌ Ребёнок не найден',
+                {
+                    targetChildId: id,
+                    children: children.map(
+                        function(c) {
+                            return c.id;
+                        }
+                    )
                 }
-            ) || null
-        );
+            );
+        }
+
+        return child;
     }
 
+    /*
+     * ============================================================
+     * РЕНДЕР ШАГА
+     * ============================================================
+     */
+
     function renderStep() {
-        const step =
-            STEPS[currentStep];
+        const step = STEPS[currentStep];
 
         if (!step) {
             return '';
         }
 
-        const child =
-            getTargetChild();
+        const child = getTargetChild();
 
         if (!child) {
             return `
                 <div class="onboarding">
-                    <h1>Ошибка</h1>
+                    <div class="emoji-big">👶</div>
+                    <h1>Ребёнок не найден</h1>
                     <p>
-                        Ребёнок не найден
-                        для онбординга
+                        Не удалось определить малыша
+                        для этого онбординга.
                     </p>
+
+                    <button
+                        class="primary-button"
+                        data-action="navigate"
+                        data-screen="baby"
+                        type="button"
+                    >
+                        Вернуться к малышам
+                    </button>
                 </div>
             `;
         }
 
-        let html =
-            `<div class="onboarding">`;
+        let html = `
+            <div class="onboarding">
+        `;
 
+        /*
+         * Индикаторы шагов
+         */
         html += `
             <div class="step-indicators">
         `;
@@ -339,11 +361,7 @@
         ) {
             html += `
                 <span
-                    class="${
-                        i === currentStep
-                            ? 'active'
-                            : ''
-                    }"
+                    class="${i === currentStep ? 'active' : ''}"
                 ></span>
             `;
         }
@@ -371,24 +389,22 @@
         }
 
         /*
+         * ========================================================
          * INPUT
+         * ========================================================
          */
-        if (
-            step.type ===
-            'input'
-        ) {
+
+        if (step.type === 'input') {
             const val =
-                tempData[step.key] ||
-                child[step.key] ||
-                '';
+                tempData[step.key] !== undefined
+                    ? tempData[step.key]
+                    : (child[step.key] || '');
 
             html += `
                 <input
                     type="${step.inputType}"
                     id="onboarding-input"
-                    placeholder="${
-                        step.placeholder || ''
-                    }"
+                    placeholder="${step.placeholder || ''}"
                     value="${val}"
                 >
             `;
@@ -407,57 +423,55 @@
         }
 
         /*
+         * ========================================================
          * CHOICE
+         * ========================================================
          */
-        if (
-            step.type ===
-            'choice'
-        ) {
+
+        if (step.type === 'choice') {
             html += `
                 <div class="btn-group">
             `;
 
-            step.options.forEach(
-                function(opt) {
-                    const selected =
-                        (
-                            tempData[
-                                step.key
-                            ] ||
-                            child[
-                                step.key
-                            ] ||
-                            ''
-                        ) === opt;
+            step.options.forEach(function(opt) {
+                const currentValue =
+                    tempData[step.key] !== undefined
+                        ? tempData[step.key]
+                        : (
+                            step.key === 'feedingStarted'
+                                ? (
+                                    child.feedingStarted
+                                        ? 'Да'
+                                        : ''
+                                )
+                                : (child[step.key] || '')
+                        );
 
-                    html += `
-                        <button
-                            class="${
-                                selected
-                                    ? 'primary'
-                                    : ''
-                            }"
-                            data-value="${opt}"
-                            data-choice="${step.key}"
-                            type="button"
-                        >
-                            ${opt}
-                        </button>
-                    `;
-                }
-            );
+                const selected =
+                    currentValue === opt;
+
+                html += `
+                    <button
+                        class="${selected ? 'primary' : ''}"
+                        data-value="${opt}"
+                        data-choice="${step.key}"
+                        type="button"
+                    >
+                        ${opt}
+                    </button>
+                `;
+            });
 
             html += `
                 </div>
             `;
 
-            if (
-                step.extra ===
-                'start-date-field'
-            ) {
+            /*
+             * Дата начала прикорма
+             */
+            if (step.extra === 'start-date-field') {
                 const started =
-                    tempData.feedingStarted !==
-                    undefined
+                    tempData.feedingStarted !== undefined
                         ? tempData.feedingStarted
                         : (
                             child.feedingStarted
@@ -466,19 +480,15 @@
                         );
 
                 const startDate =
-                    tempData.feedingStartDate ||
-                    child.feedingStartDate ||
-                    '';
+                    tempData.feedingStartDate !== undefined
+                        ? tempData.feedingStartDate
+                        : (child.feedingStartDate || '');
 
                 html += `
                     <div
                         id="start-date-field"
                         style="
-                            display:${
-                                started === 'Да'
-                                    ? 'block'
-                                    : 'none'
-                            };
+                            display:${started === 'Да' ? 'block' : 'none'};
                             margin-top:16px;
                         "
                     >
@@ -497,20 +507,43 @@
         }
 
         /*
+         * ========================================================
          * CHECKBOXES
+         * ========================================================
          */
-        if (
-            step.type ===
-            'checkboxes'
-        ) {
-            const selected =
-                tempData[
-                    step.key
-                ] ||
-                child.onboarding?.[
-                    step.key
-                ] ||
-                [];
+
+        if (step.type === 'checkboxes') {
+            let selected =
+                tempData[step.key] !== undefined
+                    ? tempData[step.key]
+                    : (
+                        child.onboarding?.[step.key] ||
+                        []
+                    );
+
+            /*
+             * readiness хранится объектом,
+             * поэтому превращаем его в список выбранных.
+             */
+            if (
+                step.key === 'readiness' &&
+                selected &&
+                !Array.isArray(selected)
+            ) {
+                const mapping =
+                    step.mapping || {};
+
+                selected = Object.keys(mapping)
+                    .filter(function(label) {
+                        return Boolean(
+                            selected[mapping[label]]
+                        );
+                    });
+            }
+
+            if (!Array.isArray(selected)) {
+                selected = [];
+            }
 
             html += `
                 <div
@@ -522,43 +555,39 @@
                 >
             `;
 
-            step.options.forEach(
-                function(opt) {
-                    const checked =
-                        selected.includes(
-                            opt
-                        );
+            step.options.forEach(function(opt) {
+                const checked =
+                    selected.includes(opt);
 
-                    html += `
-                        <label>
-                            <input
-                                type="checkbox"
-                                class="step-checkbox"
-                                value="${opt}"
-                                ${
-                                    checked
-                                        ? 'checked'
-                                        : ''
-                                }
-                            >
-                            ${opt}
-                        </label>
-                    `;
-                }
-            );
+                html += `
+                    <label>
+                        <input
+                            type="checkbox"
+                            class="step-checkbox"
+                            value="${opt}"
+                            ${checked ? 'checked' : ''}
+                        >
+                        ${opt}
+                    </label>
+                `;
+            });
 
             html += `
                 </div>
             `;
         }
 
+        /*
+         * ========================================================
+         * НАВИГАЦИЯ
+         * ========================================================
+         */
+
         html += `
             <div class="nav-buttons">
         `;
 
-        if (
-            currentStep > 0
-        ) {
+        if (currentStep > 0) {
             html += `
                 <button
                     class="prev"
@@ -574,10 +603,7 @@
             `;
         }
 
-        if (
-            currentStep <
-            STEPS.length - 1
-        ) {
+        if (currentStep < STEPS.length - 1) {
             html += `
                 <button
                     class="next"
@@ -610,30 +636,42 @@
         return html;
     }
 
-    window.renderOnboarding =
-        function() {
-            if (!targetChildId) {
-                const state =
-                    getState() || {};
+    /*
+     * ============================================================
+     * ПУБЛИЧНЫЙ РЕНДЕР
+     * ============================================================
+     */
 
-                targetChildId =
-                    state._onboardingChildId ||
-                    null;
-            }
+    window.renderOnboarding = function() {
+        const state = getState();
 
-            return renderStep();
-        };
+        /*
+         * Сохраняем ID локально.
+         *
+         * Это важно: после переходов между шагами
+         * мы больше не зависим от того,
+         * что происходит с _onboardingChildId.
+         */
+        if (!targetChildId) {
+            targetChildId =
+                state._onboardingChildId ||
+                null;
+        }
+
+        return renderStep();
+    };
 
     function refreshOnboarding() {
-        if (
-            typeof render ===
-            'function'
-        ) {
-            render(
-                'onboarding'
-            );
+        if (typeof render === 'function') {
+            render('onboarding');
         }
     }
+
+    /*
+     * ============================================================
+     * ОБРАБОТКА КЛИКОВ ОНБОРДИНГА
+     * ============================================================
+     */
 
     document.addEventListener(
         'click',
@@ -659,303 +697,340 @@
                 return;
             }
 
+            /*
+             * Эти действия относятся к шагам онбординга.
+             */
+            if (
+                action !== 'next-step' &&
+                action !== 'prev-step' &&
+                action !== 'skip-step' &&
+                action !== 'finish-onboarding'
+            ) {
+                return;
+            }
+
+            const step =
+                STEPS[currentStep];
+
+            if (!step) {
+                return;
+            }
+
+            /*
+             * ====================================================
+             * INPUT
+             * ====================================================
+             */
+
+            if (step.type === 'input') {
+                const input =
+                    document.getElementById(
+                        'onboarding-input'
+                    );
+
+                if (input) {
+                    tempData[step.key] =
+                        input.value.trim();
+                }
+            }
+
+            /*
+             * ====================================================
+             * CHOICE
+             * ====================================================
+             */
+
+            if (step.type === 'choice') {
+                const key =
+                    step.key;
+
+                const selected =
+                    document.querySelector(
+                        `.btn-group button[data-choice="${key}"].primary`
+                    );
+
+                if (selected) {
+                    tempData[key] =
+                        selected.dataset.value;
+                }
+
+                /*
+                 * Сохраняем дату начала прикорма.
+                 */
+                if (
+                    key ===
+                    'feedingStarted'
+                ) {
+                    const started =
+                        tempData.feedingStarted ===
+                        'Да';
+
+                    const dateInput =
+                        document.getElementById(
+                            'onboarding-start-date'
+                        );
+
+                    if (
+                        started &&
+                        dateInput
+                    ) {
+                        tempData.feedingStartDate =
+                            dateInput.value || '';
+                    } else if (!started) {
+                        tempData.feedingStartDate =
+                            '';
+                    }
+
+                    const field =
+                        document.getElementById(
+                            'start-date-field'
+                        );
+
+                    if (field) {
+                        field.style.display =
+                            started
+                                ? 'block'
+                                : 'none';
+                    }
+                }
+            }
+
+            /*
+             * ====================================================
+             * CHECKBOXES
+             * ====================================================
+             */
+
+            if (step.type === 'checkboxes') {
+                const checks =
+                    document.querySelectorAll(
+                        '.step-checkbox:checked'
+                    );
+
+                const values =
+                    Array.from(checks).map(
+                        function(el) {
+                            return el.value;
+                        }
+                    );
+
+                const key =
+                    step.key;
+
+                /*
+                 * READINESS
+                 */
+                if (key === 'readiness') {
+                    const mapping =
+                        step.mapping || {};
+
+                    const r = {};
+
+                    Object.keys(mapping).forEach(
+                        function(k) {
+                            r[mapping[k]] =
+                                false;
+                        }
+                    );
+
+                    values.forEach(
+                        function(val) {
+                            if (
+                                mapping[val]
+                            ) {
+                                r[
+                                    mapping[val]
+                                ] = true;
+                            }
+                        }
+                    );
+
+                    tempData.readiness =
+                        r;
+                } else {
+                    const filtered =
+                        values.filter(
+                            function(v) {
+                                return !SKIP_VALUES.includes(
+                                    v
+                                );
+                            }
+                        );
+
+                    tempData[key] =
+                        filtered;
+                }
+            }
+
+            /*
+             * ====================================================
+             * ПРОПУСТИТЬ
+             * ====================================================
+             */
+
+            if (action === 'skip-step') {
+                currentStep++;
+
+                if (
+                    currentStep >=
+                    STEPS.length
+                ) {
+                    currentStep =
+                        STEPS.length - 1;
+                }
+
+                refreshOnboarding();
+
+                return;
+            }
+
+            /*
+             * ====================================================
+             * НАЗАД
+             * ====================================================
+             */
+
+            if (action === 'prev-step') {
+                if (currentStep > 0) {
+                    currentStep--;
+                }
+
+                refreshOnboarding();
+
+                return;
+            }
+
+            /*
+             * ====================================================
+             * ДАЛЕЕ
+             * ====================================================
+             */
+
+            if (action === 'next-step') {
+                currentStep++;
+
+                if (
+                    currentStep >=
+                    STEPS.length
+                ) {
+                    currentStep =
+                        STEPS.length - 1;
+                }
+
+                refreshOnboarding();
+
+                return;
+            }
+
+            /*
+             * ====================================================
+             * ЗАВЕРШЕНИЕ
+             * ====================================================
+             */
+
             if (
                 action ===
-                    'next-step' ||
-                action ===
-                    'prev-step' ||
-                action ===
-                    'skip-step' ||
-                action ===
-                    'finish-onboarding'
+                'finish-onboarding'
             ) {
-                const step =
-                    STEPS[
-                        currentStep
-                    ];
+                finishOnboarding();
 
-                if (!step) {
-                    return;
-                }
-
-                /*
-                 * INPUT
-                 */
-                if (
-                    step.type ===
-                    'input'
-                ) {
-                    const input =
-                        document.getElementById(
-                            'onboarding-input'
-                        );
-
-                    if (input) {
-                        const val =
-                            input.value.trim();
-
-                        tempData[
-                            step.key
-                        ] = val;
-                    }
-                }
-
-                /*
-                 * CHOICE
-                 */
-                if (
-                    step.type ===
-                    'choice'
-                ) {
-                    const key =
-                        step.key;
-
-                    const selected =
-                        document.querySelector(
-                            `.btn-group button[data-choice="${key}"].primary`
-                        );
-
-                    if (selected) {
-                        tempData[
-                            key
-                        ] =
-                            selected.dataset.value;
-                    }
-
-                    /*
-                     * Дата начала прикорма.
-                     *
-                     * Раньше дата отображалась,
-                     * но не попадала в tempData.
-                     */
-                    if (
-                        key ===
-                        'feedingStarted'
-                    ) {
-                        const started =
-                            tempData.feedingStarted ===
-                            'Да';
-
-                        const dateInput =
-                            document.getElementById(
-                                'onboarding-start-date'
-                            );
-
-                        if (
-                            started &&
-                            dateInput
-                        ) {
-                            tempData.feedingStartDate =
-                                dateInput.value ||
-                                '';
-                        } else if (
-                            !started
-                        ) {
-                            tempData.feedingStartDate =
-                                '';
-                        }
-
-                        const field =
-                            document.getElementById(
-                                'start-date-field'
-                            );
-
-                        if (field) {
-                            field.style.display =
-                                started
-                                    ? 'block'
-                                    : 'none';
-                        }
-                    }
-                }
-
-                /*
-                 * CHECKBOXES
-                 */
-                if (
-                    step.type ===
-                    'checkboxes'
-                ) {
-                    const checks =
-                        document.querySelectorAll(
-                            '.step-checkbox:checked'
-                        );
-
-                    const values =
-                        Array.from(
-                            checks
-                        ).map(
-                            function(el) {
-                                return el.value;
-                            }
-                        );
-
-                    const key =
-                        step.key;
-
-                    if (
-                        key ===
-                        'readiness'
-                    ) {
-                        const mapping =
-                            step.mapping ||
-                            {};
-
-                        const r = {};
-
-                        Object.keys(
-                            mapping
-                        ).forEach(
-                            function(k) {
-                                r[
-                                    mapping[k]
-                                ] = false;
-                            }
-                        );
-
-                        values.forEach(
-                            function(val) {
-                                if (
-                                    mapping[
-                                        val
-                                    ]
-                                ) {
-                                    r[
-                                        mapping[
-                                            val
-                                        ]
-                                    ] = true;
-                                }
-                            }
-                        );
-
-                        tempData.readiness =
-                            r;
-                    } else {
-                        const filtered =
-                            values.filter(
-                                function(v) {
-                                    return !SKIP_VALUES.includes(
-                                        v
-                                    );
-                                }
-                            );
-
-                        tempData[key] =
-                            filtered;
-                    }
-                }
-
-                /*
-                 * ПРОПУСТИТЬ
-                 */
-                if (
-                    action ===
-                    'skip-step'
-                ) {
-                    currentStep++;
-
-                    if (
-                        currentStep >=
-                        STEPS.length
-                    ) {
-                        currentStep =
-                            STEPS.length -
-                            1;
-                    }
-
-                    refreshOnboarding();
-
-                    return;
-                }
-
-                /*
-                 * НАЗАД
-                 */
-                if (
-                    action ===
-                    'prev-step'
-                ) {
-                    if (
-                        currentStep >
-                        0
-                    ) {
-                        currentStep--;
-                    }
-
-                    refreshOnboarding();
-
-                    return;
-                }
-
-                /*
-                 * ДАЛЕЕ
-                 */
-                if (
-                    action ===
-                    'next-step'
-                ) {
-                    currentStep++;
-
-                    if (
-                        currentStep >=
-                        STEPS.length
-                    ) {
-                        currentStep =
-                            STEPS.length -
-                            1;
-                    }
-
-                    refreshOnboarding();
-
-                    return;
-                }
-
-                /*
-                 * ЗАВЕРШЕНИЕ
-                 */
-                if (
-                    action ===
-                    'finish-onboarding'
-                ) {
-                    finishOnboarding();
-
-                    return;
-                }
+                return;
             }
         }
     );
 
+    /*
+     * ============================================================
+     * ЗАВЕРШЕНИЕ ОНБОРДИНГА
+     * ============================================================
+     */
+
     function finishOnboarding() {
+        /*
+         * ВАЖНО:
+         * берём именно глобальный STATE.
+         */
         const state =
-            getState();
+            typeof STATE !== 'undefined'
+                ? STATE
+                : window.STATE;
+
+        /*
+         * Перед поиском ребёнка ещё раз
+         * синхронизируем локальный ID.
+         */
+        if (
+            !targetChildId &&
+            state
+        ) {
+            targetChildId =
+                state._onboardingChildId ||
+                null;
+        }
 
         const child =
             getTargetChild();
 
-        if (
-            !child ||
-            !state
-        ) {
+        /*
+         * Если вдруг ребёнок действительно
+         * не найден — НЕ зависаем.
+         */
+        if (!child || !state) {
             console.error(
-                '❌ Ребёнок не найден для завершения онбординга'
+                '❌ Ребёнок не найден для завершения онбординга',
+                {
+                    targetChildId:
+                        targetChildId,
+
+                    stateOnboardingChildId:
+                        state?._onboardingChildId,
+
+                    currentChildId:
+                        state?.currentChildId,
+
+                    children:
+                        state?.children?.map(
+                            function(c) {
+                                return {
+                                    id: c.id,
+                                    name: c.name
+                                };
+                            }
+                        )
+                }
             );
 
+            /*
+             * Возвращаем пользователя
+             * на страницу "Малыши",
+             * а не оставляем его на ошибке.
+             */
             if (
                 typeof render ===
                 'function'
             ) {
-                render(
-                    'home'
-                );
+                state.ui =
+                    state.ui || {};
+
+                state.navigation =
+                    state.navigation || {};
+
+                state.ui.screen =
+                    'baby';
+
+                state.navigation.currentScreen =
+                    'baby';
+
+                render('baby');
             }
 
             return;
         }
 
         /*
-         * Переносим временные данные
-         * в конкретного ребёнка.
+         * ========================================================
+         * ОСНОВНЫЕ ДАННЫЕ
+         * ========================================================
          */
 
         if (
@@ -1023,6 +1098,12 @@
                 tempData.readiness;
         }
 
+        /*
+         * ========================================================
+         * ONBOARDING ДАННЫЕ
+         * ========================================================
+         */
+
         if (!child.onboarding) {
             child.onboarding = {};
         }
@@ -1068,24 +1149,27 @@
         }
 
         /*
-         * Этот ребёнок становится текущим.
+         * ========================================================
+         * ДЕЛАЕМ ЭТОГО РЕБЁНКА ТЕКУЩИМ
+         * ========================================================
          */
+
         state.currentChildId =
             child.id;
 
         /*
-         * Онбординг конкретного ребёнка завершён.
+         * Онбординг завершён.
          */
         state._onboardingChildId =
             null;
 
         /*
-         * Первый ребёнок завершает
-         * общий первый запуск.
+         * Первый ребёнок:
+         * завершаем общий onboarding.
          *
-         * При добавлении второго ребёнка
+         * Второй/третий и т.д.:
          * onboardingCompleted уже true,
-         * поэтому ничего не ломаем.
+         * поэтому это значение не меняем.
          */
         if (
             state.children.length ===
@@ -1098,9 +1182,11 @@
         }
 
         /*
-         * Сразу переключаемся
-         * на экран "Малыши".
+         * ========================================================
+         * ПЕРЕХОД НА "МАЛЫШИ"
+         * ========================================================
          */
+
         state.ui =
             state.ui || {};
 
@@ -1114,7 +1200,7 @@
             'baby';
 
         /*
-         * Сохраняем ВСЁ один раз.
+         * Сохраняем состояние.
          */
         if (
             typeof saveState ===
@@ -1124,20 +1210,25 @@
         }
 
         /*
-         * Сбрасываем временные данные
-         * только после сохранения.
+         * ========================================================
+         * ОЧИЩАЕМ ВРЕМЕННЫЕ ДАННЫЕ
+         * ========================================================
          */
+
         currentStep = 0;
         tempData = {};
         targetChildId = null;
 
         /*
-         * И вот это ключевой момент:
-         * сразу перерисовываем экран "Малыши".
+         * ========================================================
+         * КЛЮЧЕВОЙ МОМЕНТ
          *
-         * Поэтому новый ребёнок виден
-         * без перезапуска приложения.
+         * Сразу рисуем страницу "Малыши".
+         * Новый ребёнок должен быть виден
+         * БЕЗ перезапуска приложения.
+         * ========================================================
          */
+
         if (
             typeof render ===
             'function'
@@ -1146,21 +1237,30 @@
         }
 
         /*
-         * Если есть подписчики statechange —
-         * уведомляем их тоже.
+         * Уведомляем остальные части приложения,
+         * что STATE изменился.
          *
-         * Но render выше уже выполнен,
-         * поэтому основное отображение
-         * не зависит от этого события.
+         * Это обновит главную страницу,
+         * профиль и другие элементы.
          */
         window.dispatchEvent(
             new CustomEvent(
                 'prikorm:statechange'
             )
         );
+
+        console.log(
+            '✅ Онбординг завершён:',
+            {
+                childId: child.id,
+                childName: child.name,
+                totalChildren:
+                    state.children.length
+            }
+        );
     }
 
     console.log(
-        '✅ onboarding.js загружен'
+        '✅ onboarding.js загружен (финальная версия)'
     );
 })();
