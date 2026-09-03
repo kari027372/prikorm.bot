@@ -120,7 +120,8 @@
             id: 'readiness',
             emoji: '🧸',
             title: 'Признаки готовности',
-            desc: 'Какие признаки вы замечаете? (выберите все)',
+            desc:
+                'Какие признаки вы замечаете? (выберите все)',
             type: 'checkboxes',
             options: [
                 'Сидит с поддержкой',
@@ -152,7 +153,8 @@
             id: 'allergies',
             emoji: '⚠️',
             title: 'Аллергии',
-            desc: 'Есть ли у малыша аллергия на что-то?',
+            desc:
+                'Есть ли у малыша аллергия на что-то?',
             type: 'checkboxes',
             options: [
                 ...ALLERGENS_LIST,
@@ -166,7 +168,8 @@
             id: 'diet',
             emoji: '🥗',
             title: 'Диета',
-            desc: 'Есть ли особенности питания?',
+            desc:
+                'Есть ли особенности питания?',
             type: 'checkboxes',
             options: [
                 ...DIET_OPTIONS,
@@ -180,7 +183,8 @@
             id: 'favorites',
             emoji: '🍎',
             title: 'Любимые продукты',
-            desc: 'Что бы вы хотели предложить малышу в первую неделю?',
+            desc:
+                'Что бы вы хотели предложить малышу в первую неделю?',
             type: 'checkboxes',
             options: [
                 ...FAVORITE_FOODS,
@@ -194,7 +198,8 @@
             id: 'worries',
             emoji: '😰',
             title: 'Что вас беспокоит?',
-            desc: 'Выберите все, что вас волнует',
+            desc:
+                'Выберите все, что вас волнует',
             type: 'checkboxes',
             options: WORRY_OPTIONS,
             key: 'worries'
@@ -204,7 +209,8 @@
             id: 'confidence',
             emoji: '💪',
             title: 'Как вы себя чувствуете?',
-            desc: 'Готовы начать прикорм?',
+            desc:
+                'Готовы начать прикорм?',
             type: 'choice',
             options: [
                 'Нервничаю',
@@ -223,8 +229,7 @@
     function calcAge(birthDate) {
         if (!birthDate) {
             return {
-                months: 0,
-                days: 0
+                months: 0
             };
         }
 
@@ -235,10 +240,9 @@
             new Date();
 
         let months =
-            (
-                now.getFullYear() -
-                birth.getFullYear()
-            ) * 12 +
+            (now.getFullYear() -
+                birth.getFullYear()) *
+                12 +
             (
                 now.getMonth() -
                 birth.getMonth()
@@ -252,42 +256,59 @@
         }
 
         return {
-            months:
-                Math.max(
-                    0,
-                    months
-                ),
-            days: 0
+            months: Math.max(
+                0,
+                months
+            )
         };
+    }
+
+    function getState() {
+        return (
+            typeof window.getState ===
+            'function'
+                ? window.getState()
+                : window.STATE
+        );
     }
 
     function getTargetChild() {
         const state =
-            typeof window.getState ===
-            'function'
-                ? window.getState()
-                : window.STATE;
-
-        if (!state) return null;
+            getState() || {};
 
         const id =
-            targetChildId ||
             state._onboardingChildId;
 
-        if (!id) return null;
+        if (!id) {
+            return null;
+        }
+
+        const children =
+            Array.isArray(
+                state.children
+            )
+                ? state.children
+                : [];
 
         return (
-            state.children || []
-        ).find(function(child) {
-            return child.id === id;
-        }) || null;
+            children.find(
+                function(child) {
+                    return (
+                        child.id ===
+                        id
+                    );
+                }
+            ) || null
+        );
     }
 
     function renderStep() {
         const step =
             STEPS[currentStep];
 
-        if (!step) return '';
+        if (!step) {
+            return '';
+        }
 
         const child =
             getTargetChild();
@@ -297,7 +318,8 @@
                 <div class="onboarding">
                     <h1>Ошибка</h1>
                     <p>
-                        Ребёнок не найден для онбординга
+                        Ребёнок не найден
+                        для онбординга
                     </p>
                 </div>
             `;
@@ -306,54 +328,68 @@
         let html =
             `<div class="onboarding">`;
 
-        html +=
-            `<div class="step-indicators">`;
+        html += `
+            <div class="step-indicators">
+        `;
 
         for (
             let i = 0;
             i < STEPS.length;
             i++
         ) {
-            html +=
-                `<span class="${
-                    i === currentStep
-                        ? 'active'
-                        : ''
-                }"></span>`;
+            html += `
+                <span
+                    class="${
+                        i === currentStep
+                            ? 'active'
+                            : ''
+                    }"
+                ></span>
+            `;
         }
 
-        html += `</div>`;
+        html += `
+            </div>
+        `;
 
-        html +=
-            `<div class="emoji-big">${step.emoji}</div>`;
+        html += `
+            <div class="emoji-big">
+                ${step.emoji}
+            </div>
 
-        html +=
-            `<h1>${step.title}</h1>`;
+            <h1>
+                ${step.title}
+            </h1>
+        `;
 
         if (step.desc) {
-            html +=
-                `<p>${step.desc}</p>`;
+            html += `
+                <p>
+                    ${step.desc}
+                </p>
+            `;
         }
 
+        /*
+         * INPUT
+         */
         if (
             step.type ===
             'input'
         ) {
             const val =
-                tempData[step.key] ??
-                child[step.key] ??
+                tempData[step.key] ||
+                child[step.key] ||
                 '';
 
             html += `
                 <input
                     type="${step.inputType}"
                     id="onboarding-input"
-                    placeholder="${escapeHTML(
+                    placeholder="${
                         step.placeholder || ''
-                    )}"
-                    value="${escapeHTML(
-                        String(val)
-                    )}"
+                    }"
+                    value="${val}"
                 >
             `;
 
@@ -362,6 +398,7 @@
                     <button
                         class="skip"
                         data-action="skip-step"
+                        type="button"
                     >
                         Пропустить →
                     </button>
@@ -369,12 +406,16 @@
             }
         }
 
+        /*
+         * CHOICE
+         */
         if (
             step.type ===
             'choice'
         ) {
-            html +=
-                `<div class="btn-group">`;
+            html += `
+                <div class="btn-group">
+            `;
 
             step.options.forEach(
                 function(opt) {
@@ -382,10 +423,10 @@
                         (
                             tempData[
                                 step.key
-                            ] ??
+                            ] ||
                             child[
                                 step.key
-                            ] ??
+                            ] ||
                             ''
                         ) === opt;
 
@@ -396,39 +437,45 @@
                                     ? 'primary'
                                     : ''
                             }"
-                            data-value="${escapeHTML(
-                                opt
-                            )}"
-                            data-choice="${escapeHTML(
-                                step.key
-                            )}"
+                            data-value="${opt}"
+                            data-choice="${step.key}"
+                            type="button"
                         >
-                            ${escapeHTML(opt)}
+                            ${opt}
                         </button>
                     `;
                 }
             );
 
-            html +=
-                `</div>`;
+            html += `
+                </div>
+            `;
 
             if (
                 step.extra ===
                 'start-date-field'
             ) {
                 const started =
-                    (
-                        tempData
-                            .feedingStarted ??
-                        child.feedingStarted
-                    ) === 'Да';
+                    tempData.feedingStarted !==
+                    undefined
+                        ? tempData.feedingStarted
+                        : (
+                            child.feedingStarted
+                                ? 'Да'
+                                : ''
+                        );
+
+                const startDate =
+                    tempData.feedingStartDate ||
+                    child.feedingStartDate ||
+                    '';
 
                 html += `
                     <div
                         id="start-date-field"
                         style="
                             display:${
-                                started
+                                started === 'Да'
                                     ? 'block'
                                     : 'none'
                             };
@@ -442,76 +489,28 @@
                         <input
                             type="date"
                             id="onboarding-start-date"
-                            value="${escapeHTML(
-                                child.feedingStartDate ||
-                                ''
-                            )}"
+                            value="${startDate}"
                         >
                     </div>
                 `;
             }
         }
 
+        /*
+         * CHECKBOXES
+         */
         if (
             step.type ===
             'checkboxes'
         ) {
-            let selected =
+            const selected =
                 tempData[
                     step.key
-                ];
-
-            if (
-                selected ===
-                undefined
-            ) {
-                selected =
-                    child.onboarding?.[
-                        step.key
-                    ] || [];
-            }
-
-            /*
-             * readiness хранится не массивом,
-             * а объектом.
-             */
-            if (
-                step.key ===
-                'readiness'
-            ) {
-                selected =
-                    Object.keys(
-                        step.mapping || {}
-                    ).filter(
-                        function(label) {
-                            return child.readiness?.[
-                                step.mapping[
-                                    label
-                                ]
-                            ] === true;
-                        }
-                    );
-
-                if (
-                    tempData.readiness
-                ) {
-                    selected =
-                        Object.keys(
-                            step.mapping || {}
-                        ).filter(
-                            function(label) {
-                                return (
-                                    tempData
-                                        .readiness[
-                                        step.mapping[
-                                            label
-                                        ]
-                                    ] === true
-                                );
-                            }
-                        );
-                }
-            }
+                ] ||
+                child.onboarding?.[
+                    step.key
+                ] ||
+                [];
 
             html += `
                 <div
@@ -535,23 +534,22 @@
                             <input
                                 type="checkbox"
                                 class="step-checkbox"
-                                value="${escapeHTML(
-                                    opt
-                                )}"
+                                value="${opt}"
                                 ${
                                     checked
                                         ? 'checked'
                                         : ''
                                 }
                             >
-                            ${escapeHTML(opt)}
+                            ${opt}
                         </label>
                     `;
                 }
             );
 
-            html +=
-                `</div>`;
+            html += `
+                </div>
+            `;
         }
 
         html += `
@@ -565,13 +563,15 @@
                 <button
                     class="prev"
                     data-action="prev-step"
+                    type="button"
                 >
                     ← Назад
                 </button>
             `;
         } else {
-            html +=
-                `<div></div>`;
+            html += `
+                <div></div>
+            `;
         }
 
         if (
@@ -582,6 +582,7 @@
                 <button
                     class="next"
                     data-action="next-step"
+                    type="button"
                 >
                     Далее →
                 </button>
@@ -591,14 +592,20 @@
                 <button
                     class="next"
                     data-action="finish-onboarding"
+                    type="button"
                 >
                     🚀 Начать!
                 </button>
             `;
         }
 
-        html +=
-            `</div></div>`;
+        html += `
+            </div>
+        `;
+
+        html += `
+            </div>
+        `;
 
         return html;
     }
@@ -606,8 +613,11 @@
     window.renderOnboarding =
         function() {
             if (!targetChildId) {
+                const state =
+                    getState() || {};
+
                 targetChildId =
-                    STATE._onboardingChildId ||
+                    state._onboardingChildId ||
                     null;
             }
 
@@ -633,7 +643,9 @@
                     '[data-action]'
                 );
 
-            if (!target) return;
+            if (!target) {
+                return;
+            }
 
             const action =
                 target.dataset.action;
@@ -658,9 +670,13 @@
                     'finish-onboarding'
             ) {
                 const step =
-                    STEPS[currentStep];
+                    STEPS[
+                        currentStep
+                    ];
 
-                if (!step) return;
+                if (!step) {
+                    return;
+                }
 
                 /*
                  * INPUT
@@ -675,10 +691,12 @@
                         );
 
                     if (input) {
+                        const val =
+                            input.value.trim();
+
                         tempData[
                             step.key
-                        ] =
-                            input.value.trim();
+                        ] = val;
                     }
                 }
 
@@ -706,29 +724,47 @@
 
                     /*
                      * Дата начала прикорма.
+                     *
+                     * Раньше дата отображалась,
+                     * но не попадала в tempData.
                      */
                     if (
                         key ===
                         'feedingStarted'
                     ) {
+                        const started =
+                            tempData.feedingStarted ===
+                            'Да';
+
                         const dateInput =
                             document.getElementById(
                                 'onboarding-start-date'
                             );
 
                         if (
+                            started &&
                             dateInput
                         ) {
-                            if (
-                                tempData.feedingStarted ===
-                                'Да'
-                            ) {
-                                tempData.feedingStartDate =
-                                    dateInput.value;
-                            } else {
-                                tempData.feedingStartDate =
-                                    '';
-                            }
+                            tempData.feedingStartDate =
+                                dateInput.value ||
+                                '';
+                        } else if (
+                            !started
+                        ) {
+                            tempData.feedingStartDate =
+                                '';
+                        }
+
+                        const field =
+                            document.getElementById(
+                                'start-date-field'
+                            );
+
+                        if (field) {
+                            field.style.display =
+                                started
+                                    ? 'block'
+                                    : 'none';
                         }
                     }
                 }
@@ -765,8 +801,7 @@
                             step.mapping ||
                             {};
 
-                        const r =
-                            {};
+                        const r = {};
 
                         Object.keys(
                             mapping
@@ -781,7 +816,9 @@
                         values.forEach(
                             function(val) {
                                 if (
-                                    mapping[val]
+                                    mapping[
+                                        val
+                                    ]
                                 ) {
                                     r[
                                         mapping[
@@ -810,7 +847,7 @@
                 }
 
                 /*
-                 * ПРОПУСК
+                 * ПРОПУСТИТЬ
                  */
                 if (
                     action ===
@@ -823,10 +860,12 @@
                         STEPS.length
                     ) {
                         currentStep =
-                            STEPS.length - 1;
+                            STEPS.length -
+                            1;
                     }
 
                     refreshOnboarding();
+
                     return;
                 }
 
@@ -838,12 +877,14 @@
                     'prev-step'
                 ) {
                     if (
-                        currentStep > 0
+                        currentStep >
+                        0
                     ) {
                         currentStep--;
                     }
 
                     refreshOnboarding();
+
                     return;
                 }
 
@@ -861,21 +902,24 @@
                         STEPS.length
                     ) {
                         currentStep =
-                            STEPS.length - 1;
+                            STEPS.length -
+                            1;
                     }
 
                     refreshOnboarding();
+
                     return;
                 }
 
                 /*
-                 * ФИНИШ
+                 * ЗАВЕРШЕНИЕ
                  */
                 if (
                     action ===
                     'finish-onboarding'
                 ) {
                     finishOnboarding();
+
                     return;
                 }
             }
@@ -883,10 +927,16 @@
     );
 
     function finishOnboarding() {
+        const state =
+            getState();
+
         const child =
             getTargetChild();
 
-        if (!child) {
+        if (
+            !child ||
+            !state
+        ) {
             console.error(
                 '❌ Ребёнок не найден для завершения онбординга'
             );
@@ -896,22 +946,18 @@
                 'function'
             ) {
                 render(
-                    'baby'
+                    'home'
                 );
             }
 
             return;
         }
 
-        console.log(
-            '🚀 Завершаем onboarding ребёнка:',
-            child.id,
-            child.name
-        );
-
         /*
-         * Записываем данные в конкретного ребёнка.
+         * Переносим временные данные
+         * в конкретного ребёнка.
          */
+
         if (
             tempData.name !==
             undefined
@@ -1022,45 +1068,53 @@
         }
 
         /*
-         * Данные ребёнка уже записаны.
-         * Теперь завершаем onboarding.
+         * Этот ребёнок становится текущим.
          */
-        STATE.currentChildId =
+        state.currentChildId =
             child.id;
 
-        STATE._onboardingChildId =
+        /*
+         * Онбординг конкретного ребёнка завершён.
+         */
+        state._onboardingChildId =
             null;
 
         /*
-         * Первый ребёнок:
-         * только здесь считаем первоначальный onboarding
-         * завершённым.
+         * Первый ребёнок завершает
+         * общий первый запуск.
+         *
+         * При добавлении второго ребёнка
+         * onboardingCompleted уже true,
+         * поэтому ничего не ломаем.
          */
         if (
-            STATE.children.length === 1
+            state.children.length ===
+                1 &&
+            state.onboardingCompleted ===
+                false
         ) {
-            STATE.onboardingCompleted =
+            state.onboardingCompleted =
                 true;
         }
 
         /*
-         * Экран сразу переключаем на baby.
+         * Сразу переключаемся
+         * на экран "Малыши".
          */
-        STATE.ui =
-            STATE.ui || {};
+        state.ui =
+            state.ui || {};
 
-        STATE.navigation =
-            STATE.navigation || {};
+        state.navigation =
+            state.navigation || {};
 
-        STATE.ui.screen =
+        state.ui.screen =
             'baby';
 
-        STATE.navigation.currentScreen =
+        state.navigation.currentScreen =
             'baby';
 
         /*
-         * Сохраняем УЖЕ ПОСЛЕ того, как
-         * _onboardingChildId сброшен.
+         * Сохраняем ВСЁ один раз.
          */
         if (
             typeof saveState ===
@@ -1071,46 +1125,42 @@
 
         /*
          * Сбрасываем временные данные
-         * только после успешного сохранения.
+         * только после сохранения.
          */
         currentStep = 0;
         tempData = {};
         targetChildId = null;
 
         /*
-         * Один финальный рендер.
+         * И вот это ключевой момент:
+         * сразу перерисовываем экран "Малыши".
          *
-         * Никакого ручного app.innerHTML.
+         * Поэтому новый ребёнок виден
+         * без перезапуска приложения.
          */
         if (
             typeof render ===
             'function'
         ) {
-            render(
-                'baby'
-            );
+            render('baby');
         }
 
-        if (
-            typeof updateProfileUI ===
-            'function'
-        ) {
-            updateProfileUI();
-        }
-
-        showToast(
-            '👶 Профиль малыша сохранён',
-            'success'
-        );
-
-        console.log(
-            '✅ Onboarding завершён. Детей:',
-            STATE.children.length
+        /*
+         * Если есть подписчики statechange —
+         * уведомляем их тоже.
+         *
+         * Но render выше уже выполнен,
+         * поэтому основное отображение
+         * не зависит от этого события.
+         */
+        window.dispatchEvent(
+            new CustomEvent(
+                'prikorm:statechange'
+            )
         );
     }
 
     console.log(
         '✅ onboarding.js загружен'
     );
-
 })();
