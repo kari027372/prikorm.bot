@@ -1,9 +1,12 @@
-// screens/baby.js
+/* ============================================================
+   screens/baby.js
+   Экран "Малыши"
+   ============================================================ */
 
 window.renderBaby = function() {
-
     /*
-     * Всегда берём самое актуальное состояние.
+     * Всегда берём актуальное состояние приложения.
+     * Это важно после addChild / deleteChild / switchChild.
      */
     const state =
         typeof window.getState === 'function'
@@ -15,31 +18,38 @@ window.renderBaby = function() {
             ? state.children
             : [];
 
+    console.log(
+        '👶 renderBaby:',
+        'children.length =',
+        children.length,
+        'children =',
+        children.map(function(child) {
+            return child.name || 'Без имени';
+        }).join(', ')
+    );
+
     const current =
         typeof window.getCurrentChild === 'function'
             ? window.getCurrentChild()
             : (
                 children.find(function(child) {
-                    return child.id === state.currentChildId;
+                    return (
+                        child.id ===
+                        state.currentChildId
+                    );
                 }) || null
             );
-
-    console.log(
-        '👶 renderBaby:',
-        'children =',
-        children.length,
-        'current =',
-        current?.name || 'нет'
-    );
 
     let html = `
         <div class="screen active">
             <div class="page-header">
                 <h1>👶 Малыши</h1>
+
                 <button
                     class="icon-button"
                     data-action="navigate"
                     data-screen="home"
+                    type="button"
                 >
                     ⌂
                 </button>
@@ -47,22 +57,20 @@ window.renderBaby = function() {
     `;
 
     if (children.length === 0) {
-
         html += `
             <div class="empty-state">
                 <span class="empty-icon">👶</span>
+
                 <h3>Нет добавленных детей</h3>
+
                 <p>
                     Пройдите онбординг или нажмите
                     «Добавить ребёнка»
                 </p>
             </div>
         `;
-
     } else {
-
         children.forEach(function(child) {
-
             const isActive =
                 current &&
                 current.id === child.id;
@@ -71,8 +79,8 @@ window.renderBaby = function() {
                 child.birthDate &&
                 typeof window.formatAge === 'function'
                     ? window.formatAge(
-                        child.birthDate
-                    )
+                          child.birthDate
+                      )
                     : 'Возраст не указан';
 
             html += `
@@ -80,13 +88,11 @@ window.renderBaby = function() {
                     class="settings-row"
                     style="${
                         isActive
-                            ? 'border:2px solid var(--bg-primary);'
+                            ? 'border: 2px solid var(--bg-primary);'
                             : ''
                     }"
                     data-action="switch-child"
-                    data-child-id="${escapeHTML(
-                        child.id || ''
-                    )}"
+                    data-child-id="${child.id}"
                 >
 
                     <span>
@@ -101,16 +107,14 @@ window.renderBaby = function() {
 
                     <div>
                         <strong>
-                            ${escapeHTML(
+                            ${
                                 child.name ||
                                 'Без имени'
-                            )}
+                            }
                         </strong>
 
                         <small>
-                            ${escapeHTML(
-                                String(age)
-                            )}
+                            ${age}
                         </small>
                     </div>
 
@@ -121,17 +125,14 @@ window.renderBaby = function() {
                     }
 
                     <button
-                        type="button"
                         class="icon-button"
+                        type="button"
                         data-action="delete-child"
-                        data-child-id="${escapeHTML(
-                            child.id || ''
-                        )}"
+                        data-child-id="${child.id}"
                         aria-label="Удалить ребёнка"
                     >
                         🗑️
                     </button>
-
                 </div>
             `;
         });
@@ -141,7 +142,8 @@ window.renderBaby = function() {
         <button
             class="primary-button"
             data-action="open-add-child"
-            style="margin-top:16px;"
+            type="button"
+            style="margin-top: 16px;"
         >
             ➕ Добавить ребёнка
         </button>
