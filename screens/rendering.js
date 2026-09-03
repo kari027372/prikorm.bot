@@ -1,174 +1,336 @@
-/* ============================================================
-   rendering.js — диспетчер рендеринга (исправлен)
-   ============================================================ */
-
+// screens/rendering.js
 (function() {
     'use strict';
 
-    console.log('✅ rendering.js: начало выполнения');
-
-    const DEFAULT_SCREEN = 'home';
-    const VALID_SCREENS = ['home', 'products', 'today', 'diary', 'recipes', 'baby', 'settings', 'onboarding'];
-
+    /*
+     * ============================================================
+     * Получаем АКТУАЛЬНЫЙ STATE
+     *
+     * Важно:
+     * state.js хранит настоящий STATE во внутренней переменной.
+     * window.STATE может быть старой ссылкой.
+     *
+     * Поэтому сначала используем STATE, и только если он
+     * недоступен — window.STATE.
+     * ============================================================
+     */
     function getState() {
+        if (typeof STATE !== 'undefined') {
+            return STATE;
+        }
+
         return window.STATE || {};
     }
 
-    function getBaby() {
-        return getState().baby || {};
-    }
+    /*
+     * ============================================================
+     * Рендер конкретного экрана
+     * ============================================================
+     */
 
-    function getDiary() {
-        return getState().diary || [];
-    }
+    window.render = function(screen) {
+        const state = getState();
 
-    function getProducts() {
-        return window.PRODUCTS || window.PRODUCT_DATABASE || [];
-    }
+        const app =
+            document.getElementById('app');
 
-    function getRecipes() {
-        return window.RECIPES || [];
-    }
-
-    function getSettings() {
-        return getState().settings || {};
-    }
-
-    function getUIState() {
-        const s = getState();
-        if (!s.ui) s.ui = {};
-        return s.ui;
-    }
-
-    function isProductIntroduced(productId) {
-        const introduced = getState().products?.introduced || [];
-        return introduced.some(i => (i.id || i) === productId);
-    }
-
-    function getPlanForDate(dateStr) {
-        const s = getState();
-        if (!s.plan) s.plan = { days: {} };
-        if (!s.plan.days) s.plan.days = {};
-        return s.plan.days[dateStr] || [];
-    }
-
-    function setPlanForDate(dateStr, meals) {
-        const s = getState();
-        if (!s.plan) s.plan = { days: {} };
-        if (!s.plan.days) s.plan.days = {};
-        s.plan.days[dateStr] = Array.isArray(meals) ? meals : [];
-        if (typeof saveState === 'function') saveState();
-        window.dispatchEvent(new CustomEvent('prikorm:statechange'));
-    }
-
-    function addMealToPlan(dateStr, meal) {
-        const plan = getPlanForDate(dateStr);
-        plan.push(meal);
-        setPlanForDate(dateStr, plan);
-    }
-
-    function removeMealFromPlan(dateStr, index) {
-        const plan = getPlanForDate(dateStr);
-        if (index >= 0 && index < plan.length) {
-            plan.splice(index, 1);
-            setPlanForDate(dateStr, plan);
-        }
-    }
-
-    function getDiaryStats() {
-        const diary = getDiary();
-        return {
-            totalEntries: diary.length,
-            uniqueProducts: new Set(diary.map(e => e.productId || e.productName)).size
-        };
-    }
-
-    function render(screen) {
-        console.log('🔄 render() вызван с экраном:', screen, 'текущий ui.screen:', getUIState().screen);
-        screen = screen || getUIState().screen || DEFAULT_SCREEN;
-
-        if (!VALID_SCREENS.includes(screen)) {
-            console.warn('⚠️ Неизвестный экран:', screen);
-            screen = DEFAULT_SCREEN;
-        }
-
-        const app = document.getElementById('app');
         if (!app) {
-            console.error('❌ #app не найден');
+            console.error(
+                '❌ Не найден элемент #app'
+            );
             return;
         }
 
-        const renderFnName = 'render' + screen.charAt(0).toUpperCase() + screen.slice(1);
-        const renderFn = window[renderFnName];
+        /*
+         * Сохраняем предыдущий экран
+         */
+        const previousScreen =
+            state.navigation?.currentScreen ||
+            'home';
+
+        /*
+         * Если экран не передан,
+         * используем текущий.
+         */
+        screen =
+            screen ||
+            state.navigation?.currentScreen ||
+            'home';
+
+        /*
+         * ========================================================
+         * Проверяем допустимый экран
+         * ========================================================
+         */
+
+        const validScreens = [
+            'home',
+            'products',
+            'today',
+            'diary',
+            'recipes',
+            'baby',
+            'settings',
+            'onboarding'
+        ];
+
+        if (!validScreens.includes(screen)) {
+            console.warn(
+                '⚠️ Неизвестный экран:',
+                screen
+            );
+
+            screen = 'home';
+        }
+
+        /*
+         * ========================================================
+         * Обновляем navigation в АКТУАЛЬНОМ STATE
+         * ========================================================
+         */
+
+        if (!state.navigation) {
+            state.navigation = {
+                currentScreen: 'home',
+                previousScreen: null,
+                modal: null
+            };
+        }
+
+        if (
+            state.navigation.currentScreen !==
+            screen
+        ) {
+            state.navigation.previousScreen =
+                previousScreen;
+        }
+
+        state.navigation.currentScreen =
+            screen;
+
+        /*
+         * ========================================================
+         * Вызываем соответствующий renderer
+         * ========================================================
+         */
 
         let html = '';
+
         try {
-            if (typeof renderFn === 'function') {
-                html = renderFn();
-                console.log('📝 HTML от ' + renderFnName + ' получен, длина:', html.length);
-            } else {
-                console.error('❌ Функция ' + renderFnName + ' не найдена');
-                html = renderErrorScreen('Ошибка: ' + renderFnName + ' не определена');
+            switch (screen) {
+
+                case 'home':
+                    if (
+                        typeof window.renderHome ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderHome();
+                    }
+                    break;
+
+                case 'products':
+                    if (
+                        typeof window.renderProducts ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderProducts();
+                    }
+                    break;
+
+                case 'today':
+                    if (
+                        typeof window.renderToday ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderToday();
+                    }
+                    break;
+
+                case 'diary':
+                    if (
+                        typeof window.renderDiary ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderDiary();
+                    }
+                    break;
+
+                case 'recipes':
+                    if (
+                        typeof window.renderRecipes ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderRecipes();
+                    }
+                    break;
+
+                case 'baby':
+                    if (
+                        typeof window.renderBaby ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderBaby();
+                    }
+                    break;
+
+                case 'settings':
+                    if (
+                        typeof window.renderSettings ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderSettings();
+                    }
+                    break;
+
+                case 'onboarding':
+                    if (
+                        typeof window.renderOnboarding ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderOnboarding();
+                    }
+                    break;
+
+                default:
+                    if (
+                        typeof window.renderHome ===
+                        'function'
+                    ) {
+                        html =
+                            window.renderHome();
+                    }
+                    break;
             }
-        } catch (e) {
-            console.error('❌ Ошибка рендера экрана ' + screen + ':', e);
-            html = renderErrorScreen('Не удалось загрузить экран');
+
+        } catch (error) {
+            console.error(
+                '❌ Ошибка рендера экрана:',
+                screen,
+                error
+            );
+
+            html = `
+                <div class="screen active">
+                    <div class="empty-state">
+                        <span class="empty-icon">⚠️</span>
+                        <h3>Что-то пошло не так</h3>
+                        <p>
+                            Не удалось загрузить этот экран.
+                        </p>
+                    </div>
+                </div>
+            `;
         }
 
-        let navHtml = '';
-        if (screen !== 'onboarding') {
-            navHtml = renderBottomNavigation(screen);
+        /*
+         * ========================================================
+         * Записываем HTML
+         * ========================================================
+         */
+
+        if (
+            typeof html === 'string'
+        ) {
+            app.innerHTML = html;
+        } else {
+            console.warn(
+                '⚠️ Renderer вернул не строку:',
+                screen,
+                html
+            );
+
+            app.innerHTML = '';
         }
 
-        app.innerHTML = html + navHtml;
-        app.offsetHeight;
-        console.log('✅ app.innerHTML обновлён, reflow выполнен');
+        /*
+         * ========================================================
+         * Обновляем UI-навигацию
+         * ========================================================
+         */
 
-        const ui = getUIState();
-        ui.previousScreen = ui.screen;
-        ui.screen = screen;
+        if (
+            typeof window.ui ===
+            'object' &&
+            window.ui
+        ) {
+            window.ui.previousScreen =
+                previousScreen;
 
-        // Синхронизируем navigation.currentScreen
-        if (STATE.navigation) {
-            STATE.navigation.currentScreen = screen;
+            window.ui.screen =
+                screen;
         }
 
-        window.scrollTo({ top: 0, behavior: 'instant' });
-        console.log('✅ render() завершён для экрана:', screen);
-    }
+        /*
+         * ========================================================
+         * Дополнительная синхронизация
+         * ========================================================
+         */
 
-    function renderBottomNavigation(active) {
-        const items = [
-            { id: 'home', icon: '⌂', label: 'Главная' },
-            { id: 'products', icon: '🥑', label: 'Продукты' },
-            { id: 'today', icon: '📅', label: 'Сегодня' },
-            { id: 'diary', icon: '📖', label: 'Дневник' },
-            { id: 'baby', icon: '👶', label: 'Малыш' }
-        ];
-        return `<nav class="bottom-navigation">${items.map(it => `<button class="nav-item ${active === it.id ? 'active' : ''}" data-action="navigate" data-screen="${it.id}"><span>${it.icon}</span><small>${it.label}</small></button>`).join('')}</nav>`;
-    }
+        if (
+            typeof window.updateProfileUI ===
+            'function'
+        ) {
+            try {
+                window.updateProfileUI();
+            } catch (error) {
+                console.warn(
+                    '⚠️ Не удалось обновить профиль:',
+                    error
+                );
+            }
+        }
 
-    function renderErrorScreen(message) {
-        return `<div class="screen"><div class="error-screen"><div class="error-icon">😔</div><h2>Что-то пошло не так</h2><p>${message || 'Неизвестная ошибка'}</p><button onclick="location.reload()" class="primary-button">Перезагрузить</button></div></div>`;
-    }
+        /*
+         * Лог для проверки детей
+         */
+        if (screen === 'baby') {
+            console.log(
+                '👶 render("baby"):',
+                'children =',
+                Array.isArray(state.children)
+                    ? state.children.length
+                    : 0,
+                'currentChildId =',
+                state.currentChildId
+            );
+        }
 
-    window.render = render;
-    window.getState = getState;
-    window.getBaby = getBaby;
-    window.getDiary = getDiary;
-    window.getProducts = getProducts;
-    window.getRecipes = getRecipes;
-    window.getSettings = getSettings;
-    window.getUIState = getUIState;
-    window.isProductIntroduced = isProductIntroduced;
-    window.getPlanForDate = getPlanForDate;
-    window.setPlanForDate = setPlanForDate;
-    window.addMealToPlan = addMealToPlan;
-    window.removeMealFromPlan = removeMealFromPlan;
-    window.getDiaryStats = getDiaryStats;
-    window.renderBottomNavigation = renderBottomNavigation;
-    window.renderErrorScreen = renderErrorScreen;
+        /*
+         * Лог для проверки onboarding
+         */
+        if (screen === 'onboarding') {
+            console.log(
+                '🌱 render("onboarding"):',
+                '_onboardingChildId =',
+                state._onboardingChildId,
+                'children =',
+                Array.isArray(state.children)
+                    ? state.children.length
+                    : 0
+            );
+        }
 
-    console.log('✅ render определена?', typeof window.render);
-    console.log('✅ rendering.js: завершён успешно');
+        return html;
+    };
+
+    /*
+     * ============================================================
+     * Алиас
+     * ============================================================
+     */
+
+    window.renderScreen =
+        window.render;
+
+    console.log(
+        '✅ rendering.js загружен'
+    );
 })();
