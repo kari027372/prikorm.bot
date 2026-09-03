@@ -136,7 +136,7 @@
         const action = target.dataset.action;
 
         if (action === 'next-step' || action === 'prev-step' || action === 'skip-step' || action === 'finish-onboarding') {
-            if (STATE.navigation.currentScreen !== 'onboarding') return;
+            // Проверка на экран онбординга убрана, чтобы не блокировать
             const step = STEPS[currentStep];
             if (!step) return;
 
@@ -247,5 +247,5 @@
         }
     }
 
-    console.log('✅ onboarding.js загружен (новая версия)');
+    console.log('✅ onboarding.js загружен (исправлен)');
 })();
