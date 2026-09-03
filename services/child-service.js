@@ -44,6 +44,8 @@
         };
         window.STATE.children.push(newChild);
         window.STATE.currentChildId = newChild.id;
+        // Синхронизируем STATE.baby как массив всех детей
+        window.STATE.baby = window.STATE.children.slice();
         if (typeof window.saveState === 'function') {
             window.saveState();
         }
@@ -76,18 +78,24 @@
     }
 
     function deleteChild(childId) {
-        if (typeof window.deleteChild === 'function') {
-            return window.deleteChild(childId);
+        if (!window.STATE || !Array.isArray(window.STATE.children)) {
+            console.error('STATE.children не найден');
+            return false;
         }
-        const children = getChildren();
-        const index = children.findIndex(c => c.id === childId);
-        if (index === -1) return false;
-        children.splice(index, 1);
+        const index = window.STATE.children.findIndex(c => c.id === childId);
+        if (index === -1) {
+            console.warn('Ребёнок не найден для удаления:', childId);
+            return false;
+        }
+        window.STATE.children.splice(index, 1);
         if (window.STATE.currentChildId === childId) {
-            window.STATE.currentChildId = children.length ? children[0].id : null;
+            window.STATE.currentChildId = window.STATE.children.length ? window.STATE.children[0].id : null;
         }
+        // Синхронизируем STATE.baby
+        window.STATE.baby = window.STATE.children.slice();
         if (typeof window.saveState === 'function') window.saveState();
         window.dispatchEvent(new CustomEvent('prikorm:statechange'));
+        console.log('🗑️ Ребёнок удалён:', childId);
         return true;
     }
 
