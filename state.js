@@ -118,7 +118,12 @@
         // 4. Устанавливаем STATE
         STATE = migrated;
 
-        // 5. Дополнительная проверка: если есть поле baby (старое), мигрируем в children
+        // 5. Удаляем устаревшее поле _onboardingMode, если есть
+        if (STATE._onboardingMode !== undefined) {
+            delete STATE._onboardingMode;
+        }
+
+        // 6. Дополнительная проверка: если есть поле baby (старое), мигрируем в children
         if (STATE.baby && Object.keys(STATE.baby).length > 0) {
             if (typeof window.migrateBabyToChildren === 'function') {
                 window.migrateBabyToChildren();
@@ -154,7 +159,7 @@
             }
         }
 
-        // 6. Убеждаемся, что у каждого ребёнка есть необходимые поля
+        // 7. Убеждаемся, что у каждого ребёнка есть необходимые поля
         if (STATE.children) {
             STATE.children.forEach(child => {
                 if (!child.diary) child.diary = [];
@@ -166,12 +171,14 @@
             });
         }
 
-        // 7. Если currentChildId не существует, но есть дети – выбираем первого
+        // 8. Корректируем currentChildId, если он невалиден или отсутствует
         if (STATE.children && STATE.children.length > 0) {
             const exists = STATE.children.some(c => c.id === STATE.currentChildId);
             if (!exists || !STATE.currentChildId) {
                 STATE.currentChildId = STATE.children[0].id;
                 console.log('🔄 currentChildId скорректирован на первого ребёнка');
+                // Сохраняем, чтобы синхронизировать localStorage
+                if (typeof saveState === 'function') saveState();
             }
         } else {
             STATE.currentChildId = null;
@@ -282,13 +289,33 @@
     }
 
     // ============================================================
-    // ФУНКЦИИ ДЛЯ РАБОТЫ С ДЕТЬМИ (без изменений)
+    // ФУНКЦИИ ДЛЯ РАБОТЫ С ДЕТЬМИ (исправлена getCurrentChild)
     // ============================================================
 
     function getCurrentChild() {
-        if (!STATE.children || !STATE.children.length) return null;
+        // Если нет детей – возвращаем null
+        if (!STATE.children || STATE.children.length === 0) {
+            return null;
+        }
+
+        // Пытаемся найти по currentChildId
         const child = STATE.children.find(c => c.id === STATE.currentChildId);
-        return child || STATE.children[0] || null;
+        if (child) {
+            return child;
+        }
+
+        // Если не найден, берём первого и корректируем currentChildId
+        const firstChild = STATE.children[0];
+        if (firstChild) {
+            if (STATE.currentChildId !== firstChild.id) {
+                STATE.currentChildId = firstChild.id;
+                if (typeof saveState === 'function') saveState();
+                console.log('🔄 getCurrentChild: currentChildId скорректирован на первого ребёнка');
+            }
+            return firstChild;
+        }
+
+        return null;
     }
 
     function addChild(childData) {
@@ -402,7 +429,25 @@
         return child || {};
     }
 
-    // ... остальные функции (isProductIntroduced, markProductIntroduced, addDiaryEntry, getPlanForDate, etc.) пока остаются как есть, но в будущем будут адаптированы под активного ребёнка.
+    // Заглушки для продуктов и т.д. (они будут переработаны в следующих этапах)
+    function isProductIntroduced(productId) { return false; }
+    function isProductFavorite(productId) { return false; }
+    function isProductPlanned(productId) { return false; }
+    function markProductIntroduced(product) { return false; }
+    function toggleFavoriteProduct(productId) { return false; }
+    function planProduct(productId) { return false; }
+    function addDiaryEntry(entry) { return false; }
+    function getPlanForDate(date) { return []; }
+    function setPlanForDate(date, meals) { return []; }
+    function addMealToPlan(date, meal) { return false; }
+    function addReaction(reaction) { return false; }
+    function addToPantry(product) { return false; }
+    function removeFromPantry(productId) { return false; }
+    function addShoppingItem(item) { return false; }
+    function toggleShoppingItem(itemId) { return false; }
+    function setCurrentScreen(screen) { return false; }
+    function openModal(modal) { return false; }
+    function closeModal() { return false; }
 
     // ============================================================
     // ИНИЦИАЛИЗАЦИЯ
@@ -430,7 +475,7 @@
     window.addToStateArray = addToStateArray;
     window.removeFromStateArray = removeFromStateArray;
     window.toggleStateArrayItem = toggleStateArrayItem;
-    window.isProductIntroduced = isProductIntroduced; // оставляем заглушку
+    window.isProductIntroduced = isProductIntroduced;
     window.isProductFavorite = isProductFavorite;
     window.isProductPlanned = isProductPlanned;
     window.markProductIntroduced = markProductIntroduced;
@@ -456,5 +501,5 @@
     window.deleteChild = deleteChild;
     window.migrateBabyToChildren = migrateBabyToChildren;
 
-    console.log('✅ state.js обновлён (с использованием storage-service)');
+    console.log('✅ state.js обновлён (с использованием storage-service, исправлен getCurrentChild)');
 })();
