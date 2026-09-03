@@ -9,12 +9,14 @@ const DEFAULT_STATE = {
 
     onboardingCompleted: false,
 
-    // Новая структура для детей
     children: [],
     currentChildId: null,
 
+    // служебное поле для хранения ID ребёнка, для которого идёт онбординг
+    _onboardingChildId: null,
+
     // (старое поле baby оставлено для обратной совместимости, но мы его мигрируем)
-    baby: null,  // будет удалён при загрузке
+    baby: null,
 
     navigation: {
         currentScreen: "home",
@@ -68,28 +70,14 @@ const DEFAULT_STATE = {
         activeFilter: "all"
     },
 
-    onboarding: {
-        readiness: {
-            sitSupport: false,
-            headControl: false,
-            reachesFood: false,
-            opensMouth: false,
-            notSure: false
-        },
-        allergies: [],
-        diet: [],
-        favoriteFoods: [],
-        worries: [],
-        confidence: ""
-    }
+    // больше не используем STATE.onboarding – теперь данные хранятся в каждом ребёнке
+    onboarding: null // оставляем null, чтобы не мешал
 };
-
 
 // ===== Вспомогательные функции для работы с детьми =====
 
 function migrateBabyToChildren() {
     if (STATE.baby && Object.keys(STATE.baby).length > 0) {
-        // Создаём ребёнка из старого поля baby
         const newChild = {
             id: 'child_' + Date.now(),
             name: STATE.baby.name || '',
@@ -101,11 +89,18 @@ function migrateBabyToChildren() {
             approach: STATE.baby.approach || 'mixed',
             readiness: STATE.baby.readiness || {},
             notes: STATE.baby.notes || '',
-            photo: STATE.baby.photo || ''
+            photo: STATE.baby.photo || '',
+            // Новые поля для данных онбординга
+            onboarding: {
+                allergies: [],
+                diet: [],
+                favoriteFoods: [],
+                worries: [],
+                confidence: ''
+            }
         };
         STATE.children.push(newChild);
         STATE.currentChildId = newChild.id;
-        // Удаляем старое поле
         delete STATE.baby;
         saveState();
     }
@@ -130,6 +125,13 @@ function addChild(childData) {
         readiness: {},
         notes: '',
         photo: '',
+        onboarding: {
+            allergies: [],
+            diet: [],
+            favoriteFoods: [],
+            worries: [],
+            confidence: ''
+        },
         ...childData
     };
     STATE.children.push(newChild);
@@ -181,6 +183,7 @@ function mergeState(defaultState, savedState) {
 }
 
 function loadState() {
+    console.log('📥 loadState вызвана');
     try {
         const raw = localStorage.getItem(APP_CONFIG.storage.keys.state);
         if (!raw) {
@@ -189,10 +192,24 @@ function loadState() {
         }
         const saved = JSON.parse(raw);
         STATE = mergeState(DEFAULT_STATE, saved);
-        // Миграция: если есть поле baby, превращаем его в ребёнка
         if (STATE.baby && typeof STATE.baby === 'object') {
             migrateBabyToChildren();
         }
+        // Убедимся, что onboarding удалён из корня
+        if (STATE.onboarding && typeof STATE.onboarding === 'object') {
+            // Переносим старые данные в первого ребёнка, если он есть
+            if (STATE.children.length > 0) {
+                const first = STATE.children[0];
+                if (!first.onboarding) first.onboarding = {};
+                first.onboarding.allergies = STATE.onboarding.allergies || [];
+                first.onboarding.diet = STATE.onboarding.diet || [];
+                first.onboarding.favoriteFoods = STATE.onboarding.favoriteFoods || [];
+                first.onboarding.worries = STATE.onboarding.worries || [];
+                first.onboarding.confidence = STATE.onboarding.confidence || '';
+            }
+            delete STATE.onboarding;
+        }
+        console.log('📥 loadState завершена, STATE.children.length =', STATE.children.length);
         return STATE;
     } catch (error) {
         console.error("Не удалось загрузить состояние:", error);
@@ -287,7 +304,10 @@ function subscribeToState(listener) {
 }
 
 function emitStateChange() {
+    // Уведомляем подписчиков (старый механизм)
     stateListeners.forEach(listener => { try { listener(STATE); } catch (error) { console.error("Ошибка state listener:", error); } });
+    // Диспатчим CustomEvent для handlers.js
+    window.dispatchEvent(new CustomEvent('prikorm:statechange'));
 }
 
 // ===== Остальные экспорты (сохраняем) =====
@@ -435,6 +455,7 @@ function closeModal() {
     emitStateChange();
 }
 
+// Инициализация
 loadState();
 
 // Глобальные экспорты
