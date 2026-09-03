@@ -163,7 +163,6 @@ function handleDocumentClick(event) {
             if (confirm('Удалить этого ребёнка? Все данные по нему будут потеряны.')) {
                 if (typeof window.deleteChild === 'function') {
                     window.deleteChild(childId);
-                    // Принудительное сохранение и мгновенное обновление
                     if (typeof saveState === 'function') saveState();
                     setTimeout(function() {
                         // Явный рендер экрана "Малыш"
@@ -613,7 +612,6 @@ function showAddChildModal() {
             }
             overlay.remove();
             document.body.classList.remove('modal-open');
-            // Явный рендер экрана "Малыш"
             if (typeof render === 'function') render('baby');
             showToast('👶 Ребёнок добавлен (онбординг пропущен)', 'success');
         } else {
@@ -621,7 +619,6 @@ function showAddChildModal() {
         }
     });
 
-    // ВСТРОЕННЫЙ ОБРАБОТЧИК ДЛЯ КНОПКИ "СОХРАНИТЬ" (ЗАПУСКАЕТ ОНБОРДИНГ)
     overlay.querySelector('#save-child-btn').addEventListener('click', function() {
         var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
         var birthDate = document.getElementById('add-child-birth')?.value || '';
