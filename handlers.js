@@ -607,7 +607,6 @@ function showAddChildModal() {
                 approach: 'mixed',
                 readiness: {}
             });
-            // Сразу переключаем на нового ребёнка
             if (newChild && newChild.id) {
                 STATE.currentChildId = newChild.id;
                 if (typeof saveState === 'function') saveState();
@@ -621,40 +620,36 @@ function showAddChildModal() {
             alert('Ошибка: функция addChild не найдена');
         }
     });
-}
 
-// Обработчик сохранения через кнопку "Сохранить" (запускает онбординг)
-document.addEventListener('click', function(event) {
-    var target = event.target.closest('#save-child-btn');
-    if (!target) return;
-    var overlay = target.closest('.modal-overlay');
-    if (!overlay) return;
-    var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
-    var birthDate = document.getElementById('add-child-birth')?.value || '';
-    var sex = document.getElementById('add-child-sex')?.value || '';
-    if (!birthDate) {
-        alert('Пожалуйста, укажите дату рождения');
-        return;
-    }
-    if (typeof window.addChild === 'function') {
-        window.addChild({
-            name: name,
-            birthDate: birthDate,
-            sex: sex,
-            feedingType: '',
-            feedingStarted: false,
-            approach: 'mixed',
-            readiness: {}
-        });
-        overlay.remove();
-        document.body.classList.remove('modal-open');
-        STATE._onboardingMode = 'add-child';
-        if (typeof saveState === 'function') saveState();
-        if (typeof render === 'function') render('onboarding');
-    } else {
-        alert('Ошибка: функция addChild не найдена');
-    }
-});
+    // ВСТРОЕННЫЙ ОБРАБОТЧИК ДЛЯ КНОПКИ "СОХРАНИТЬ" (ЗАПУСКАЕТ ОНБОРДИНГ)
+    overlay.querySelector('#save-child-btn').addEventListener('click', function() {
+        var name = document.getElementById('add-child-name')?.value.trim() || 'Ребёнок';
+        var birthDate = document.getElementById('add-child-birth')?.value || '';
+        var sex = document.getElementById('add-child-sex')?.value || '';
+        if (!birthDate) {
+            alert('Пожалуйста, укажите дату рождения');
+            return;
+        }
+        if (typeof window.addChild === 'function') {
+            window.addChild({
+                name: name,
+                birthDate: birthDate,
+                sex: sex,
+                feedingType: '',
+                feedingStarted: false,
+                approach: 'mixed',
+                readiness: {}
+            });
+            overlay.remove();
+            document.body.classList.remove('modal-open');
+            STATE._onboardingMode = 'add-child';
+            if (typeof saveState === 'function') saveState();
+            if (typeof render === 'function') render('onboarding');
+        } else {
+            alert('Ошибка: функция addChild не найдена');
+        }
+    });
+}
 
 window.setupEventListeners = setupEventListeners;
 window.handleDocumentClick = handleDocumentClick;
