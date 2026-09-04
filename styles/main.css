@@ -937,3 +937,66 @@ body.modal-open { overflow: hidden; }
     .result-card .overall-status { font-size: 18px; }
     .result-card .overall-recommendation { font-size: 14px; }
 }
+/* ============================================================
+   ИСПРАВЛЕНИЕ КНОПОК ВЫБОРА (ДА/НЕТ И ДР.)
+   ============================================================ */
+
+.onboarding .btn-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+.onboarding .choice-btn {
+    width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    padding: 16px 20px !important;
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    border-radius: 14px !important;
+    border: 2px solid #dcc8bc !important;
+    background: rgba(255, 248, 245, 0.8) !important;
+    color: #3d2a1a !important;
+    text-align: left !important;
+    margin-bottom: 10px !important;
+    transition: all 0.2s !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+}
+
+.onboarding .choice-btn.primary {
+    background: #e8927a !important;
+    color: #fff !important;
+    border-color: #e8927a !important;
+    box-shadow: 0 4px 12px rgba(232, 146, 122, 0.3) !important;
+}
+
+.onboarding .choice-btn:active {
+    transform: scale(0.98) !important;
+}
+
+/* Адаптация для тёмной темы */
+body.theme-dark .onboarding .choice-btn {
+    background: rgba(60, 60, 60, 0.6) !important;
+    border-color: #555555 !important;
+    color: #e8e0d8 !important;
+}
+body.theme-dark .onboarding .choice-btn.primary {
+    background: #b8946a !important;
+    border-color: #b8946a !important;
+    color: #fff !important;
+}
+
+/* Адаптация для детской темы */
+body.theme-kids .onboarding .choice-btn {
+    background: rgba(255, 248, 245, 0.6) !important;
+    border-color: #e8ddd0 !important;
+    color: #5a3a2a !important;
+}
+body.theme-kids .onboarding .choice-btn.primary {
+    background: #f0c8a0 !important;
+    border-color: #f0c8a0 !important;
+    color: #fff !important;
+}
