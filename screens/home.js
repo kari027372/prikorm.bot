@@ -1,6 +1,5 @@
 window.renderHome = function() {
     const state = window.STATE || {};
-    // Получаем текущего ребёнка
     const currentChild = window.getCurrentChild ? window.getCurrentChild() : (state.baby || {});
     const baby = currentChild || {};
 
@@ -8,12 +7,10 @@ window.renderHome = function() {
     const diary = state.diary || [];
     const totalIntroduced = introduced.length;
 
-    // Точный возраст через formatAge (из utils.js)
     let ageText = 'Возраст не указан';
     if (baby.birthDate && typeof window.formatAge === 'function') {
         ageText = window.formatAge(baby.birthDate);
     } else if (baby.birthDate) {
-        // fallback
         const birth = new Date(baby.birthDate);
         const now = new Date();
         let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
@@ -115,8 +112,9 @@ window.renderHome = function() {
         </div>
     `;
 };
+
 // ============================================================
-// ПРИВЕТСТВЕННЫЙ БАННЕР НА ГЛАВНОЙ
+// ПРИВЕТСТВЕННЫЙ БАННЕР НА ГЛАВНОЙ (обновлённая версия)
 // ============================================================
 
 function showWelcomeBanner() {
@@ -197,22 +195,23 @@ function showWelcomeBanner() {
         });
     }
 
-    // Закрытие по кнопке
+    // Закрытие по клику на крестик
     var closeBtn = banner.querySelector('.welcome-banner-close');
     if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
+        closeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
             closeWelcomeBanner(banner);
         });
     }
 
-    // Автоматическое закрытие через 5 секунд
-    setTimeout(function() {
-        if (banner && banner.parentNode) {
+    // Закрытие по клику на сам баннер (не на крестик)
+    banner.addEventListener('click', function(e) {
+        if (!e.target.closest('.welcome-banner-close')) {
             closeWelcomeBanner(banner);
         }
-    }, 5000);
+    });
 
-    // Клик по баннеру не закрывает (только кнопка)
+    // НЕТ автоматического закрытия!
 }
 
 function closeWelcomeBanner(banner) {
