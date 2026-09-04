@@ -4,19 +4,7 @@
 
     /*
      * PRIKORM.BOT — ONBOARDING
-     * ------------------------------------------------------------
-     * Цель:
-     * 1. Собрать минимально необходимый профиль ребёнка.
-     * 2. Не превращать онбординг в медицинский диагноз.
-     * 3. Подготовить данные для будущего персонального
-     *    рекомендательного движка.
-     * 4. Не запрещать прикорм автоматически только по одному
-     *    признаку.
-     *
-     * ВАЖНО:
-     * Онбординг собирает данные и формирует ориентир.
-     * Медицинские состояния не диагностируются приложением.
-     * ------------------------------------------------------------
+     * Версия 2.1 (исправления по замечаниям)
      */
 
     // ============================================================
@@ -64,23 +52,11 @@
         'Не понимаю, какие продукты выбирать'
     ];
 
-    const SKIP_VALUES = [
-        'Нет',
-        'Не знаю',
-        'Пока не знаю',
-        'Пропустить'
-    ];
-
     // ============================================================
     // ШАГИ ОНБОРДИНГА
     // ============================================================
 
     const STEPS = [
-
-        // --------------------------------------------------------
-        // 1. ИМЯ
-        // --------------------------------------------------------
-
         {
             id: 'name',
             emoji: '👶',
@@ -92,11 +68,6 @@
             key: 'name',
             skipable: true
         },
-
-        // --------------------------------------------------------
-        // 2. ДАТА РОЖДЕНИЯ
-        // --------------------------------------------------------
-
         {
             id: 'birth',
             emoji: '📅',
@@ -106,11 +77,6 @@
             inputType: 'date',
             key: 'birthDate'
         },
-
-        // --------------------------------------------------------
-        // 3. СРОК РОЖДЕНИЯ
-        // --------------------------------------------------------
-
         {
             id: 'gestational',
             emoji: '🤰',
@@ -119,11 +85,6 @@
             type: 'gestational',
             key: 'gestational'
         },
-
-        // --------------------------------------------------------
-        // 4. ТИП ВСКАРМЛИВАНИЯ
-        // --------------------------------------------------------
-
         {
             id: 'feeding_type',
             emoji: '🍼',
@@ -142,11 +103,6 @@
             ],
             key: 'feedingType'
         },
-
-        // --------------------------------------------------------
-        // 5. НАЧАЛСЯ ЛИ ПРИКОРМ
-        // --------------------------------------------------------
-
         {
             id: 'started',
             emoji: '🌱',
@@ -160,11 +116,6 @@
             key: 'feedingStarted',
             extra: 'start-date-field'
         },
-
-        // --------------------------------------------------------
-        // 6. ПОДХОД
-        // --------------------------------------------------------
-
         {
             id: 'approach',
             emoji: '🥄',
@@ -179,11 +130,6 @@
             ],
             key: 'approach'
         },
-
-        // --------------------------------------------------------
-        // 7. ГОТОВНОСТЬ
-        // --------------------------------------------------------
-
         {
             id: 'readiness',
             emoji: '🧸',
@@ -210,11 +156,6 @@
                 'Не уверена / не знаю': 'notSure'
             }
         },
-
-        // --------------------------------------------------------
-        // 8. АЛЛЕРГИИ
-        // --------------------------------------------------------
-
         {
             id: 'allergies',
             emoji: '⚠️',
@@ -228,11 +169,6 @@
             ],
             key: 'allergies'
         },
-
-        // --------------------------------------------------------
-        // 9. ОСОБЕННОСТИ ПИТАНИЯ
-        // --------------------------------------------------------
-
         {
             id: 'diet',
             emoji: '🥗',
@@ -245,11 +181,6 @@
             ],
             key: 'diet'
         },
-
-        // --------------------------------------------------------
-        // 10. ЧТО ИНТЕРЕСНО МАМЕ
-        // --------------------------------------------------------
-
         {
             id: 'favorites',
             emoji: '🍎',
@@ -261,11 +192,6 @@
             ],
             key: 'favoriteFoods'
         },
-
-        // --------------------------------------------------------
-        // 11. ТРЕВОГИ
-        // --------------------------------------------------------
-
         {
             id: 'worries',
             emoji: '💛',
@@ -275,11 +201,6 @@
             options: WORRY_OPTIONS,
             key: 'worries'
         },
-
-        // --------------------------------------------------------
-        // 12. УВЕРЕННОСТЬ
-        // --------------------------------------------------------
-
         {
             id: 'confidence',
             emoji: '💪',
@@ -303,6 +224,7 @@
     let currentStep = 0;
     let tempData = {};
     let targetChildId = null;
+    let ageMonths = 0; // будем хранить актуальный возраст
 
     // ============================================================
     // УТИЛИТЫ
@@ -323,55 +245,27 @@
 
     function getTargetChild() {
         const state = getState();
-
-        const id =
-            targetChildId ||
-            state._onboardingChildId ||
-            state.currentChildId;
-
+        const id = targetChildId || state._onboardingChildId || state.currentChildId;
         if (!id) {
             console.error('❌ onboarding: child id не найден');
             return null;
         }
-
-        const children =
-            Array.isArray(state.children)
-                ? state.children
-                : [];
-
+        const children = Array.isArray(state.children) ? state.children : [];
         return children.find(child => child.id === id) || null;
     }
 
     function calculateAge(birthDate) {
         if (!birthDate) {
-            return {
-                months: 0,
-                days: 0
-            };
+            return { months: 0, days: 0 };
         }
-
         const birth = new Date(birthDate);
         const now = new Date();
-
-        let months =
-            (now.getFullYear() - birth.getFullYear()) * 12 +
-            (now.getMonth() - birth.getMonth());
-
-        if (now.getDate() < birth.getDate()) {
-            months--;
-        }
-
+        let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+        if (now.getDate() < birth.getDate()) months--;
         const safeMonths = Math.max(0, months);
-
         return {
             months: safeMonths,
-            days: Math.max(
-                0,
-                Math.floor(
-                    (now.getTime() - birth.getTime()) /
-                    (1000 * 60 * 60 * 24)
-                )
-            )
+            days: Math.max(0, Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24)))
         };
     }
 
@@ -380,34 +274,14 @@
     // ============================================================
 
     function getBirthTermCategory(weeks, days) {
-        if (
-            weeks === '' ||
-            weeks === null ||
-            weeks === undefined
-        ) {
+        if (weeks === '' || weeks === null || weeks === undefined) {
             return 'unknown';
         }
-
-        const totalDays =
-            parseInt(weeks, 10) * 7 +
-            (parseInt(days, 10) || 0);
-
-        if (totalDays < 259) {
-            return 'preterm';
-        }
-
-        if (totalDays < 273) {
-            return 'early_term';
-        }
-
-        if (totalDays < 287) {
-            return 'full_term';
-        }
-
-        if (totalDays < 294) {
-            return 'late_term';
-        }
-
+        const totalDays = parseInt(weeks, 10) * 7 + (parseInt(days, 10) || 0);
+        if (totalDays < 259) return 'preterm';
+        if (totalDays < 273) return 'early_term';
+        if (totalDays < 287) return 'full_term';
+        if (totalDays < 294) return 'late_term';
         return 'post_term';
     }
 
@@ -416,96 +290,63 @@
     // ============================================================
 
     function assessReadiness(readiness, ageMonths, birthTermCategory) {
-
         if (!readiness || typeof readiness !== 'object') {
-            return {
-                status: 'unknown',
-                reason: 'no_data'
-            };
+            return { status: 'unknown', reason: 'no_data' };
         }
-
         if (readiness.notSure) {
-            return {
-                status: 'unknown',
-                reason: 'parent_not_sure'
-            };
+            return { status: 'unknown', reason: 'parent_not_sure' };
         }
-
         const headControl = !!readiness.headControl;
         const swallowing = !!readiness.swallowing;
         const sitSupport = !!readiness.sitSupport;
         const foodInterest = !!readiness.foodInterest;
         const opensMouth = !!readiness.opensMouth;
 
-        /*
-         * Мы НЕ используем один признак как "разрешение".
-         *
-         * Возраст также не является единственным критерием.
-         *
-         * Для приложения:
-         * - ключевые моторные/оральные признаки имеют больший вес;
-         * - интерес к еде является дополнительным признаком;
-         * - сидение с поддержкой не приравнивается к
-         *   самостоятельному сидению.
-         */
-
-        const coreCount = [
-            headControl,
-            swallowing,
-            sitSupport
-        ].filter(Boolean).length;
-
-        const additionalCount = [
-            foodInterest,
-            opensMouth
-        ].filter(Boolean).length;
+        const coreCount = [headControl, swallowing, sitSupport].filter(Boolean).length;
+        const additionalCount = [foodInterest, opensMouth].filter(Boolean).length;
 
         if (ageMonths < 4) {
             return {
                 status: 'too_early',
                 reason: 'age_under_4_months',
                 coreCount,
-                additionalCount
+                additionalCount,
+                message: 'Малышу меньше 4 месяцев. Обычно прикорм начинают с 6 месяцев. Пока можно наблюдать и готовиться.'
             };
         }
-
-        if (
-            coreCount >= 2 &&
-            additionalCount >= 1
-        ) {
-            if (
-                birthTermCategory === 'preterm'
-            ) {
+        if (coreCount >= 2 && additionalCount >= 1) {
+            if (birthTermCategory === 'preterm') {
                 return {
                     status: 'needs_pediatrician_review',
                     reason: 'preterm_with_readiness_signs',
                     coreCount,
-                    additionalCount
+                    additionalCount,
+                    message: 'Вы отметили признаки готовности, но ребёнок родился недоношенным. Рекомендуем обсудить начало прикорма с педиатром.'
                 };
             }
-
             if (ageMonths >= 6) {
                 return {
                     status: 'ready',
                     reason: 'age_and_readiness',
                     coreCount,
-                    additionalCount
+                    additionalCount,
+                    message: 'Возраст подходит, и вы отметили признаки готовности. Можно начинать знакомство с прикормом!'
                 };
             }
-
             return {
                 status: 'likely_ready',
                 reason: 'readiness_before_6_months',
                 coreCount,
-                additionalCount
+                additionalCount,
+                message: 'Вы отметили признаки готовности, но возраст ещё не достиг 6 месяцев. Если вы планируете начать прикорм раньше, обсудите это с педиатром.'
             };
         }
-
         return {
             status: 'not_yet',
             reason: 'insufficient_readiness_signs',
             coreCount,
-            additionalCount
+            additionalCount,
+            message: 'Пока отмечено недостаточно признаков готовности. Продолжайте наблюдать за малышом.'
         };
     }
 
@@ -514,152 +355,57 @@
     // ============================================================
 
     function saveCurrentStep() {
-
         const step = STEPS[currentStep];
+        if (!step) return;
 
-        if (!step) {
-            return;
-        }
-
-        // --------------------------------------------------------
         // INPUT
-        // --------------------------------------------------------
-
         if (step.type === 'input') {
-
-            const input =
-                document.getElementById('onboarding-input');
-
-            if (input) {
-                tempData[step.key] =
-                    input.value.trim();
-            }
-
+            const input = document.getElementById('onboarding-input');
+            if (input) tempData[step.key] = input.value.trim();
             return;
         }
 
-        // --------------------------------------------------------
         // CHOICE
-        // --------------------------------------------------------
-
         if (step.type === 'choice') {
-
-            const selected =
-                document.querySelector(
-                    `.btn-group button[data-choice="${step.key}"].primary`
-                );
-
-            if (selected) {
-                tempData[step.key] =
-                    selected.dataset.value;
-            }
-
+            const selected = document.querySelector(`.btn-group button[data-choice="${step.key}"].primary`);
+            if (selected) tempData[step.key] = selected.dataset.value;
             if (step.key === 'feedingStarted') {
-
-                const started =
-                    tempData.feedingStarted === 'Да';
-
-                const dateInput =
-                    document.getElementById(
-                        'onboarding-start-date'
-                    );
-
-                if (started && dateInput) {
-                    tempData.feedingStartDate =
-                        dateInput.value || '';
-                } else if (!started) {
-                    tempData.feedingStartDate = '';
-                }
+                const started = tempData.feedingStarted === 'Да';
+                const dateInput = document.getElementById('onboarding-start-date');
+                if (started && dateInput) tempData.feedingStartDate = dateInput.value || '';
+                else if (!started) tempData.feedingStartDate = '';
             }
-
             return;
         }
 
-        // --------------------------------------------------------
         // CHECKBOXES
-        // --------------------------------------------------------
-
         if (step.type === 'checkboxes') {
-
-            const checks =
-                document.querySelectorAll(
-                    '.step-checkbox:checked'
-                );
-
-            const values =
-                Array.from(checks)
-                    .map(el => el.value);
-
+            const checks = document.querySelectorAll('.step-checkbox:checked');
+            const values = Array.from(checks).map(el => el.value);
             if (step.key === 'readiness') {
-
-                const mapping =
-                    step.mapping || {};
-
+                const mapping = step.mapping || {};
                 const readiness = {};
-
-                Object.keys(mapping)
-                    .forEach(label => {
-                        readiness[mapping[label]] = false;
-                    });
-
+                Object.keys(mapping).forEach(label => { readiness[mapping[label]] = false; });
                 values.forEach(value => {
-
-                    const key =
-                        mapping[value];
-
-                    if (key) {
-                        readiness[key] = true;
-                    }
+                    const key = mapping[value];
+                    if (key) readiness[key] = true;
                 });
-
-                tempData.readiness =
-                    readiness;
-
+                tempData.readiness = readiness;
             } else {
-
-                tempData[step.key] =
-                    values.filter(
-                        value =>
-                            !SKIP_VALUES.includes(value)
-                    );
+                // Сохраняем ВСЕ выбранные, включая "Не знаю", "Нет" и т.д.
+                tempData[step.key] = values;
             }
-
             return;
         }
 
-        // --------------------------------------------------------
         // GESTATIONAL
-        // --------------------------------------------------------
-
         if (step.type === 'gestational') {
-
-            const weeks =
-                document.getElementById(
-                    'gestational-weeks'
-                )?.value;
-
-            const days =
-                document.getElementById(
-                    'gestational-days'
-                )?.value;
-
-            const unknown =
-                document.getElementById(
-                    'gestational-unknown'
-                )?.checked || false;
-
-            tempData.gestationalWeeks =
-                weeks !== ''
-                    ? parseInt(weeks, 10)
-                    : '';
-
-            tempData.gestationalDays =
-                days !== ''
-                    ? parseInt(days, 10)
-                    : '';
-
-            tempData.gestationalUnknown =
-                unknown;
+            const weeks = document.getElementById('gestational-weeks')?.value;
+            const days = document.getElementById('gestational-days')?.value;
+            const unknown = document.getElementById('gestational-unknown')?.checked || false;
+            tempData.gestationalWeeks = weeks !== '' ? parseInt(weeks, 10) : '';
+            tempData.gestationalDays = days !== '' ? parseInt(days, 10) : '';
+            tempData.gestationalUnknown = unknown;
         }
     }
 
@@ -668,462 +414,184 @@
     // ============================================================
 
     function renderStep() {
+        const step = STEPS[currentStep];
+        if (!step) return '';
 
-        const step =
-            STEPS[currentStep];
-
-        if (!step) {
-            return '';
-        }
-
-        const child =
-            getTargetChild();
-
+        const child = getTargetChild();
         if (!child) {
-
             return `
                 <div class="onboarding">
                     <div class="emoji-big">👶</div>
-
                     <h1>Ребёнок не найден</h1>
-
-                    <p>
-                        Не удалось определить малыша
-                        для этого онбординга.
-                    </p>
-
-                    <button
-                        class="primary-button"
-                        data-action="navigate"
-                        data-screen="baby"
-                        type="button"
-                    >
-                        Вернуться к малышам
-                    </button>
+                    <p>Не удалось определить малыша для этого онбординга.</p>
+                    <button class="primary-button" data-action="navigate" data-screen="baby" type="button">Вернуться к малышам</button>
                 </div>
             `;
         }
 
-        let html =
-            `<div class="onboarding">`;
-
-        // --------------------------------------------------------
-        // ПРОГРЕСС
-        // --------------------------------------------------------
-
-        html += `
-            <div class="step-indicators"
-                 aria-label="Прогресс онбординга">
-        `;
-
-        for (
-            let i = 0;
-            i < STEPS.length;
-            i++
-        ) {
-
-            html += `
-                <span
-                    class="${i === currentStep ? 'active' : ''}"
-                ></span>
-            `;
+        // Вычисляем возраст для текущего шага (если есть дата рождения)
+        if (tempData.birthDate) {
+            ageMonths = calculateAge(tempData.birthDate).months;
+        } else if (child.birthDate) {
+            ageMonths = calculateAge(child.birthDate).months;
+        } else {
+            ageMonths = 0;
         }
 
+        let html = `<div class="onboarding">`;
+
+        // Прогресс
+        html += `<div class="step-indicators" aria-label="Прогресс онбординга">`;
+        for (let i = 0; i < STEPS.length; i++) {
+            html += `<span class="${i === currentStep ? 'active' : ''}"></span>`;
+        }
         html += `</div>`;
 
-        // --------------------------------------------------------
-        // HEADER
-        // --------------------------------------------------------
-
         html += `
-            <div class="emoji-big">
-                ${step.emoji}
-            </div>
-
-            <h1>
-                ${escapeHtml(step.title)}
-            </h1>
-
-            ${
-                step.desc
-                    ? `<p>${escapeHtml(step.desc)}</p>`
-                    : ''
-            }
+            <div class="emoji-big">${step.emoji}</div>
+            <h1>${escapeHtml(step.title)}</h1>
+            ${step.desc ? `<p>${escapeHtml(step.desc)}</p>` : ''}
         `;
 
-        // ========================================================
-        // INPUT
-        // ========================================================
-
-        if (step.type === 'input') {
-
-            const value =
-                tempData[step.key] !== undefined
-                    ? tempData[step.key]
-                    : (child[step.key] || '');
-
+        // --------------------------------------------------------
+        // СПЕЦИАЛЬНАЯ ОБРАБОТКА: если возраст < 4 мес и шаг "started"
+        // --------------------------------------------------------
+        if (step.id === 'started' && ageMonths < 4) {
             html += `
-                <input
-                    type="${step.inputType}"
-                    id="onboarding-input"
-                    placeholder="${escapeHtml(step.placeholder || '')}"
-                    value="${escapeHtml(value)}"
-                    autocomplete="${step.key === 'name' ? 'name' : 'off'}"
-                >
+                <div style="background:#f0f4ff; padding:16px; border-radius:8px; margin:12px 0;">
+                    <p style="margin:0; color:#1a3a5c;">
+                        🌱 Малышу меньше 4 месяцев. Обычно прикорм рекомендуют начинать с 6 месяцев. 
+                        Пока вы можете наблюдать за готовностью, а мы подскажем, когда будет подходящее время.
+                    </p>
+                </div>
+                <p style="color:#666; font-size:0.9rem;">Этот вопрос будет пропущен, так как сейчас слишком рано для прикорма.</p>
             `;
-
+            // Пропускаем вопрос – просто кнопка Далее
+            // Но мы не сохраняем ответ, он будет проигнорирован.
+            // Вместо этого мы можем автоматически установить feedingStarted = false
+            tempData.feedingStarted = 'Нет';
+            tempData.feedingStartDate = '';
+        } else if (step.type === 'input') {
+            // обычный input
+            const value = tempData[step.key] !== undefined ? tempData[step.key] : (child[step.key] || '');
+            html += `
+                <input type="${step.inputType}" id="onboarding-input" placeholder="${escapeHtml(step.placeholder || '')}" value="${escapeHtml(value)}" autocomplete="${step.key === 'name' ? 'name' : 'off'}">
+            `;
             if (step.skipable) {
-
-                html += `
-                    <button
-                        class="skip"
-                        data-action="skip-step"
-                        type="button"
-                    >
-                        Пропустить →
-                    </button>
-                `;
+                html += `<button class="skip" data-action="skip-step" type="button">Пропустить →</button>`;
             }
-        }
-
-        // ========================================================
-        // CHOICE
-        // ========================================================
-
-        if (step.type === 'choice') {
-
-            html += `
-                <div class="btn-group"
-                     role="group">
-            `;
-
+        } else if (step.type === 'choice') {
+            // choice
+            html += `<div class="btn-group" role="group">`;
             step.options.forEach((option, index) => {
-
-                let currentValue =
-                    tempData[step.key] !== undefined
-                        ? tempData[step.key]
-                        : '';
-
-                if (
-                    !currentValue &&
-                    step.key === 'feedingType'
-                ) {
-
-                    const existing =
-                        child.feedingType;
-
-                    const reverse = {
-                        breast: 'Грудное молоко',
-                        formula: 'Смесь',
-                        mixed: 'Грудное молоко + смесь'
-                    };
-
-                    currentValue =
-                        reverse[existing] || '';
+                let currentValue = tempData[step.key] !== undefined ? tempData[step.key] : '';
+                if (!currentValue && step.key === 'feedingType') {
+                    const existing = child.feedingType;
+                    const reverse = { breast: 'Грудное молоко', formula: 'Смесь', mixed: 'Грудное молоко + смесь' };
+                    currentValue = reverse[existing] || '';
                 }
-
-                if (
-                    !currentValue &&
-                    step.key === 'feedingStarted'
-                ) {
-
-                    currentValue =
-                        child.feedingStarted
-                            ? 'Да'
-                            : '';
+                if (!currentValue && step.key === 'feedingStarted') {
+                    currentValue = child.feedingStarted ? 'Да' : '';
                 }
-
-                if (
-                    !currentValue &&
-                    child[step.key]
-                ) {
-                    currentValue =
-                        child[step.key];
+                if (!currentValue && child[step.key]) {
+                    currentValue = child[step.key];
                 }
-
-                const value =
-                    step.values
-                        ? step.values[index]
-                        : option;
-
-                const selected =
-                    currentValue === option ||
-                    currentValue === value;
-
+                const value = step.values ? step.values[index] : option;
+                const selected = currentValue === option || currentValue === value;
                 html += `
-                    <button
-                        class="${selected ? 'primary' : ''}"
-                        data-value="${escapeHtml(option)}"
-                        data-choice="${escapeHtml(step.key)}"
-                        type="button"
-                    >
+                    <button class="${selected ? 'primary' : ''}" data-value="${escapeHtml(option)}" data-choice="${escapeHtml(step.key)}" type="button">
                         ${escapeHtml(option)}
                     </button>
                 `;
             });
-
             html += `</div>`;
-
-            // ----------------------------------------------------
-            // DATE OF START
-            // ----------------------------------------------------
-
-            if (
-                step.extra === 'start-date-field'
-            ) {
-
-                const started =
-                    tempData.feedingStarted !== undefined
-                        ? tempData.feedingStarted
-                        : (
-                            child.feedingStarted
-                                ? 'Да'
-                                : ''
-                        );
-
-                const startDate =
-                    tempData.feedingStartDate !== undefined
-                        ? tempData.feedingStartDate
-                        : (
-                            child.feedingStartDate || ''
-                        );
-
+            if (step.extra === 'start-date-field') {
+                const started = tempData.feedingStarted !== undefined ? tempData.feedingStarted : (child.feedingStarted ? 'Да' : '');
+                const startDate = tempData.feedingStartDate !== undefined ? tempData.feedingStartDate : (child.feedingStartDate || '');
                 html += `
-                    <div
-                        id="start-date-field"
-                        style="
-                            display:${started === 'Да' ? 'block' : 'none'};
-                            margin-top:16px;
-                        "
-                    >
-                        <label>
-                            Дата начала прикорма
-                        </label>
-
-                        <input
-                            type="date"
-                            id="onboarding-start-date"
-                            value="${escapeHtml(startDate)}"
-                        >
+                    <div id="start-date-field" style="display:${started === 'Да' ? 'block' : 'none'}; margin-top:16px;">
+                        <label>Дата начала прикорма</label>
+                        <input type="date" id="onboarding-start-date" value="${escapeHtml(startDate)}">
                     </div>
                 `;
             }
-        }
-
-        // ========================================================
-        // CHECKBOXES
-        // ========================================================
-
-        if (step.type === 'checkboxes') {
-
-            let selected =
-                tempData[step.key] !== undefined
-                    ? tempData[step.key]
-                    : (
-                        child.onboarding?.[step.key]
-                        || []
-                    );
-
-            if (
-                step.key === 'readiness' &&
-                selected &&
-                !Array.isArray(selected)
-            ) {
-
-                const mapping =
-                    step.mapping || {};
-
-                selected =
-                    Object.keys(mapping)
-                        .filter(
-                            label =>
-                                selected[mapping[label]]
-                        );
+        } else if (step.type === 'checkboxes') {
+            // checkboxes
+            let selected = tempData[step.key] !== undefined ? tempData[step.key] : (child.onboarding?.[step.key] || []);
+            if (step.key === 'readiness' && selected && !Array.isArray(selected)) {
+                const mapping = step.mapping || {};
+                selected = Object.keys(mapping).filter(label => selected[mapping[label]]);
             }
+            if (!Array.isArray(selected)) selected = [];
 
-            if (!Array.isArray(selected)) {
-                selected = [];
-            }
-
-            html += `
-                <div
-                    class="btn-group"
-                    style="
-                        flex-direction:column;
-                        gap:8px;
-                    "
-                >
-            `;
-
+            html += `<div class="btn-group" style="flex-direction:column; gap:8px;">`;
             step.options.forEach(option => {
-
-                const checked =
-                    selected.includes(option);
-
+                const checked = selected.includes(option);
                 html += `
                     <label>
-                        <input
-                            type="checkbox"
-                            class="step-checkbox"
-                            value="${escapeHtml(option)}"
-                            ${checked ? 'checked' : ''}
-                        >
+                        <input type="checkbox" class="step-checkbox" value="${escapeHtml(option)}" ${checked ? 'checked' : ''}>
                         ${escapeHtml(option)}
                     </label>
                 `;
             });
-
             html += `</div>`;
-        }
 
-        // ========================================================
-        // GESTATIONAL
-        // ========================================================
-
-        if (step.type === 'gestational') {
-
-            const weeks =
-                tempData.gestationalWeeks !== undefined
-                    ? tempData.gestationalWeeks
-                    : (
-                        child.gestationalAgeWeeks ?? ''
-                    );
-
-            const days =
-                tempData.gestationalDays !== undefined
-                    ? tempData.gestationalDays
-                    : (
-                        child.gestationalAgeDays ?? ''
-                    );
-
-            const unknown =
-                tempData.gestationalUnknown !== undefined
-                    ? tempData.gestationalUnknown
-                    : (
-                        child.birthTermCategory === 'unknown'
-                    );
-
+            // Для readiness – показываем оценку
+            if (step.key === 'readiness' && tempData.readiness) {
+                const assessment = assessReadiness(
+                    tempData.readiness,
+                    ageMonths,
+                    child.birthTermCategory || 'unknown'
+                );
+                if (assessment.message) {
+                    html += `
+                        <div style="background:#f0f7ff; padding:12px; border-radius:8px; margin-top:12px; font-size:0.9rem;">
+                            💡 ${escapeHtml(assessment.message)}
+                        </div>
+                    `;
+                }
+            }
+        } else if (step.type === 'gestational') {
+            // gestational
+            const weeks = tempData.gestationalWeeks !== undefined ? tempData.gestationalWeeks : (child.gestationalAgeWeeks ?? '');
+            const days = tempData.gestationalDays !== undefined ? tempData.gestationalDays : (child.gestationalAgeDays ?? '');
+            const unknown = tempData.gestationalUnknown !== undefined ? tempData.gestationalUnknown : (child.birthTermCategory === 'unknown');
             html += `
-                <div
-                    style="
-                        display:flex;
-                        gap:12px;
-                        margin-top:12px;
-                    "
-                >
-
+                <div style="display:flex; gap:12px; margin-top:12px;">
                     <label>
                         Недели
-
-                        <input
-                            type="number"
-                            id="gestational-weeks"
-                            min="20"
-                            max="43"
-                            value="${escapeHtml(weeks)}"
-                            placeholder="39"
-                        >
+                        <input type="number" id="gestational-weeks" min="20" max="43" value="${escapeHtml(weeks)}" placeholder="39">
                     </label>
-
                     <label>
                         Дни
-
-                        <input
-                            type="number"
-                            id="gestational-days"
-                            min="0"
-                            max="6"
-                            value="${escapeHtml(days)}"
-                            placeholder="0"
-                        >
+                        <input type="number" id="gestational-days" min="0" max="6" value="${escapeHtml(days)}" placeholder="0">
                     </label>
-
                 </div>
-
-                <label
-                    style="
-                        display:block;
-                        margin-top:12px;
-                    "
-                >
-                    <input
-                        type="checkbox"
-                        id="gestational-unknown"
-                        ${unknown ? 'checked' : ''}
-                    >
+                <label style="display:block; margin-top:12px;">
+                    <input type="checkbox" id="gestational-unknown" ${unknown ? 'checked' : ''}>
                     Не знаю
                 </label>
-
-                <small
-                    style="
-                        display:block;
-                        margin-top:10px;
-                        opacity:.7;
-                    "
-                >
-                    Например: 39 недель 2 дня.
-                    Если срок неизвестен — это нормально.
+                <small style="display:block; margin-top:10px; opacity:.7;">
+                    Например: 39 недель 2 дня. Если срок неизвестен — это нормально.
                 </small>
             `;
         }
 
-        // ========================================================
+        // ============================================================
         // НАВИГАЦИЯ
-        // ========================================================
-
-        html += `
-            <div class="nav-buttons">
-        `;
-
+        // ============================================================
+        html += `<div class="nav-buttons">`;
         if (currentStep > 0) {
-
-            html += `
-                <button
-                    class="prev"
-                    data-action="prev-step"
-                    type="button"
-                >
-                    ← Назад
-                </button>
-            `;
-
+            html += `<button class="prev" data-action="prev-step" type="button">← Назад</button>`;
         } else {
-
             html += `<div></div>`;
         }
-
-        if (
-            currentStep <
-            STEPS.length - 1
-        ) {
-
-            html += `
-                <button
-                    class="next"
-                    data-action="next-step"
-                    type="button"
-                >
-                    Далее →
-                </button>
-            `;
-
+        if (currentStep < STEPS.length - 1) {
+            html += `<button class="next" data-action="next-step" type="button">Далее →</button>`;
         } else {
-
-            html += `
-                <button
-                    class="next"
-                    data-action="finish-onboarding"
-                    type="button"
-                >
-                    🚀 Начать!
-                </button>
-            `;
+            html += `<button class="next" data-action="finish-onboarding" type="button">🚀 Начать!</button>`;
         }
-
-        html += `
-            </div>
-        `;
-
+        html += `</div>`;
         html += `</div>`;
 
         return html;
@@ -1133,745 +601,267 @@
     // PUBLIC RENDER
     // ============================================================
 
-    window.renderOnboarding =
-        function () {
-
-            const state =
-                getState();
-
-            if (!targetChildId) {
-
-                targetChildId =
-                    state._onboardingChildId ||
-                    state.currentChildId ||
-                    null;
-            }
-
-            return renderStep();
-        };
+    window.renderOnboarding = function() {
+        const state = getState();
+        if (!targetChildId) {
+            targetChildId = state._onboardingChildId || state.currentChildId || null;
+        }
+        return renderStep();
+    };
 
     function refreshOnboarding() {
-
-        if (
-            typeof render === 'function'
-        ) {
-            render('onboarding');
-        }
+        if (typeof render === 'function') render('onboarding');
     }
 
     // ============================================================
     // CHOICE — SINGLE SELECT
     // ============================================================
 
-    document.addEventListener(
-        'click',
-        function (event) {
-
-            const choiceBtn =
-                event.target.closest(
-                    '.btn-group button[data-choice]'
-                );
-
-            if (!choiceBtn) {
-                return;
-            }
-
-            const key =
-                choiceBtn.dataset.choice;
-
-            const value =
-                choiceBtn.dataset.value;
-
-            tempData[key] =
-                value;
-
-            refreshOnboarding();
-        }
-    );
+    document.addEventListener('click', function(event) {
+        const choiceBtn = event.target.closest('.btn-group button[data-choice]');
+        if (!choiceBtn) return;
+        const key = choiceBtn.dataset.choice;
+        const value = choiceBtn.dataset.value;
+        tempData[key] = value;
+        refreshOnboarding();
+    });
 
     // ============================================================
-    // CHECKBOX LOGIC
+    // CHECKBOX LOGIC (включая взаимоисключение)
     // ============================================================
 
-    document.addEventListener(
-        'change',
-        function (event) {
+    document.addEventListener('change', function(event) {
+        const checkbox = event.target.closest('.step-checkbox');
+        if (!checkbox) return;
 
-            const checkbox =
-                event.target.closest(
-                    '.step-checkbox'
-                );
+        const step = STEPS[currentStep];
+        if (!step || step.type !== 'checkboxes') return;
 
-            if (!checkbox) {
-                return;
-            }
+        // Читаем все чекбоксы на текущем шаге
+        const allChecks = document.querySelectorAll('.step-checkbox');
+        const checkedValues = Array.from(allChecks).filter(cb => cb.checked).map(cb => cb.value);
 
-            const step =
-                STEPS[currentStep];
+        // Определяем, есть ли в опциях "Нет" или "Не знаю"
+        const noOptions = ['Нет', 'Нет известных аллергий', 'Не знаю'];
+        const hasNo = step.options.some(opt => noOptions.includes(opt));
 
-            if (
-                !step ||
-                step.type !== 'checkboxes'
-            ) {
-                return;
-            }
-
-            // ----------------------------------------------------
-            // READINESS
-            // ----------------------------------------------------
-
-            if (
-                step.key === 'readiness'
-            ) {
-
-                const checks =
-                    document.querySelectorAll(
-                        '.step-checkbox:checked'
-                    );
-
-                const values =
-                    Array.from(checks)
-                        .map(cb => cb.value);
-
-                if (
-                    values.includes(
-                        'Не уверена / не знаю'
-                    )
-                ) {
-
-                    document
-                        .querySelectorAll(
-                            '.step-checkbox'
-                        )
-                        .forEach(cb => {
-
-                            if (
-                                cb.value !==
-                                'Не уверена / не знаю'
-                            ) {
-                                cb.checked = false;
-                            }
-                        });
-                }
-
-                const finalValues =
-                    Array.from(
-                        document.querySelectorAll(
-                            '.step-checkbox:checked'
-                        )
-                    ).map(
-                        cb => cb.value
-                    );
-
-                const mapping =
-                    step.mapping || {};
-
-                const readiness = {};
-
-                Object.keys(mapping)
-                    .forEach(label => {
-
-                        readiness[
-                            mapping[label]
-                        ] = false;
-                    });
-
-                finalValues.forEach(value => {
-
-                    const key =
-                        mapping[value];
-
-                    if (key) {
-                        readiness[key] = true;
-                    }
-                });
-
-                tempData.readiness =
-                    readiness;
-
-                refreshOnboarding();
-
-                return;
-            }
-
-            // ----------------------------------------------------
-            // NO / UNKNOWN
-            // ----------------------------------------------------
-
-            const hasNo =
-                step.options.includes(
-                    'Нет'
-                ) ||
-                step.options.includes(
-                    'Нет известных аллергий'
-                );
-
-            const hasDontKnow =
-                step.options.includes(
-                    'Не знаю'
-                );
-
-            if (
-                !hasNo &&
-                !hasDontKnow
-            ) {
-                saveCurrentStep();
-                return;
-            }
-
-            const allChecks =
-                document.querySelectorAll(
-                    '.step-checkbox'
-                );
-
-            const checkedValues =
-                Array.from(allChecks)
-                    .filter(cb => cb.checked)
-                    .map(cb => cb.value);
-
-            const noValues = [
-                'Нет',
-                'Нет известных аллергий',
-                'Не знаю'
-            ];
-
-            if (
-                noValues.includes(
-                    checkbox.value
-                ) &&
-                checkbox.checked
-            ) {
-
+        if (step.key === 'readiness') {
+            // Для readiness – особый случай: если выбрано "Не уверена / не знаю", снимаем все остальные
+            if (checkedValues.includes('Не уверена / не знаю')) {
                 allChecks.forEach(cb => {
-
-                    if (
-                        cb !== checkbox
-                    ) {
-                        cb.checked = false;
-                    }
-                });
-
-            } else if (
-                !noValues.includes(
-                    checkbox.value
-                ) &&
-                checkbox.checked
-            ) {
-
-                allChecks.forEach(cb => {
-
-                    if (
-                        noValues.includes(
-                            cb.value
-                        )
-                    ) {
-                        cb.checked = false;
-                    }
+                    if (cb.value !== 'Не уверена / не знаю') cb.checked = false;
                 });
             }
-
-            const finalValues =
-                Array.from(
-                    document.querySelectorAll(
-                        '.step-checkbox:checked'
-                    )
-                )
-                .map(cb => cb.value);
-
-            tempData[step.key] =
-                finalValues.filter(
-                    value =>
-                        !SKIP_VALUES.includes(
-                            value
-                        )
-                );
-
+            // Обновляем tempData
+            const finalValues = Array.from(document.querySelectorAll('.step-checkbox:checked')).map(cb => cb.value);
+            const mapping = step.mapping || {};
+            const readiness = {};
+            Object.keys(mapping).forEach(label => { readiness[mapping[label]] = false; });
+            finalValues.forEach(value => {
+                const key = mapping[value];
+                if (key) readiness[key] = true;
+            });
+            tempData.readiness = readiness;
             refreshOnboarding();
+            return;
         }
-    );
+
+        // Для остальных checkboxes (allergies, diet, favorites, worries)
+        // Если есть "Нет"/"Не знаю" в опциях – применяем взаимоисключение
+        if (hasNo) {
+            const noValues = ['Нет', 'Нет известных аллергий', 'Не знаю'];
+            // Если выбрано "Нет" или "Не знаю" – снимаем все остальные
+            if (noValues.includes(checkbox.value) && checkbox.checked) {
+                allChecks.forEach(cb => {
+                    if (!noValues.includes(cb.value)) cb.checked = false;
+                });
+            } else if (!noValues.includes(checkbox.value) && checkbox.checked) {
+                // Если выбран конкретный вариант – снимаем "Нет" и "Не знаю"
+                allChecks.forEach(cb => {
+                    if (noValues.includes(cb.value)) cb.checked = false;
+                });
+            }
+        }
+
+        // Сохраняем все выбранные (без фильтрации)
+        const finalValues = Array.from(document.querySelectorAll('.step-checkbox:checked')).map(cb => cb.value);
+        tempData[step.key] = finalValues;
+        refreshOnboarding();
+    });
 
     // ============================================================
     // NAVIGATION
     // ============================================================
 
-    document.addEventListener(
-        'click',
-        function (event) {
+    document.addEventListener('click', function(event) {
+        const target = event.target.closest('[data-action]');
+        if (!target) return;
 
-            const target =
-                event.target.closest(
-                    '[data-action]'
-                );
+        const action = target.dataset.action;
+        if (!['next-step', 'prev-step', 'skip-step', 'finish-onboarding'].includes(action)) return;
 
-            if (!target) {
-                return;
-            }
+        const onboarding = document.querySelector('.onboarding');
+        if (!onboarding) return;
 
-            const action =
-                target.dataset.action;
+        const step = STEPS[currentStep];
+        if (!step) return;
 
-            if (
-                ![
-                    'next-step',
-                    'prev-step',
-                    'skip-step',
-                    'finish-onboarding'
-                ].includes(action)
-            ) {
-                return;
-            }
+        // Всегда сохраняем состояние перед переходом
+        saveCurrentStep();
 
-            const onboarding =
-                document.querySelector(
-                    '.onboarding'
-                );
-
-            if (!onboarding) {
-                return;
-            }
-
-            const step =
-                STEPS[currentStep];
-
-            if (!step) {
-                return;
-            }
-
-            // Всегда сохраняем состояние
-            // перед переходом.
-
-            saveCurrentStep();
-
-            // ----------------------------------------------------
-            // SKIP
-            // ----------------------------------------------------
-
-            if (
-                action === 'skip-step'
-            ) {
-
-                currentStep++;
-
-                if (
-                    currentStep >=
-                    STEPS.length
-                ) {
-                    currentStep =
-                        STEPS.length - 1;
-                }
-
-                refreshOnboarding();
-
-                return;
-            }
-
-            // ----------------------------------------------------
-            // BACK
-            // ----------------------------------------------------
-
-            if (
-                action === 'prev-step'
-            ) {
-
-                if (
-                    currentStep > 0
-                ) {
-                    currentStep--;
-                }
-
-                refreshOnboarding();
-
-                return;
-            }
-
-            // ----------------------------------------------------
-            // NEXT
-            // ----------------------------------------------------
-
-            if (
-                action === 'next-step'
-            ) {
-
-                currentStep++;
-
-                if (
-                    currentStep >=
-                    STEPS.length
-                ) {
-                    currentStep =
-                        STEPS.length - 1;
-                }
-
-                refreshOnboarding();
-
-                return;
-            }
-
-            // ----------------------------------------------------
-            // FINISH
-            // ----------------------------------------------------
-
-            if (
-                action === 'finish-onboarding'
-            ) {
-
-                finishOnboarding();
-            }
+        if (action === 'skip-step') {
+            currentStep++;
+            if (currentStep >= STEPS.length) currentStep = STEPS.length - 1;
+            refreshOnboarding();
+            return;
         }
-    );
+
+        if (action === 'prev-step') {
+            if (currentStep > 0) currentStep--;
+            refreshOnboarding();
+            return;
+        }
+
+        if (action === 'next-step') {
+            // Если текущий шаг "started" и возраст < 4, пропускаем его (уже установлено feedingStarted = 'Нет')
+            if (step.id === 'started' && ageMonths < 4) {
+                // ничего не делаем, просто переходим дальше
+            }
+            currentStep++;
+            if (currentStep >= STEPS.length) currentStep = STEPS.length - 1;
+            refreshOnboarding();
+            return;
+        }
+
+        if (action === 'finish-onboarding') {
+            finishOnboarding();
+        }
+    });
 
     // ============================================================
     // FINISH
     // ============================================================
 
     function finishOnboarding() {
-
-        const state =
-            getState();
-
+        const state = getState();
         if (!targetChildId) {
-
-            targetChildId =
-                state._onboardingChildId ||
-                state.currentChildId ||
-                null;
+            targetChildId = state._onboardingChildId || state.currentChildId || null;
         }
 
-        const child =
-            getTargetChild();
-
+        const child = getTargetChild();
         if (!child) {
-
-            console.error(
-                '❌ onboarding: ребёнок не найден',
-                {
-                    targetChildId,
-                    currentChildId:
-                        state.currentChildId,
-                    children:
-                        state.children
-                }
-            );
-
+            console.error('❌ onboarding: ребёнок не найден', { targetChildId, currentChildId: state.currentChildId, children: state.children });
             return;
         }
 
-        // --------------------------------------------------------
-        // BASIC DATA
-        // --------------------------------------------------------
+        // --- Основные данные ---
+        if (tempData.name !== undefined) child.name = tempData.name;
+        if (tempData.birthDate !== undefined) child.birthDate = tempData.birthDate;
 
-        if (
-            tempData.name !== undefined
-        ) {
-            child.name =
-                tempData.name;
-        }
-
-        if (
-            tempData.birthDate !== undefined
-        ) {
-            child.birthDate =
-                tempData.birthDate;
-        }
-
-        // --------------------------------------------------------
-        // FEEDING
-        // --------------------------------------------------------
-
-        if (
-            tempData.feedingType !== undefined
-        ) {
-
+        // --- Тип вскармливания ---
+        if (tempData.feedingType !== undefined) {
             const map = {
                 'Грудное молоко': 'breast',
                 'Смесь': 'formula',
                 'Грудное молоко + смесь': 'mixed',
-
-                // совместимость
                 'ГВ': 'breast',
                 'ИВ': 'formula',
                 'Смешанное': 'mixed'
             };
-
-            child.feedingType =
-                map[tempData.feedingType] ||
-                tempData.feedingType;
+            child.feedingType = map[tempData.feedingType] || tempData.feedingType;
         }
 
-        if (
-            tempData.feedingStarted !== undefined
-        ) {
-
-            child.feedingStarted =
-                tempData.feedingStarted === 'Да';
+        // --- Начало прикорма ---
+        if (tempData.feedingStarted !== undefined) {
+            child.feedingStarted = tempData.feedingStarted === 'Да';
+        }
+        if (tempData.feedingStartDate !== undefined) {
+            child.feedingStartDate = tempData.feedingStartDate;
         }
 
-        if (
-            tempData.feedingStartDate !== undefined
-        ) {
+        // --- Подход ---
+        if (tempData.approach !== undefined) child.approach = tempData.approach;
 
-            child.feedingStartDate =
-                tempData.feedingStartDate;
-        }
-
-        // --------------------------------------------------------
-        // APPROACH
-        // --------------------------------------------------------
-
-        if (
-            tempData.approach !== undefined
-        ) {
-
-            child.approach =
-                tempData.approach;
-        }
-
-        // --------------------------------------------------------
-        // GESTATIONAL AGE
-        // --------------------------------------------------------
-
-        if (
-            tempData.gestationalUnknown
-        ) {
-
-            child.gestationalAgeWeeks =
-                null;
-
-            child.gestationalAgeDays =
-                null;
-
-            child.birthTermCategory =
-                'unknown';
-
+        // --- Срок беременности ---
+        if (tempData.gestationalUnknown) {
+            child.gestationalAgeWeeks = null;
+            child.gestationalAgeDays = null;
+            child.birthTermCategory = 'unknown';
         } else {
-
-            const weeks =
-                tempData.gestationalWeeks;
-
-            const days =
-                tempData.gestationalDays || 0;
-
-            if (
-                weeks !== '' &&
-                weeks !== undefined &&
-                weeks !== null
-            ) {
-
-                child.gestationalAgeWeeks =
-                    parseInt(
-                        weeks,
-                        10
-                    );
-
-                child.gestationalAgeDays =
-                    parseInt(
-                        days,
-                        10
-                    ) || 0;
-
-                child.birthTermCategory =
-                    getBirthTermCategory(
-                        child.gestationalAgeWeeks,
-                        child.gestationalAgeDays
-                    );
-
+            const weeks = tempData.gestationalWeeks;
+            const days = tempData.gestationalDays || 0;
+            if (weeks !== '' && weeks !== undefined && weeks !== null) {
+                child.gestationalAgeWeeks = parseInt(weeks, 10);
+                child.gestationalAgeDays = parseInt(days, 10) || 0;
+                child.birthTermCategory = getBirthTermCategory(child.gestationalAgeWeeks, child.gestationalAgeDays);
             } else {
-
-                child.gestationalAgeWeeks =
-                    null;
-
-                child.gestationalAgeDays =
-                    null;
-
-                child.birthTermCategory =
-                    'unknown';
+                child.gestationalAgeWeeks = null;
+                child.gestationalAgeDays = null;
+                child.birthTermCategory = 'unknown';
             }
         }
 
-        // --------------------------------------------------------
-        // READINESS
-        // --------------------------------------------------------
+        // --- Готовность ---
+        if (tempData.readiness !== undefined) child.readiness = tempData.readiness;
 
-        if (
-            tempData.readiness !== undefined
-        ) {
+        // --- Onboarding объект ---
+        if (!child.onboarding) child.onboarding = {};
+        if (tempData.allergies !== undefined) child.onboarding.allergies = tempData.allergies;
+        if (tempData.diet !== undefined) child.onboarding.diet = tempData.diet;
+        if (tempData.favoriteFoods !== undefined) child.onboarding.favoriteFoods = tempData.favoriteFoods;
+        if (tempData.worries !== undefined) child.onboarding.worries = tempData.worries;
+        if (tempData.confidence !== undefined) child.onboarding.confidence = tempData.confidence;
 
-            child.readiness =
-                tempData.readiness;
-        }
+        // --- Возраст ---
+        const age = calculateAge(child.birthDate);
+        ageMonths = age.months;
 
-        // --------------------------------------------------------
-        // ONBOARDING OBJECT
-        // --------------------------------------------------------
+        // --- Оценка готовности ---
+        child.readinessAssessment = assessReadiness(
+            child.readiness,
+            age.months,
+            child.birthTermCategory
+        );
 
-        if (!child.onboarding) {
-            child.onboarding = {};
-        }
-
-        if (
-            tempData.allergies !== undefined
-        ) {
-
-            child.onboarding.allergies =
-                tempData.allergies;
-        }
-
-        if (
-            tempData.diet !== undefined
-        ) {
-
-            child.onboarding.diet =
-                tempData.diet;
-        }
-
-        if (
-            tempData.favoriteFoods !== undefined
-        ) {
-
-            child.onboarding.favoriteFoods =
-                tempData.favoriteFoods;
-        }
-
-        if (
-            tempData.worries !== undefined
-        ) {
-
-            child.onboarding.worries =
-                tempData.worries;
-        }
-
-        if (
-            tempData.confidence !== undefined
-        ) {
-
-            child.onboarding.confidence =
-                tempData.confidence;
-        }
-
-        // --------------------------------------------------------
-        // AGE
-        // --------------------------------------------------------
-
-        const age =
-            calculateAge(
-                child.birthDate
-            );
-
-        // --------------------------------------------------------
-        // READINESS ASSESSMENT
-        // --------------------------------------------------------
-
-        child.readinessAssessment =
-            assessReadiness(
-                child.readiness,
-                age.months,
-                child.birthTermCategory
-            );
-
-        // --------------------------------------------------------
-        // PROFILE VERSION
-        // --------------------------------------------------------
-
+        // --- Версия профиля ---
         child.profileVersion = 1;
+        child.onboarding.completedAt = new Date().toISOString();
 
-        child.onboarding.completedAt =
-            new Date().toISOString();
+        // --- Активный ребёнок ---
+        state.currentChildId = child.id;
+        state._onboardingChildId = null;
+        state._onboardingMode = null;
 
-        // --------------------------------------------------------
-        // ACTIVE CHILD
-        // --------------------------------------------------------
-
-        state.currentChildId =
-            child.id;
-
-        state._onboardingChildId =
-            null;
-
-        state._onboardingMode =
-            null;
-
-        // --------------------------------------------------------
-        // GLOBAL ONBOARDING FLAG
-        // --------------------------------------------------------
-
-        if (
-            state.children.length === 1 &&
-            state.onboardingCompleted === false
-        ) {
-
-            state.onboardingCompleted =
-                true;
+        // --- Глобальный флаг ---
+        if (state.children.length === 1 && state.onboardingCompleted === false) {
+            state.onboardingCompleted = true;
         }
 
-        // --------------------------------------------------------
-        // HOME
-        // --------------------------------------------------------
+        // --- Переход на Home ---
+        state.ui = state.ui || {};
+        state.navigation = state.navigation || {};
+        state.ui.screen = 'home';
+        state.navigation.currentScreen = 'home';
 
-        state.ui =
-            state.ui || {};
+        if (typeof saveState === 'function') saveState();
 
-        state.navigation =
-            state.navigation || {};
-
-        state.ui.screen =
-            'home';
-
-        state.navigation.currentScreen =
-            'home';
-
-        // --------------------------------------------------------
-        // SAVE
-        // --------------------------------------------------------
-
-        if (
-            typeof saveState === 'function'
-        ) {
-            saveState();
-        }
-
-        // --------------------------------------------------------
-        // RESET LOCAL ONBOARDING
-        // --------------------------------------------------------
-
+        // --- Сброс локального состояния ---
         currentStep = 0;
-
         tempData = {};
-
         targetChildId = null;
+        ageMonths = 0;
 
-        // --------------------------------------------------------
-        // RENDER HOME
-        // --------------------------------------------------------
+        if (typeof render === 'function') render('home');
+        window.dispatchEvent(new CustomEvent('prikorm:statechange'));
 
-        if (
-            typeof render === 'function'
-        ) {
-
-            render('home');
-        }
-
-        window.dispatchEvent(
-            new CustomEvent(
-                'prikorm:statechange'
-            )
-        );
-
-        console.log(
-            '✅ onboarding завершён',
-            {
-                childId: child.id,
-                childName: child.name,
-                ageMonths: age.months,
-                readiness:
-                    child.readinessAssessment,
-                totalChildren:
-                    state.children.length
-            }
-        );
+        console.log('✅ onboarding завершён', {
+            childId: child.id,
+            childName: child.name,
+            ageMonths: age.months,
+            readiness: child.readinessAssessment,
+            totalChildren: state.children.length
+        });
     }
 
-    console.log(
-        '✅ onboarding.js загружен — PRIKORM.BOT Onboarding'
-    );
-
+    console.log('✅ onboarding.js загружен — PRIKORM.BOT Onboarding v2.1');
 })();
