@@ -3,7 +3,7 @@
     'use strict';
 
     // ============================================================
-    // 1. СПРАВОЧНИКИ (без изменений)
+    // 1. СПРАВОЧНИКИ
     // ============================================================
 
     const ALLERGENS_LIST = [
@@ -242,21 +242,91 @@
     // 5. МЕДИЦИНСКАЯ ЛОГИКА (используем сервис)
     // ============================================================
 
-    const {
-        calculateAge,
-        getBirthTermCategory,
-        getTermLabel,
-        calculateCorrectedAge,
-        evaluateReadiness
-    } = window.feedingReadiness || {};
+    const feedingService = window.feedingReadiness || null;
 
-    // Если сервис не загрузился – заглушка (но мы подключили его в index.html)
-    if (!evaluateReadiness) {
-        console.error('❌ feeding-readiness-service не загружен!');
+    // Функции-заглушки, если сервис не загружен
+    const calculateAge = feedingService?.calculateAge || function(birthDate) {
+        if (!birthDate) return { months: 0, days: 0 };
+        const birth = new Date(birthDate);
+        const now = new Date();
+        let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+        if (now.getDate() < birth.getDate()) months--;
+        return {
+            months: Math.max(0, months),
+            days: Math.max(0, Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24)))
+        };
+    };
+
+    const getBirthTermCategory = feedingService?.getBirthTermCategory || function(weeks, days) {
+        if (weeks === '' || weeks === null || weeks === undefined) return 'unknown';
+        const totalDays = parseInt(weeks, 10) * 7 + (parseInt(days, 10) || 0);
+        if (totalDays < 259) return 'preterm';
+        if (totalDays < 273) return 'early_term';
+        if (totalDays < 287) return 'full_term';
+        if (totalDays < 294) return 'late_term';
+        return 'post_term';
+    };
+
+    const getTermLabel = feedingService?.getTermLabel || function(category) {
+        const map = {
+            'preterm': 'Родился раньше срока',
+            'early_term': 'Ранний доношенный срок',
+            'full_term': 'Доношенный',
+            'late_term': 'Поздний доношенный срок',
+            'post_term': 'После срока',
+            'unknown': 'Срок не указан'
+        };
+        return map[category] || '';
+    };
+
+    const calculateCorrectedAge = feedingService?.calculateCorrectedAge || function(chronologicalMonths, gestationalWeeks) {
+        let safeWeeks = 40;
+        if (typeof gestationalWeeks === 'number' && gestationalWeeks >= 20 && gestationalWeeks <= 43) {
+            safeWeeks = gestationalWeeks;
+        }
+        if (safeWeeks >= 37) {
+            return chronologicalMonths;
+        }
+        const weeksEarly = 40 - safeWeeks;
+        const monthsEarly = weeksEarly / 4.345;
+        return Math.max(0, chronologicalMonths - monthsEarly);
+    };
+
+    const evaluateReadiness = feedingService?.evaluateReadiness || function(childData) {
+        // fallback-оценка, если сервис не загружен
+        const age = calculateAge(childData.birthDate);
+        const chronologicalMonths = age.months;
+        const gestationalWeeks = childData.gestationalAgeWeeks || 40;
+        const isPreterm = (childData.birthTermCategory === 'preterm') || (gestationalWeeks < 37);
+        const correctedAge = calculateCorrectedAge(chronologicalMonths, gestationalWeeks);
+
+        return {
+            ageBlock: {
+                chronologicalMonths: chronologicalMonths,
+                chronologicalDays: age.days,
+                correctedMonths: isPreterm ? correctedAge : null,
+                isPreterm: isPreterm
+            },
+            termBlock: {
+                category: childData.birthTermCategory || 'unknown',
+                label: getTermLabel(childData.birthTermCategory || 'unknown'),
+                weeks: gestationalWeeks
+            },
+            readinessBlock: { headControl: 'unknown', bodyPosition: 'unknown', foodInterest: 'unknown', opensMouth: 'unknown', foodHandling: 'unknown', keySkills: {}, hasKeySkills: false },
+            safetyBlock: { hasFeedingProblems: false, seriousProblems: false, problemsList: [] },
+            overallStatus: 'unknown',
+            overallMessage: '🔵 Данных недостаточно',
+            overallRecommendation: 'Пожалуйста, проверьте подключение сервиса оценки.',
+            originalReadiness: childData.readiness || {}
+        };
+    };
+
+    if (!feedingService) {
+        console.warn('⚠️ feeding-readiness-service не загружен, используются fallback-функции.');
     }
 
     // ============================================================
-    // 6. СОХРАНЕНИЕ ТЕКУЩЕГО ШАГА (без изменений)
+    // 6. СОХРАНЕНИЕ ТЕКУЩЕГО ШАГА
     // ============================================================
 
     function saveCurrentStep() {
@@ -726,20 +796,38 @@
     }
 
     // ============================================================
-    // 11. ЭКРАН РЕЗУЛЬТАТА
+    // 11. ЭКРАН РЕЗУЛЬТАТА (исправлен, все переменные берутся из assessment)
     // ============================================================
 
     function showResultScreen(child, assessment) {
+        // Защита от отсутствия assessment
+        if (!assessment || typeof assessment !== 'object') {
+            console.error('❌ Оценка не получена');
+            return;
+        }
+
         const {
-            ageBlock,
-            termBlock,
-            readinessBlock,
-            safetyBlock,
-            overallStatus,
-            overallMessage,
-            overallRecommendation,
-            originalReadiness
+            ageBlock = { chronologicalMonths: 0, chronologicalDays: 0, correctedMonths: null, isPreterm: false },
+            termBlock = { category: 'unknown', label: 'Срок не указан', weeks: 40 },
+            readinessBlock = {},
+            safetyBlock = { hasFeedingProblems: false, seriousProblems: false, problemsList: [] },
+            overallStatus = 'unknown',
+            overallMessage = '🔵 Данных недостаточно',
+            overallRecommendation = 'Пожалуйста, проверьте подключение сервиса оценки.',
+            originalReadiness = {}
         } = assessment;
+
+        // Безопасное получение данных
+        const chronologicalMonths = ageBlock.chronologicalMonths || 0;
+        const chronologicalDays = ageBlock.chronologicalDays || 0;
+        const correctedMonths = ageBlock.correctedMonths;
+        const isPreterm = ageBlock.isPreterm || false;
+
+        const ageText = isPreterm
+            ? `${chronologicalMonths} мес (скорректированный ${correctedMonths !== null ? correctedMonths.toFixed(1) : '?'} мес)`
+            : `${chronologicalMonths} мес`;
+
+        const termText = termBlock.label + (termBlock.weeks ? ` (${termBlock.weeks} нед)` : '');
 
         const readinessItems = [
             { label: 'Контроль головы', value: originalReadiness.headControl || 'Не выбрано' },
@@ -748,12 +836,6 @@
             { label: 'Открывает рот', value: originalReadiness.opensMouth || 'Не выбрано' },
             { label: 'Приём/глотание', value: originalReadiness.foodHandling || 'Не выбрано' }
         ];
-
-        const ageText = ageBlock.isPreterm
-            ? `${ageBlock.chronologicalMonths} мес (скорректированный ${ageBlock.correctedMonths.toFixed(1)} мес)`
-            : `${ageBlock.chronologicalMonths} мес`;
-
-        const termText = termBlock.label + (termBlock.weeks ? ` (${termBlock.weeks} нед)` : '');
 
         const statusColorMap = {
             'ready': 'green',
@@ -781,8 +863,8 @@
                         <div class="section-content">
                             <div class="section-label">Возраст</div>
                             <div class="section-value">${ageText}</div>
-                            <div class="section-status ${ageBlock.isPreterm ? 'status-warning' : 'status-ok'}">
-                                ${ageBlock.isPreterm ? '🟡 Скорректированный возраст учтён' : '🟢 Календарный возраст'}
+                            <div class="section-status ${isPreterm ? 'status-warning' : 'status-ok'}">
+                                ${isPreterm ? '🟡 Скорректированный возраст учтён' : '🟢 Календарный возраст'}
                             </div>
                         </div>
                     </div>
@@ -912,5 +994,5 @@
         }
     });
 
-    console.log('✅ onboarding.js загружен – использует feeding-readiness-service');
+    console.log('✅ onboarding.js загружен – финальная исправленная версия');
 })();
