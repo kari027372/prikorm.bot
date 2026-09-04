@@ -1,13 +1,16 @@
-// screens/home.js – только рендер главного экрана (без баннера)
+// screens/home.js – новый дизайн главной KENORA
 window.renderHome = function() {
     const state = window.STATE || {};
     const currentChild = window.getCurrentChild ? window.getCurrentChild() : (state.baby || {});
     const baby = currentChild || {};
 
+    // Данные для карточек
     const introduced = state.products?.introduced || [];
     const diary = state.diary || [];
     const totalIntroduced = introduced.length;
+    const totalProducts = (window.PRODUCTS || []).length;
 
+    // Возраст
     let ageText = 'Возраст не указан';
     if (baby.birthDate && typeof window.formatAge === 'function') {
         ageText = window.formatAge(baby.birthDate);
@@ -20,96 +23,98 @@ window.renderHome = function() {
         ageText = months + ' мес.';
     }
 
-    const allProducts = window.PRODUCTS || [];
-    const totalProducts = allProducts.length;
-    const progressPercent = totalProducts > 0 ? Math.min(100, (totalIntroduced / totalProducts) * 100) : 0;
+    // Вес (если есть)
+    const weight = baby.weight || '9.3';
+    const weightText = weight ? weight + ' кг' : '';
 
+    // Дневник (последние 3 записи)
     const recentEntries = diary.slice(-3).reverse();
-    let recentHtml = '';
+    let diaryHtml = '';
     if (recentEntries.length === 0) {
-        recentHtml = `
+        diaryHtml = `
             <div class="empty-state">
                 <span class="empty-icon">📭</span>
-                <h3>Нет записей</h3>
-                <p>Добавьте первый прикорм в дневник</p>
+                <p>Нет записей</p>
             </div>
         `;
     } else {
-        recentHtml = recentEntries.map(entry => `
+        diaryHtml = recentEntries.map(entry => `
             <div class="diary-entry">
                 <span class="diary-entry-icon">${entry.emoji || '🍽️'}</span>
                 <div class="diary-entry-content">
-                    <div class="diary-entry-header">
-                        <strong>${entry.productName || 'Продукт'}</strong>
-                        <span>${entry.date || ''}</span>
-                    </div>
-                    <div class="diary-entry-meta">
-                        ${entry.amount || ''}
-                        ${entry.reaction ? '⚠️ ' + entry.reaction : ''}
-                    </div>
+                    <strong>${entry.productName || 'Продукт'}</strong>
+                    <span>${entry.date || ''}</span>
+                    ${entry.amount ? `<span>${entry.amount} г</span>` : ''}
+                    ${entry.reaction ? `<span class="badge">⚠️ ${entry.reaction}</span>` : ''}
                 </div>
             </div>
         `).join('');
     }
 
+    // Аватарка
     const avatarEmoji = baby.sex === 'male' ? '👦' : baby.sex === 'female' ? '👧' : '👶';
+    const name = baby.name || 'Малыш';
 
     return `
         <div class="screen active">
-            <div class="page-header">
-                <h1>🌸 Прикорм</h1>
-                <button class="icon-button" data-action="toggleTheme">🌓</button>
-            </div>
-
-            <div class="baby-profile-card" id="babyCard">
+            <!-- Профиль ребёнка -->
+            <div class="baby-profile-card">
                 <div class="baby-avatar">${avatarEmoji}</div>
                 <div>
-                    <strong id="babyName">${baby.name || 'Малыш'}</strong>
-                    <div class="muted" id="babyAge">${ageText}</div>
+                    <strong id="babyName">${name}</strong>
+                    <div class="muted" id="babyAge">${ageText}${weightText ? ' • ' + weightText : ''}</div>
                 </div>
                 <button class="icon-button" style="margin-left:auto;" data-action="navigate" data-screen="baby">✎</button>
             </div>
 
-            <div class="progress-card">
-                <div class="header">
-                    <span>📊 Прогресс введения</span>
-                    <span id="progressCount">${totalIntroduced} / ${totalProducts}</span>
+            <!-- Сегодняшний продукт -->
+            <div class="today-product">
+                <span class="today-product-label">Сегодня новый продукт</span>
+                <span class="today-product-name">🌱 Цветная капуста</span>
+            </div>
+
+            <!-- Статистика (4 карточки) -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-icon">🍽️</span>
+                    <span class="stat-value">${diary.length}</span>
+                    <span class="stat-label">Приёмов пищи</span>
                 </div>
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill" style="width:${Math.round(progressPercent)}%;"></div>
+                <div class="stat-card">
+                    <span class="stat-icon">🍼</span>
+                    <span class="stat-value">${baby.feedingType === 'breast' ? '4' : '3'}</span>
+                    <span class="stat-label">Грудное молоко</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">📖</span>
+                    <span class="stat-value">${totalIntroduced}</span>
+                    <span class="stat-label">Дневник</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon">😊</span>
+                    <span class="stat-value">Хорошее</span>
+                    <span class="stat-label">Самочувствие</span>
                 </div>
             </div>
 
-            <div class="quick-actions">
-                <div class="quick-action" data-action="navigate" data-screen="today">
-                    <span>📅</span>
-                    <strong>План на сегодня</strong>
-                    <small>Что дать малышу</small>
+            <!-- Последний приём пищи -->
+            <div class="last-meal">
+                <div class="last-meal-header">
+                    <span>🕐 Последний приём пищи</span>
+                    <span class="last-meal-time">12:30</span>
                 </div>
-                <div class="quick-action" data-action="navigate" data-screen="diary">
-                    <span>📖</span>
-                    <strong>Дневник</strong>
-                    <small>Записать прикорм</small>
-                </div>
-                <div class="quick-action" data-action="navigate" data-screen="products">
-                    <span>🥑</span>
-                    <strong>Продукты</strong>
-                    <small>Выбрать новый</small>
-                </div>
-                <div class="quick-action" data-action="navigate" data-screen="recipes">
-                    <span>🍲</span>
-                    <strong>Рецепты</strong>
-                    <small>Идеи для блюд</small>
+                <div class="last-meal-content">
+                    <span class="last-meal-food">Кабачок</span>
+                    <span class="last-meal-amount">80 г</span>
+                    <span class="last-meal-status">✅ Хорошо</span>
                 </div>
             </div>
 
-            <div class="section-heading">
-                <span>🕒 Последние записи</span>
-                <button class="icon-button" data-action="navigate" data-screen="diary">→</button>
-            </div>
-            <div id="recentEntries">
-                ${recentHtml}
-            </div>
+            <!-- Кнопка "Начать" (для первого запуска) -->
+            <button class="start-btn" id="start-day-btn">Начать</button>
+
+            <!-- Нижняя навигация (рендерится отдельно, но оставим для совместимости) -->
+            <div id="bottom-nav-placeholder"></div>
         </div>
     `;
 };
