@@ -1,14 +1,15 @@
 /* ============================================================
-   SPLASH-ЭКРАН KENORA – фирменный стиль
+   KENORA SPLASH SCREEN – премиальный, чистый, с анимацией
    ============================================================ */
 
+/* Основной контейнер */
 #splash-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100dvh;
-    background: #FFF7F1;
+    background: #FBF5EF;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,6 +19,7 @@
     opacity: 0;
     transition: opacity 0.8s ease, visibility 0.8s ease;
     visibility: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 #splash-screen.visible {
@@ -32,73 +34,65 @@
 }
 
 .splash-container {
-    text-align: center;
-    max-width: 400px;
-    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    gap: 8px;
 }
 
-/* ---- Этап 1: логотип (O + ложечка + листик) ---- */
-.splash-logo-wrapper {
-    margin-bottom: 8px;
-    opacity: 0;
-    animation: splashFadeIn 0.6s ease 0.2s forwards;
-}
-
-.splash-logo {
+/* ---------- Иконка (круг + ложечка) ---------- */
+.splash-icon {
     width: 100px;
     height: 100px;
     display: block;
-    margin: 0 auto;
+    margin-bottom: 8px;
 }
 
-.splash-logo circle {
-    animation: drawCircle 0.8s ease 0.3s forwards;
-}
-
-.splash-logo path:first-of-type,
-.splash-logo circle:last-of-type {
-    animation: fadeInScale 0.6s ease 0.6s forwards;
-}
-
-.splash-logo path:last-of-type {
-    animation: leafGrow 0.8s ease 0.8s forwards;
+.splash-circle {
+    animation: drawCircle 1.0s ease 0.2s forwards;
 }
 
 @keyframes drawCircle {
-    from { stroke-dashoffset: 300; stroke-dasharray: 300; opacity: 0; }
-    to { stroke-dashoffset: 0; stroke-dasharray: 300; opacity: 1; }
+    to { stroke-dashoffset: 0; }
 }
 
-@keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.6); }
+.splash-spoon,
+.splash-spoon-head {
+    animation: fadeInSpoon 0.6s ease 1.2s forwards;
+}
+
+@keyframes fadeInSpoon {
+    to { opacity: 1; }
+}
+
+.splash-leaf-icon {
+    animation: leafAppear 0.8s ease 1.8s forwards;
+}
+
+@keyframes leafAppear {
     to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes leafGrow {
-    from { opacity: 0; transform: scale(0.2) rotate(-30deg); }
-    to { opacity: 1; transform: scale(1) rotate(0deg); }
-}
-
-/* ---- Этап 2: буквы K ENORA ---- */
-.splash-brand {
+/* ---------- Логотип KENORA ---------- */
+.splash-logo {
     display: flex;
     justify-content: center;
-    gap: 4px;
+    gap: 2px;
     font-family: 'Cormorant Garamond', serif;
     font-weight: 700;
-    font-size: 40px;
+    font-size: 44px;
     letter-spacing: 2px;
-    color: #A76BA6;
-    margin: 4px 0;
+    color: #6F526D;
+    margin-top: 4px;
 }
 
-.splash-brand-letter {
+.splash-letter {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
     animation: letterFade 0.5s ease forwards;
 }
 
@@ -106,110 +100,132 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- Этап 3: подзаголовок ---- */
+/* ---------- Подзаголовок ---------- */
 .splash-subtitle {
     font-family: 'Inter', sans-serif;
-    font-weight: 500;
+    font-weight: 400;
     font-size: 16px;
-    color: #D6A660;
     letter-spacing: 1.5px;
+    color: #D8A04E;
     text-transform: lowercase;
     opacity: 0;
     transform: translateY(8px);
-    animation: splashFadeIn 0.5s ease 1.6s forwards;
+    animation: fadeUp 0.5s ease 1.6s forwards;
 }
 
-/* ---- Этап 4: маленький листик внизу ---- */
-.splash-leaf {
+/* ---------- Декоративный листик (sage) ---------- */
+.splash-leaf-deco {
     width: 24px;
     height: 24px;
-    background: #C7D6C7;
+    background: #C8D8C8;
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg) scale(0);
-    margin: 8px auto 16px;
+    margin: 12px auto 16px;
     opacity: 0;
-    animation: leafAppear 0.6s ease 2.0s forwards;
+    animation: leafGrow 0.6s ease 2.0s forwards;
 }
 
-@keyframes leafAppear {
+@keyframes leafGrow {
     to { opacity: 1; transform: rotate(-45deg) scale(1); }
 }
 
-/* ---- Кнопка "Начать" ---- */
+/* ---------- Кнопка "Начать" ---------- */
 .splash-btn {
-    background: #EB87B7;
+    background: #E783B2;
     border: none;
-    border-radius: 30px;
-    padding: 16px 48px;
+    border-radius: 999px;
+    padding: 18px 48px;
     font-family: 'Inter', sans-serif;
     font-weight: 600;
     font-size: 18px;
-    color: #FFF7F1;
+    color: #FFFFFF;
     cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 8px 24px rgba(235, 135, 183, 0.25);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(231, 131, 178, 0.20);
     touch-action: manipulation;
-    min-height: 52px;
     width: 100%;
     max-width: 280px;
+    min-height: 58px;
     opacity: 0;
     transform: translateY(10px);
-    animation: splashFadeIn 0.5s ease 2.4s forwards;
+    animation: fadeUp 0.5s ease 2.4s forwards;
 }
 
 .splash-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(235, 135, 183, 0.35);
+    box-shadow: 0 8px 24px rgba(231, 131, 178, 0.30);
 }
 
 .splash-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.98);
 }
 
-@keyframes splashFadeIn {
+@keyframes fadeUp {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- Адаптация под тёмную тему (делаем приглушённые оттенки) ---- */
+/* ===== АДАПТАЦИЯ ПОД ТЁМНУЮ ТЕМУ ===== */
 body.theme-dark #splash-screen {
     background: #1e1e1e;
 }
-body.theme-dark .splash-brand {
+body.theme-dark .splash-logo {
     color: #c9a8c0;
 }
 body.theme-dark .splash-subtitle {
     color: #b8957a;
 }
-body.theme-dark .splash-leaf {
+body.theme-dark .splash-leaf-deco {
     background: #7a9a7a;
 }
 body.theme-dark .splash-btn {
     background: #9a6a8a;
 }
 
-/* ---- Адаптация под детскую тему (светлее) ---- */
+/* ===== АДАПТАЦИЯ ПОД ДЕТСКУЮ ТЕМУ ===== */
 body.theme-kids #splash-screen {
-    background: #FFF7F1;
+    background: #FBF5EF;
 }
-body.theme-kids .splash-brand {
-    color: #A76BA6;
+body.theme-kids .splash-logo {
+    color: #6F526D;
 }
 body.theme-kids .splash-subtitle {
-    color: #D6A660;
+    color: #D8A04E;
 }
-body.theme-kids .splash-leaf {
-    background: #C7D6C7;
+body.theme-kids .splash-leaf-deco {
+    background: #C8D8C8;
 }
 body.theme-kids .splash-btn {
-    background: #EB87B7;
+    background: #E783B2;
 }
 
-/* ---- Безопасные зоны для iPhone ---- */
+/* ===== БЕЗОПАСНЫЕ ЗОНЫ ДЛЯ IPHONE ===== */
 @supports (padding: max(0px)) {
     #splash-screen {
         padding-left: max(24px, env(safe-area-inset-left));
         padding-right: max(24px, env(safe-area-inset-right));
         padding-top: max(24px, env(safe-area-inset-top));
         padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+}
+
+/* ===== УЧЁТ ПРЕДПОЧТЕНИЙ ПОНИЖЕННОЙ АНИМАЦИИ ===== */
+@media (prefers-reduced-motion: reduce) {
+    .splash-circle {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+    .splash-spoon,
+    .splash-spoon-head,
+    .splash-leaf-icon,
+    .splash-letter,
+    .splash-subtitle,
+    .splash-leaf-deco,
+    .splash-btn {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+    .splash-leaf-deco {
+        transform: rotate(-45deg) scale(1);
     }
 }
