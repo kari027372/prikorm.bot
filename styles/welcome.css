@@ -1,5 +1,5 @@
 /* ============================================================
-   СТАРТОВЫЙ ЭКРАН (SPLASH) – единая стилистика
+   SPLASH-ЭКРАН KENORA – фирменный стиль
    ============================================================ */
 
 #splash-screen {
@@ -8,15 +8,15 @@
     left: 0;
     width: 100%;
     height: 100dvh;
-    background: linear-gradient(160deg, #f9f4ef 0%, #f0e8e0 100%);
+    background: #FFF7F1;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    padding: 20px;
+    padding: 24px;
     box-sizing: border-box;
     opacity: 0;
-    transition: opacity 0.6s ease, visibility 0.6s ease;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
     visibility: hidden;
 }
 
@@ -31,90 +31,138 @@
     pointer-events: none;
 }
 
-.welcome-content {
+.splash-container {
     text-align: center;
-    max-width: 360px;
+    max-width: 400px;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
-/* SVG-иконка с анимацией */
-.welcome-icon {
-    width: 80px;
-    height: 80px;
+/* ---- Этап 1: логотип (O + ложечка + листик) ---- */
+.splash-logo-wrapper {
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: splashFadeIn 0.6s ease 0.2s forwards;
+}
+
+.splash-logo {
+    width: 100px;
+    height: 100px;
     display: block;
-    margin: 0 auto 20px;
-    opacity: 0;
-    transform: scale(0.9) translateY(10px);
-    animation: splashIconFadeIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards,
-               splashIconPulse 3s ease-in-out 1.2s infinite;
+    margin: 0 auto;
 }
 
-@keyframes splashIconFadeIn {
-    to { opacity: 1; transform: scale(1) translateY(0); }
+.splash-logo circle {
+    animation: drawCircle 0.8s ease 0.3s forwards;
 }
 
-@keyframes splashIconPulse {
-    0%, 100% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.04) rotate(-2deg); }
+.splash-logo path:first-of-type,
+.splash-logo circle:last-of-type {
+    animation: fadeInScale 0.6s ease 0.6s forwards;
 }
 
-.welcome-title {
-    font-size: 32px;
-    font-weight: 800;
-    color: #3d2a1a;
-    letter-spacing: -0.5px;
-    margin-bottom: 4px;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: splashFadeIn 0.6s ease 0.4s forwards;
+.splash-logo path:last-of-type {
+    animation: leafGrow 0.8s ease 0.8s forwards;
 }
 
-.welcome-subtitle {
-    font-size: 18px;
-    font-weight: 500;
-    color: #6a5a4a;
-    margin-bottom: 6px;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: splashFadeIn 0.6s ease 0.6s forwards;
+@keyframes drawCircle {
+    from { stroke-dashoffset: 300; stroke-dasharray: 300; opacity: 0; }
+    to { stroke-dashoffset: 0; stroke-dasharray: 300; opacity: 1; }
 }
 
-.welcome-desc {
-    font-size: 15px;
-    color: #8a7a6a;
-    line-height: 1.5;
-    margin-bottom: 40px;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: splashFadeIn 0.6s ease 0.8s forwards;
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.6); }
+    to { opacity: 1; transform: scale(1); }
 }
 
-.welcome-btn {
-    background: linear-gradient(135deg, #d4b8a0, #c9a88c);
-    border: none;
-    border-radius: 16px;
-    padding: 16px 32px;
-    font-size: 18px;
+@keyframes leafGrow {
+    from { opacity: 0; transform: scale(0.2) rotate(-30deg); }
+    to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* ---- Этап 2: буквы K ENORA ---- */
+.splash-brand {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    font-family: 'Cormorant Garamond', serif;
     font-weight: 700;
-    color: #fff;
-    width: 100%;
-    max-width: 280px;
+    font-size: 40px;
+    letter-spacing: 2px;
+    color: #A76BA6;
+    margin: 4px 0;
+}
+
+.splash-brand-letter {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: letterFade 0.5s ease forwards;
+}
+
+@keyframes letterFade {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Этап 3: подзаголовок ---- */
+.splash-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: #D6A660;
+    letter-spacing: 1.5px;
+    text-transform: lowercase;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: splashFadeIn 0.5s ease 1.6s forwards;
+}
+
+/* ---- Этап 4: маленький листик внизу ---- */
+.splash-leaf {
+    width: 24px;
+    height: 24px;
+    background: #C7D6C7;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg) scale(0);
+    margin: 8px auto 16px;
+    opacity: 0;
+    animation: leafAppear 0.6s ease 2.0s forwards;
+}
+
+@keyframes leafAppear {
+    to { opacity: 1; transform: rotate(-45deg) scale(1); }
+}
+
+/* ---- Кнопка "Начать" ---- */
+.splash-btn {
+    background: #EB87B7;
+    border: none;
+    border-radius: 30px;
+    padding: 16px 48px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: #FFF7F1;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 8px 24px rgba(201, 168, 140, 0.3);
+    box-shadow: 0 8px 24px rgba(235, 135, 183, 0.25);
     touch-action: manipulation;
     min-height: 52px;
+    width: 100%;
+    max-width: 280px;
     opacity: 0;
     transform: translateY(10px);
-    animation: splashFadeIn 0.6s ease 1s forwards;
+    animation: splashFadeIn 0.5s ease 2.4s forwards;
 }
 
-.welcome-btn:hover {
+.splash-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(201, 168, 140, 0.4);
+    box-shadow: 0 12px 32px rgba(235, 135, 183, 0.35);
 }
 
-.welcome-btn:active {
+.splash-btn:active {
     transform: scale(0.96);
 }
 
@@ -122,60 +170,46 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Адаптация для тёмной темы */
+/* ---- Адаптация под тёмную тему (делаем приглушённые оттенки) ---- */
 body.theme-dark #splash-screen {
-    background: linear-gradient(160deg, #2a2a2a, #1e1e1e);
+    background: #1e1e1e;
 }
-body.theme-dark .welcome-title {
-    color: #f0e8e0;
+body.theme-dark .splash-brand {
+    color: #c9a8c0;
 }
-body.theme-dark .welcome-subtitle {
-    color: #b0a898;
+body.theme-dark .splash-subtitle {
+    color: #b8957a;
 }
-body.theme-dark .welcome-desc {
-    color: #a09888;
+body.theme-dark .splash-leaf {
+    background: #7a9a7a;
 }
-body.theme-dark .welcome-btn {
-    background: linear-gradient(135deg, #b8a090, #a89080);
-}
-body.theme-dark .welcome-icon path,
-body.theme-dark .welcome-icon circle {
-    stroke: #b8a090;
-}
-body.theme-dark .welcome-icon path:not([stroke]) {
-    fill: #b8a090;
+body.theme-dark .splash-btn {
+    background: #9a6a8a;
 }
 
-/* Адаптация для детской темы */
+/* ---- Адаптация под детскую тему (светлее) ---- */
 body.theme-kids #splash-screen {
-    background: linear-gradient(160deg, #fef8f4, #f8f0e8);
+    background: #FFF7F1;
 }
-body.theme-kids .welcome-title {
-    color: #5a3a2a;
+body.theme-kids .splash-brand {
+    color: #A76BA6;
 }
-body.theme-kids .welcome-subtitle {
-    color: #9a8a7a;
+body.theme-kids .splash-subtitle {
+    color: #D6A660;
 }
-body.theme-kids .welcome-desc {
-    color: #b0a090;
+body.theme-kids .splash-leaf {
+    background: #C7D6C7;
 }
-body.theme-kids .welcome-btn {
-    background: linear-gradient(135deg, #e0c8b0, #d0b8a0);
-}
-body.theme-kids .welcome-icon path,
-body.theme-kids .welcome-icon circle {
-    stroke: #e0c8b0;
-}
-body.theme-kids .welcome-icon path:not([stroke]) {
-    fill: #e0c8b0;
+body.theme-kids .splash-btn {
+    background: #EB87B7;
 }
 
-/* Безопасные зоны для iPhone */
+/* ---- Безопасные зоны для iPhone ---- */
 @supports (padding: max(0px)) {
     #splash-screen {
-        padding-left: max(20px, env(safe-area-inset-left));
-        padding-right: max(20px, env(safe-area-inset-right));
-        padding-top: max(20px, env(safe-area-inset-top));
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding-left: max(24px, env(safe-area-inset-left));
+        padding-right: max(24px, env(safe-area-inset-right));
+        padding-top: max(24px, env(safe-area-inset-top));
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
     }
 }
