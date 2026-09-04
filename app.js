@@ -1,6 +1,5 @@
 /* ============================================================
-   app.js
-   Главная точка запуска приложения
+   app.js – Главная точка запуска приложения
    ============================================================ */
 
 var DEFAULT_SCREEN = "home";
@@ -39,65 +38,17 @@ function initApp() {
         STATE.onboardingCompleted = false;
     }
 
-    /*
-     * ПЕРВЫЙ ЗАПУСК
-     * Если детей ещё нет и онбординг не завершён —
-     * создаём первого ребёнка и сразу открываем онбординг.
-     */
-    if (
-        !STATE._onboardingChildId &&
-        STATE.onboardingCompleted === false &&
-        (!Array.isArray(STATE.children) || STATE.children.length === 0)
-    ) {
-        console.log('🔄 Первый запуск: создаём первого ребёнка...');
-        if (typeof window.addChild === 'function') {
-            var newChild = window.addChild({
-                name: '',
-                birthDate: '',
-                sex: '',
-                feedingType: '',
-                feedingStarted: false,
-                feedingStartDate: '',
-                approach: 'mixed',
-                readiness: {},
-                onboarding: {
-                    allergies: [],
-                    diet: [],
-                    favoriteFoods: [],
-                    worries: [],
-                    confidence: ''
-                }
-            });
-            if (newChild && newChild.id) {
-                STATE._onboardingChildId = newChild.id;
-                STATE.currentChildId = newChild.id;
-                if (STATE.ui) {
-                    STATE.ui.screen = 'onboarding';
-                }
-                if (STATE.navigation) {
-                    STATE.navigation.currentScreen = 'onboarding';
-                }
-                if (typeof saveState === 'function') {
-                    saveState();
-                }
-            }
-            if (typeof render === 'function') {
-                render('onboarding');
-            }
-            /*
-             * Очень важно:
-             * не продолжаем запуск и не вызываем home через таймер.
-             */
-            return 'onboarding';
-        } else {
-            console.warn('⚠️ addChild не найдена, пропускаем онбординг');
-            STATE.onboardingCompleted = true;
-            if (typeof saveState === 'function') {
-                saveState();
-            }
-        }
+    // ===== НОВАЯ ЛОГИКА: ПЕРВЫЙ ЗАПУСК – ПОКАЗЫВАЕМ ПРИВЕТСТВИЕ =====
+    var hasChildren = Array.isArray(STATE.children) && STATE.children.length > 0;
+    var onboardingDone = STATE.onboardingCompleted === true;
+
+    if (!hasChildren && !onboardingDone) {
+        // Показываем приветственный экран
+        showWelcomeScreen();
+        return 'welcome';
     }
 
+    // Если есть дети или онбординг завершён – обычный запуск
     if (typeof buildApp === 'function') {
         buildApp();
     } else {
@@ -127,6 +78,93 @@ function initApp() {
     console.log('✅ Приложение запущено');
     return 'ready';
 }
+
+// ===== ФУНКЦИЯ ПОКАЗА ПРИВЕТСТВЕННОГО ЭКРАНА =====
+function showWelcomeScreen() {
+    var welcomeScreen = document.getElementById('welcome-screen');
+    if (!welcomeScreen) {
+        console.warn('⚠️ Элемент #welcome-screen не найден, переходим в онбординг');
+        // fallback – сразу создаём ребёнка и открываем онбординг
+        createChildAndStartOnboarding();
+        return;
+    }
+    welcomeScreen.style.display = 'flex';
+    // Небольшая задержка для плавного появления
+    setTimeout(function() {
+        welcomeScreen.classList.add('active');
+    }, 100);
+}
+
+// ===== СОЗДАНИЕ РЕБЁНКА И ЗАПУСК ОНБОРДИНГА =====
+function createChildAndStartOnboarding() {
+    console.log('🌱 Создаём ребёнка и запускаем онбординг...');
+    if (typeof window.addChild === 'function') {
+        var newChild = window.addChild({
+            name: '',
+            birthDate: '',
+            sex: '',
+            feedingType: '',
+            feedingStarted: false,
+            feedingStartDate: '',
+            approach: 'mixed',
+            readiness: {},
+            onboarding: {
+                allergies: [],
+                diet: [],
+                favoriteFoods: [],
+                worries: [],
+                confidence: ''
+            }
+        });
+        if (newChild && newChild.id) {
+            STATE._onboardingChildId = newChild.id;
+            STATE.currentChildId = newChild.id;
+            if (STATE.ui) {
+                STATE.ui.screen = 'onboarding';
+            }
+            if (STATE.navigation) {
+                STATE.navigation.currentScreen = 'onboarding';
+            }
+            if (typeof saveState === 'function') {
+                saveState();
+            }
+        }
+        if (typeof render === 'function') {
+            render('onboarding');
+        }
+    } else {
+        console.warn('⚠️ addChild не найдена, пропускаем онбординг');
+        STATE.onboardingCompleted = true;
+        if (typeof saveState === 'function') {
+            saveState();
+        }
+        // Если не удалось создать – открываем home
+        if (typeof render === 'function') {
+            render('home');
+        }
+    }
+}
+
+// ===== ОБРАБОТЧИК КНОПКИ «НАЧАТЬ ЗНАКОМСТВО» =====
+document.addEventListener('DOMContentLoaded', function() {
+    var startBtn = document.getElementById('start-onboarding-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', function() {
+            console.log('🌱 Нажата кнопка "Начать знакомство"');
+            var welcomeScreen = document.getElementById('welcome-screen');
+            if (welcomeScreen) {
+                welcomeScreen.classList.remove('active');
+                setTimeout(function() {
+                    welcomeScreen.style.display = 'none';
+                    // Создаём ребёнка и переходим в онбординг
+                    createChildAndStartOnboarding();
+                }, 300);
+            } else {
+                createChildAndStartOnboarding();
+            }
+        });
+    }
+});
 
 function initializeState() {
     if (typeof loadState === 'function') {
@@ -248,9 +286,6 @@ function buildAppShell() {
 }
 
 function showScreen(screen) {
-    /*
-     * onboarding тоже является допустимым экраном.
-     */
     var validScreens = [
         'home',
         'products',
@@ -317,10 +352,6 @@ function showToast(message, type) {
     }, 2800);
 }
 
-/*
- * Совместимость со старым кодом.
- * Если есть текущий ребёнок — обновляем именно его.
- */
 function setBaby(data) {
     if (!window.STATE) return;
     if (typeof updateBaby === 'function') {
@@ -453,12 +484,13 @@ window.addEventListener('prikorm:themechange', function(event) {
 function startApplication() {
     var result = initApp();
 
-    /*
-     * Если сейчас идёт онбординг,
-     * больше ничего после initApp не запускаем.
-     * Это убирает старый баг, когда через 300 мс
-     * home перерисовывал поверх onboarding.
-     */
+    // Если показано приветствие – дальше ничего не делаем (кнопка сама запустит онбординг)
+    if (result === 'welcome') {
+        console.log('🌸 Приветственный экран показан');
+        return;
+    }
+
+    // Если идёт онбординг – не продолжаем
     if (result === 'onboarding') {
         console.log('🌱 Приложение запущено в режиме онбординга');
         return;
@@ -466,9 +498,7 @@ function startApplication() {
 
     migrateLegacyProfile();
 
-    /*
-     * Дополнительная защита для старых данных.
-     */
+    // Миграция старого объекта baby
     if (STATE.baby && Object.keys(STATE.baby).length > 0) {
         console.log('🔄 Обнаружен старый объект baby, мигрируем...');
         if (typeof window.migrateBabyToChildren === 'function') {
@@ -527,7 +557,7 @@ function startApplication() {
         }
     }
 
-    // ===== ДОБАВЛЕНО: проверка и коррекция активного ребёнка =====
+    // Проверка и коррекция активного ребёнка
     if (typeof window.childService?.ensureActiveChild === 'function') {
         window.childService.ensureActiveChild();
     }
@@ -536,11 +566,6 @@ function startApplication() {
         STATE.ui.screen = STATE.navigation.currentScreen;
     }
 
-    /*
-     * Больше НЕТ принудительного render('home')
-     * через setTimeout.
-     * Открывается именно сохранённый экран.
-     */
     var screen = STATE?.ui?.screen || DEFAULT_SCREEN;
     if (screen === 'onboarding') {
         screen = 'home';
