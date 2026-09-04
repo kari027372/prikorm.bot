@@ -569,13 +569,11 @@ function startApplication() {
         render(screen);
     }
 
-    // ===== ПОКАЗ ПРИВЕТСТВЕННОГО БАННЕРА НА ГЛАВНОЙ =====
+    // ===== ПОКАЗ ПРИВЕТСТВЕННОГО БАННЕРА НА ГЛАВНОЙ (сразу, без задержки) =====
     if (Array.isArray(STATE.children) && STATE.children.length > 0 && screen === 'home') {
-        setTimeout(function() {
-            if (typeof window.showWelcomeBanner === 'function') {
-                window.showWelcomeBanner();
-            }
-        }, 400);
+        if (typeof window.showWelcomeBanner === 'function') {
+            window.showWelcomeBanner();
+        }
     }
 
     console.log('✅ Финальный экран:', screen);
