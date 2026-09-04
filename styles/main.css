@@ -84,7 +84,7 @@ body.theme-kids {
 }
 
 /* ============================================================
-   ПРЕМИАЛЬНАЯ ТИПОГРАФИКА (Nunito)
+   ПРЕМИАЛЬНАЯ ТИПОГРАФИКА
    ============================================================ */
 
 body {
@@ -119,7 +119,6 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.02em;
     color: var(--text-primary);
 }
-
 .onboarding .step-desc {
     font-size: 17px;
     font-weight: 400;
@@ -127,7 +126,6 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-muted);
     letter-spacing: 0.02em;
 }
-
 .question-card .radio-option label,
 .question-card .checkbox-option label {
     font-size: 17px;
@@ -136,7 +134,6 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
     letter-spacing: 0.01em;
 }
-
 .question-card .readiness-question {
     font-size: 17px;
     font-weight: 600;
@@ -144,20 +141,17 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
     margin-bottom: 10px;
 }
-
 .onboarding-input {
     font-family: var(--font-family);
     font-size: 18px;
     font-weight: 500;
     letter-spacing: 0.01em;
 }
-
 .prev-btn, .next-btn, .finish-btn, .skip-button {
     font-family: var(--font-family);
     font-weight: 700;
     letter-spacing: 0.02em;
 }
-
 .result-card .section-label {
     font-size: 13px;
     font-weight: 700;
@@ -182,21 +176,18 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 1.6;
     color: var(--text-secondary);
 }
-
 .skill-list li {
     font-size: 16px;
     font-weight: 500;
     line-height: 1.4;
     color: var(--text-primary);
 }
-
 .progress-label {
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.05em;
     color: var(--text-muted);
 }
-
 .info-box, .warning-box {
     font-size: 16px;
     font-weight: 500;
@@ -252,7 +243,7 @@ body.theme-kids .skill-list li {
 }
 
 /* ============================================================
-   ОСТАЛЬНЫЕ СТИЛИ (без изменений, но с использованием шрифта)
+   ОБЩИЕ СТИЛИ
    ============================================================ */
 
 #app {
@@ -301,73 +292,110 @@ body.theme-kids .skill-list li {
 .progress-file { margin-top: 4px; font-size: 12px; color: var(--text-light); }
 
 /* ============================================================
-   ONBOARDING – УЛУЧШЕННЫЙ ИНТЕРФЕЙС
+   ONBOARDING – ПРЕМИУМ-ДИЗАЙН
    ============================================================ */
 
 .onboarding {
-    padding: 16px 16px 20px;
+    padding: 20px 16px 30px;
     max-width: 480px;
     margin: 0 auto;
+    background: linear-gradient(145deg, #fdf6f0 0%, #f8ede4 100%);
+    border-radius: 0 0 40px 40px;
+    position: relative;
+    overflow: hidden;
+}
+.onboarding::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 215, 190, 0.2) 0%, transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(255, 200, 180, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
 }
 
-/* Прогресс-бар */
 .progress-bar-container {
     position: relative;
     width: 100%;
     height: 8px;
-    background: #e9ecef;
+    background: rgba(224, 210, 200, 0.5);
     border-radius: 20px;
     overflow: hidden;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+    z-index: 1;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 .progress-bar {
     height: 100%;
-    background: #6c8cff;
+    background: linear-gradient(90deg, #f7b8a0, #e8927a);
     border-radius: 20px;
-    transition: width 0.4s ease;
+    transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 0 12px rgba(232, 146, 122, 0.4);
 }
 .progress-label {
-    font-size: 13px;
-    color: #6c757d;
+    font-size: 12px;
+    color: #b09585;
     text-align: right;
-    margin-top: 4px;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+    font-weight: 500;
 }
 
-/* Шапка шага */
 .step-emoji {
-    font-size: 48px;
+    font-size: 56px;
     text-align: center;
     margin-bottom: 4px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.05));
+    z-index: 1;
+    position: relative;
 }
 .step-title {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     text-align: center;
-    color: var(--text-primary);
+    color: #3d2a1a;
     margin-bottom: 4px;
+    letter-spacing: -0.2px;
+    z-index: 1;
+    position: relative;
 }
 .step-desc {
     font-size: 16px;
     text-align: center;
-    color: var(--text-muted);
-    margin-bottom: 24px;
-    line-height: 1.4;
+    color: #8a7a6a;
+    margin-bottom: 28px;
+    line-height: 1.5;
+    z-index: 1;
+    position: relative;
 }
 
-/* Карточка для вопросов */
+/* Карточки вопросов – стеклянный эффект */
 .question-card {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 16px 16px 12px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 18px 18px 14px;
     margin-bottom: 16px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 30px rgba(180, 140, 120, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease;
+    z-index: 1;
+    position: relative;
+}
+.question-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(180, 140, 120, 0.18);
 }
 .question-card:last-child {
     margin-bottom: 0;
 }
 
-/* Радио-кнопки (кастомные) */
+/* Радио-кнопки */
 .radio-group {
     display: flex;
     flex-direction: column;
@@ -376,31 +404,35 @@ body.theme-kids .skill-list li {
 .radio-option {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: var(--bg-input);
-    border-radius: 12px;
-    border: 2px solid transparent;
-    transition: all 0.2s;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255, 248, 245, 0.7);
+    border-radius: 14px;
+    border: 1.5px solid rgba(230, 210, 200, 0.4);
+    transition: all 0.25s ease;
     cursor: pointer;
+    backdrop-filter: blur(4px);
 }
 .radio-option:hover {
-    background: var(--bg-hover);
+    background: rgba(255, 240, 235, 0.9);
+    border-color: #e8c8b8;
 }
 .radio-option input[type="radio"] {
     appearance: none;
     width: 22px;
     height: 22px;
-    border: 2px solid #ced4da;
+    border: 2px solid #dcc8bc;
     border-radius: 50%;
     flex-shrink: 0;
     position: relative;
     cursor: pointer;
     transition: all 0.2s;
+    background: white;
 }
 .radio-option input[type="radio"]:checked {
-    border-color: #6c8cff;
-    background: #6c8cff;
+    border-color: #e8927a;
+    background: #e8927a;
+    box-shadow: 0 0 0 4px rgba(232, 146, 122, 0.2);
 }
 .radio-option input[type="radio"]:checked::after {
     content: '';
@@ -416,17 +448,19 @@ body.theme-kids .skill-list li {
 .radio-option label {
     font-size: 16px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: #3d2a1a;
     cursor: pointer;
     flex: 1;
     margin: 0;
+    letter-spacing: 0.2px;
 }
 .radio-option.selected {
-    background: var(--bg-info);
-    border-color: #6c8cff;
+    background: rgba(232, 146, 122, 0.15);
+    border-color: #e8927a;
+    box-shadow: 0 0 0 1px rgba(232, 146, 122, 0.2);
 }
 
-/* Чекбоксы (кастомные) */
+/* Чекбоксы */
 .checkbox-group {
     display: flex;
     flex-direction: column;
@@ -435,31 +469,35 @@ body.theme-kids .skill-list li {
 .checkbox-option {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: var(--bg-input);
-    border-radius: 12px;
-    border: 2px solid transparent;
-    transition: all 0.2s;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255, 248, 245, 0.7);
+    border-radius: 14px;
+    border: 1.5px solid rgba(230, 210, 200, 0.4);
+    transition: all 0.25s ease;
     cursor: pointer;
+    backdrop-filter: blur(4px);
 }
 .checkbox-option:hover {
-    background: var(--bg-hover);
+    background: rgba(255, 240, 235, 0.9);
+    border-color: #e8c8b8;
 }
 .checkbox-option input[type="checkbox"] {
     appearance: none;
     width: 22px;
     height: 22px;
-    border: 2px solid #ced4da;
+    border: 2px solid #dcc8bc;
     border-radius: 6px;
     flex-shrink: 0;
     position: relative;
     cursor: pointer;
     transition: all 0.2s;
+    background: white;
 }
 .checkbox-option input[type="checkbox"]:checked {
-    border-color: #6c8cff;
-    background: #6c8cff;
+    border-color: #e8927a;
+    background: #e8927a;
+    box-shadow: 0 0 0 4px rgba(232, 146, 122, 0.2);
 }
 .checkbox-option input[type="checkbox"]:checked::after {
     content: '✓';
@@ -474,43 +512,53 @@ body.theme-kids .skill-list li {
 .checkbox-option label {
     font-size: 16px;
     font-weight: 400;
-    color: var(--text-primary);
+    color: #3d2a1a;
     cursor: pointer;
     flex: 1;
     margin: 0;
 }
 .checkbox-option.selected {
-    background: var(--bg-info);
-    border-color: #6c8cff;
+    background: rgba(232, 146, 122, 0.15);
+    border-color: #e8927a;
 }
 
-/* Поля ввода (дата, текст) */
+/* Поля ввода */
 .input-group {
-    margin-bottom: 16px;
+    margin-bottom: 6px;
 }
 .onboarding-input {
     width: 100%;
-    padding: 16px 18px;
+    padding: 18px 20px;
     font-size: 18px;
-    border: 2px solid var(--border-input);
-    border-radius: 14px;
-    background: var(--bg-input);
-    transition: border 0.2s, background 0.2s;
-    color: var(--text-primary);
+    border: 2px solid rgba(224, 210, 200, 0.5);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+    color: #3d2a1a;
+    font-weight: 500;
 }
 .onboarding-input:focus {
-    border-color: #6c8cff;
-    background: var(--bg-app);
+    border-color: #e8927a;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 4px rgba(232, 146, 122, 0.15);
     outline: none;
 }
+.onboarding-input::placeholder {
+    color: #b8a898;
+    font-weight: 400;
+}
 
-/* Gestational (недели/дни) */
+/* Gestational */
 .gestational-group {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 18px;
     margin-bottom: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 30px rgba(180, 140, 120, 0.12);
 }
 .gestational-row {
     display: flex;
@@ -520,76 +568,99 @@ body.theme-kids .skill-list li {
     flex: 1;
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: #6a5a4a;
 }
 .gestational-row input {
     width: 100%;
     padding: 14px;
     font-size: 18px;
-    border: 2px solid var(--border-input);
-    border-radius: 12px;
-    margin-top: 4px;
-    background: var(--bg-app);
-    color: var(--text-primary);
+    border: 2px solid rgba(224, 210, 200, 0.5);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s;
+    color: #3d2a1a;
+}
+.gestational-row input:focus {
+    border-color: #e8927a;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(232, 146, 122, 0.15);
 }
 .gestational-group .checkbox-label {
-    margin-top: 12px;
+    margin-top: 14px;
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 16px;
+    color: #5a4a3a;
+    cursor: pointer;
 }
 .hint {
     display: block;
     font-size: 14px;
-    color: var(--text-muted);
-    margin-top: 8px;
+    color: #b09585;
+    margin-top: 10px;
 }
 
 /* Кнопки навигации */
 .nav-buttons {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
-    margin-top: 28px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-color);
+    gap: 14px;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(224, 210, 200, 0.3);
 }
 .prev-btn {
     flex: 1;
-    padding: 14px;
+    padding: 16px;
     font-size: 16px;
     font-weight: 600;
-    background: transparent;
-    color: var(--text-secondary);
-    border: 2px solid var(--border-color);
-    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+    color: #7a6a5a;
+    border: 1px solid rgba(224, 210, 200, 0.4);
+    border-radius: 16px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.prev-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
 .prev-btn:active {
     transform: scale(0.96);
 }
 .next-btn, .finish-btn {
     flex: 2;
-    padding: 14px;
+    padding: 16px;
     font-size: 16px;
     font-weight: 600;
     border: none;
-    border-radius: 14px;
+    border-radius: 16px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(232, 146, 122, 0.3);
 }
 .next-btn {
-    background: #6c8cff;
+    background: linear-gradient(135deg, #f7b8a0, #e8927a);
     color: #fff;
+}
+.next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(232, 146, 122, 0.4);
 }
 .next-btn:active {
     transform: scale(0.96);
 }
 .finish-btn {
-    background: #28a745;
+    background: linear-gradient(135deg, #a8d5ba, #7ab894);
     color: #fff;
+    box-shadow: 0 4px 16px rgba(122, 184, 148, 0.3);
+}
+.finish-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(122, 184, 148, 0.4);
 }
 .finish-btn:active {
     transform: scale(0.96);
@@ -597,77 +668,92 @@ body.theme-kids .skill-list li {
 .skip-button {
     background: transparent;
     border: none;
-    color: var(--text-muted);
+    color: #b09585;
     font-size: 15px;
     text-decoration: underline;
-    margin-top: 12px;
+    margin-top: 14px;
     cursor: pointer;
+    transition: color 0.2s;
+}
+.skip-button:hover {
+    color: #7a6a5a;
 }
 
-/* Информационные/предупреждающие блоки */
+/* Информационные блоки */
 .info-box, .warning-box {
-    padding: 14px 16px;
-    border-radius: 12px;
+    padding: 16px 20px;
+    border-radius: 16px;
     margin-top: 16px;
     font-size: 15px;
-    line-height: 1.5;
+    line-height: 1.6;
     border-left: 4px solid;
+    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.6);
 }
 .info-box {
-    background: var(--bg-info);
-    border-color: #6c8cff;
-    color: #004085;
+    border-color: #e8927a;
+    color: #4a3a2a;
+    background: rgba(232, 146, 122, 0.1);
 }
 .warning-box {
-    background: #fff3cd;
-    border-color: #ffc107;
-    color: #856404;
+    border-color: #f5a623;
+    color: #5a4a2a;
+    background: rgba(245, 166, 35, 0.1);
 }
 
-/* Карточка результата */
+/* ============================================================
+   КАРТОЧКА РЕЗУЛЬТАТА – КОМПАКТНАЯ
+   ============================================================ */
+
 .result-card {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: var(--shadow-strong);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 16px 18px;
+    max-height: 75vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 60px rgba(180, 140, 120, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.5);
 }
 .result-section {
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(224, 210, 200, 0.2);
 }
 .result-section:last-child {
     border-bottom: none;
 }
 .section-icon {
-    font-size: 26px;
-    width: 36px;
+    font-size: 20px;
+    width: 28px;
     text-align: center;
 }
 .section-label {
-    font-size: 13px;
-    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
     margin-bottom: 2px;
 }
 .section-value {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
 }
 .skill-list {
     list-style: none;
     padding: 0;
-    margin: 8px 0 0;
+    margin: 4px 0 0;
 }
 .skill-list li {
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border-color);
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(224, 210, 200, 0.15);
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 15px;
+    font-size: 14px;
+    color: var(--text-primary);
 }
 .skill-badge {
     display: inline-block;
@@ -675,18 +761,43 @@ body.theme-kids .skill-list li {
     text-align: center;
 }
 .overall-status {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 .overall-recommendation {
-    font-size: 16px;
+    font-size: 15px;
     color: var(--text-secondary);
     line-height: 1.5;
 }
 
+/* Темы для результата */
+body.theme-dark .result-card {
+    background: rgba(60, 60, 60, 0.85);
+    border-color: rgba(255,255,255,0.1);
+}
+body.theme-dark .result-card .section-value {
+    color: #f0e8e0;
+}
+body.theme-dark .result-card .overall-recommendation {
+    color: #c0b0a0;
+}
+body.theme-dark .skill-list li {
+    color: #f0e8e0;
+}
+
+body.theme-kids .result-card .section-value {
+    color: #5a3a2a;
+}
+body.theme-kids .result-card .overall-recommendation {
+    color: #7a6a5a;
+}
+body.theme-kids .skill-list li {
+    color: #5a3a2a;
+}
+
 /* ============================================================
-   ОСТАЛЬНЫЕ СТИЛИ (СУЩЕСТВУЮЩИЕ) – СОХРАНЯЕМ БЕЗ ИЗМЕНЕНИЙ
+   ОСТАЛЬНЫЕ СТИЛИ (СУЩЕСТВУЮЩИЕ)
    ============================================================ */
 
 .dashboard { display: block; }
@@ -814,553 +925,6 @@ body.modal-open { overflow: hidden; }
     #app { border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
 }
 @media (max-width: 400px) {
-    .step-title { font-size: 20px; }
-    .radio-option, .checkbox-option { padding: 10px 12px; }
-    .radio-option label, .checkbox-option label { font-size: 15px; }
-    .prev-btn, .next-btn, .finish-btn { font-size: 15px; padding: 12px; }
-    .onboarding-input { font-size: 16px; padding: 14px; }
-}
-
-/* ============================================================
-   ONBOARDING – ПРЕМИУМ-ДИЗАЙН (дополнительные улучшения)
-   ============================================================ */
-
-.onboarding {
-    padding: 20px 16px 30px;
-    max-width: 480px;
-    margin: 0 auto;
-    background: linear-gradient(145deg, #fdf6f0 0%, #f8ede4 100%);
-    border-radius: 0 0 40px 40px;
-    position: relative;
-    overflow: hidden;
-}
-
-.onboarding::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at 30% 20%, rgba(255, 215, 190, 0.2) 0%, transparent 60%),
-                radial-gradient(circle at 70% 80%, rgba(255, 200, 180, 0.15) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-}
-
-.progress-bar-container {
-    position: relative;
-    width: 100%;
-    height: 8px;
-    background: rgba(224, 210, 200, 0.5);
-    border-radius: 20px;
-    overflow: hidden;
-    margin-bottom: 28px;
-    z-index: 1;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #f7b8a0, #e8927a);
-    border-radius: 20px;
-    transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 0 12px rgba(232, 146, 122, 0.4);
-}
-.progress-label {
-    font-size: 12px;
-    color: #b09585;
-    text-align: right;
-    margin-top: 6px;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-}
-
-.step-emoji {
-    font-size: 56px;
-    text-align: center;
-    margin-bottom: 4px;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.05));
-    z-index: 1;
-    position: relative;
-}
-.step-title {
-    font-size: 26px;
-    font-weight: 700;
-    text-align: center;
-    color: #3d2a1a;
-    margin-bottom: 4px;
-    letter-spacing: -0.2px;
-    z-index: 1;
-    position: relative;
-}
-.step-desc {
-    font-size: 16px;
-    text-align: center;
-    color: #8a7a6a;
-    margin-bottom: 28px;
-    line-height: 1.5;
-    z-index: 1;
-    position: relative;
-}
-
-.question-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 20px;
-    padding: 18px 18px 14px;
-    margin-bottom: 16px;
-    box-shadow: 0 8px 30px rgba(180, 140, 120, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    transition: all 0.3s ease;
-    z-index: 1;
-    position: relative;
-}
-.question-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(180, 140, 120, 0.18);
-}
-.question-card:last-child {
-    margin-bottom: 0;
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    background: rgba(255, 248, 245, 0.7);
-    border-radius: 14px;
-    border: 1.5px solid rgba(230, 210, 200, 0.4);
-    transition: all 0.25s ease;
-    cursor: pointer;
-    backdrop-filter: blur(4px);
-}
-.radio-option:hover {
-    background: rgba(255, 240, 235, 0.9);
-    border-color: #e8c8b8;
-}
-.radio-option input[type="radio"] {
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    border: 2px solid #dcc8bc;
-    border-radius: 50%;
-    flex-shrink: 0;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: white;
-}
-.radio-option input[type="radio"]:checked {
-    border-color: #e8927a;
-    background: #e8927a;
-    box-shadow: 0 0 0 4px rgba(232, 146, 122, 0.2);
-}
-.radio-option input[type="radio"]:checked::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
-}
-.radio-option label {
-    font-size: 16px;
-    font-weight: 500;
-    color: #3d2a1a;
-    cursor: pointer;
-    flex: 1;
-    margin: 0;
-    letter-spacing: 0.2px;
-}
-.radio-option.selected {
-    background: rgba(232, 146, 122, 0.15);
-    border-color: #e8927a;
-    box-shadow: 0 0 0 1px rgba(232, 146, 122, 0.2);
-}
-
-.checkbox-option {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    background: rgba(255, 248, 245, 0.7);
-    border-radius: 14px;
-    border: 1.5px solid rgba(230, 210, 200, 0.4);
-    transition: all 0.25s ease;
-    cursor: pointer;
-    backdrop-filter: blur(4px);
-}
-.checkbox-option:hover {
-    background: rgba(255, 240, 235, 0.9);
-    border-color: #e8c8b8;
-}
-.checkbox-option input[type="checkbox"] {
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    border: 2px solid #dcc8bc;
-    border-radius: 6px;
-    flex-shrink: 0;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: white;
-}
-.checkbox-option input[type="checkbox"]:checked {
-    border-color: #e8927a;
-    background: #e8927a;
-    box-shadow: 0 0 0 4px rgba(232, 146, 122, 0.2);
-}
-.checkbox-option input[type="checkbox"]:checked::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 16px;
-    font-weight: 700;
-}
-.checkbox-option label {
-    font-size: 16px;
-    font-weight: 400;
-    color: #3d2a1a;
-    cursor: pointer;
-    flex: 1;
-    margin: 0;
-}
-.checkbox-option.selected {
-    background: rgba(232, 146, 122, 0.15);
-    border-color: #e8927a;
-}
-
-.onboarding-input {
-    width: 100%;
-    padding: 18px 20px;
-    font-size: 18px;
-    border: 2px solid rgba(224, 210, 200, 0.5);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(4px);
-    transition: all 0.3s ease;
-    color: #3d2a1a;
-    font-weight: 500;
-}
-.onboarding-input:focus {
-    border-color: #e8927a;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 0 0 4px rgba(232, 146, 122, 0.15);
-    outline: none;
-}
-.onboarding-input::placeholder {
-    color: #b8a898;
-    font-weight: 400;
-}
-
-.gestational-group {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 20px;
-    padding: 18px;
-    margin-bottom: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 8px 30px rgba(180, 140, 120, 0.12);
-}
-.gestational-row {
-    display: flex;
-    gap: 16px;
-}
-.gestational-row label {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 500;
-    color: #6a5a4a;
-}
-.gestational-row input {
-    width: 100%;
-    padding: 14px;
-    font-size: 18px;
-    border: 2px solid rgba(224, 210, 200, 0.5);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.8);
-    transition: all 0.3s;
-    color: #3d2a1a;
-}
-.gestational-row input:focus {
-    border-color: #e8927a;
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(232, 146, 122, 0.15);
-}
-.gestational-group .checkbox-label {
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 16px;
-    color: #5a4a3a;
-    cursor: pointer;
-}
-.hint {
-    display: block;
-    font-size: 14px;
-    color: #b09585;
-    margin-top: 10px;
-}
-
-.nav-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 14px;
-    margin-top: 32px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(224, 210, 200, 0.3);
-}
-.prev-btn {
-    flex: 1;
-    padding: 16px;
-    font-size: 16px;
-    font-weight: 600;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(4px);
-    color: #7a6a5a;
-    border: 1px solid rgba(224, 210, 200, 0.4);
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.prev-btn:hover {
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-}
-.prev-btn:active {
-    transform: scale(0.96);
-}
-.next-btn {
-    flex: 2;
-    padding: 16px;
-    font-size: 16px;
-    font-weight: 600;
-    border: none;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 16px rgba(232, 146, 122, 0.3);
-    background: linear-gradient(135deg, #f7b8a0, #e8927a);
-    color: #fff;
-}
-.next-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(232, 146, 122, 0.4);
-}
-.next-btn:active {
-    transform: scale(0.96);
-}
-.finish-btn {
-    flex: 2;
-    padding: 16px;
-    font-size: 16px;
-    font-weight: 600;
-    border: none;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 16px rgba(122, 184, 148, 0.3);
-    background: linear-gradient(135deg, #a8d5ba, #7ab894);
-    color: #fff;
-}
-.finish-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(122, 184, 148, 0.4);
-}
-.finish-btn:active {
-    transform: scale(0.96);
-}
-.skip-button {
-    background: transparent;
-    border: none;
-    color: #b09585;
-    font-size: 15px;
-    text-decoration: underline;
-    margin-top: 14px;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-.skip-button:hover {
-    color: #7a6a5a;
-}
-
-.info-box, .warning-box {
-    padding: 16px 20px;
-    border-radius: 16px;
-    margin-top: 16px;
-    font-size: 15px;
-    line-height: 1.6;
-    border-left: 4px solid;
-    backdrop-filter: blur(4px);
-    background: rgba(255, 255, 255, 0.6);
-}
-.info-box {
-    border-color: #e8927a;
-    color: #4a3a2a;
-    background: rgba(232, 146, 122, 0.1);
-}
-.warning-box {
-    border-color: #f5a623;
-    color: #5a4a2a;
-    background: rgba(245, 166, 35, 0.1);
-}
-
-.result-card {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: 0 16px 60px rgba(180, 140, 120, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-}
-.result-section {
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(224, 210, 200, 0.3);
-}
-.result-section:last-child {
-    border-bottom: none;
-}
-.section-icon {
-    font-size: 28px;
-    width: 40px;
-    text-align: center;
-}
-.section-label {
-    font-size: 13px;
-    color: #b09585;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 2px;
-    font-weight: 600;
-}
-.section-value {
-    font-size: 20px;
-    font-weight: 600;
-    color: #3d2a1a;
-}
-.skill-list {
-    list-style: none;
-    padding: 0;
-    margin: 8px 0 0;
-}
-.skill-list li {
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(224, 210, 200, 0.2);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 16px;
-    color: #3d2a1a;
-}
-.skill-badge {
-    display: inline-block;
-    width: 28px;
-    text-align: center;
-}
-.overall-status {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-.overall-recommendation {
-    font-size: 16px;
-    color: #5a4a3a;
-    line-height: 1.6;
-}
-
-body.theme-dark .onboarding {
-    background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
-}
-body.theme-dark .question-card,
-body.theme-dark .gestational-group,
-body.theme-dark .result-card {
-    background: rgba(60, 60, 60, 0.7);
-    border-color: rgba(255,255,255,0.1);
-}
-body.theme-dark .step-title {
-    color: #e8e0d8;
-}
-body.theme-dark .step-desc {
-    color: #a09888;
-}
-body.theme-dark .radio-option,
-body.theme-dark .checkbox-option {
-    background: rgba(60, 60, 60, 0.5);
-    border-color: rgba(255,255,255,0.1);
-}
-body.theme-dark .radio-option label,
-body.theme-dark .checkbox-option label {
-    color: #e8e0d8;
-}
-body.theme-dark .onboarding-input {
-    background: rgba(60, 60, 60, 0.6);
-    color: #e8e0d8;
-    border-color: rgba(255,255,255,0.15);
-}
-body.theme-dark .prev-btn {
-    background: rgba(60, 60, 60, 0.5);
-    color: #b0a898;
-    border-color: rgba(255,255,255,0.1);
-}
-body.theme-dark .info-box {
-    background: rgba(232, 146, 122, 0.15);
-    color: #e8d0c8;
-}
-body.theme-dark .warning-box {
-    background: rgba(245, 166, 35, 0.15);
-    color: #e8d8b8;
-}
-
-body.theme-kids .onboarding {
-    background: linear-gradient(145deg, #fff7f0, #fef0e8);
-}
-body.theme-kids .question-card,
-body.theme-kids .gestational-group,
-body.theme-kids .result-card {
-    background: rgba(255, 248, 245, 0.8);
-    border-color: rgba(255, 215, 200, 0.4);
-}
-body.theme-kids .step-title {
-    color: #5a3a2a;
-}
-body.theme-kids .step-desc {
-    color: #9a8a7a;
-}
-body.theme-kids .radio-option,
-body.theme-kids .checkbox-option {
-    background: rgba(255, 248, 245, 0.6);
-    border-color: rgba(240, 210, 190, 0.3);
-}
-body.theme-kids .radio-option label,
-body.theme-kids .checkbox-option label {
-    color: #5a3a2a;
-}
-body.theme-kids .onboarding-input {
-    background: rgba(255, 248, 245, 0.8);
-    border-color: rgba(240, 210, 190, 0.3);
-    color: #5a3a2a;
-}
-body.theme-kids .prev-btn {
-    background: rgba(255, 248, 245, 0.6);
-    color: #8a7a6a;
-    border-color: rgba(240, 210, 190, 0.3);
-}
-
-@media (max-width: 400px) {
     .step-title { font-size: 22px; }
     .step-emoji { font-size: 44px; }
     .radio-option, .checkbox-option { padding: 12px 14px; }
@@ -1368,5 +932,8 @@ body.theme-kids .prev-btn {
     .prev-btn, .next-btn, .finish-btn { font-size: 15px; padding: 14px; }
     .onboarding-input { font-size: 16px; padding: 14px; }
     .question-card { padding: 14px; }
-    .result-card { padding: 18px; }
+    .result-card { padding: 14px; }
+    .result-card .section-value { font-size: 15px; }
+    .result-card .overall-status { font-size: 18px; }
+    .result-card .overall-recommendation { font-size: 14px; }
 }
