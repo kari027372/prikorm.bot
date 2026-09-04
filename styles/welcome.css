@@ -1,0 +1,155 @@
+/* ============================================================
+   СТАРТОВЫЙ ЭКРАН (SPLASH) – отделён от основного приложения
+   ============================================================ */
+
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    background: linear-gradient(145deg, #fdf6f0, #f8ede4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+    visibility: hidden;
+}
+
+#splash-screen.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+#splash-screen.hiding {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.welcome-content {
+    text-align: center;
+    max-width: 360px;
+    width: 100%;
+}
+
+.welcome-icon {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 16px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: splashFadeIn 0.6s ease 0.2s forwards;
+}
+
+.welcome-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #3d2a1a;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: splashFadeIn 0.6s ease 0.4s forwards;
+}
+
+.welcome-subtitle {
+    font-size: 18px;
+    font-weight: 500;
+    color: #6a5a4a;
+    margin-bottom: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: splashFadeIn 0.6s ease 0.6s forwards;
+}
+
+.welcome-desc {
+    font-size: 15px;
+    color: #8a7a6a;
+    line-height: 1.5;
+    margin-bottom: 40px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: splashFadeIn 0.6s ease 0.8s forwards;
+}
+
+.welcome-btn {
+    background: linear-gradient(135deg, #d4b8a0, #c9a88c);
+    border: none;
+    border-radius: 16px;
+    padding: 16px 32px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    width: 100%;
+    max-width: 280px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 24px rgba(201, 168, 140, 0.3);
+    touch-action: manipulation;
+    min-height: 52px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: splashFadeIn 0.6s ease 1s forwards;
+}
+
+.welcome-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(201, 168, 140, 0.4);
+}
+
+.welcome-btn:active {
+    transform: scale(0.96);
+}
+
+@keyframes splashFadeIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Адаптация для тёмной темы */
+body.theme-dark #splash-screen {
+    background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+}
+body.theme-dark .welcome-title {
+    color: #f0e8e0;
+}
+body.theme-dark .welcome-subtitle {
+    color: #b0a898;
+}
+body.theme-dark .welcome-desc {
+    color: #a09888;
+}
+body.theme-dark .welcome-btn {
+    background: linear-gradient(135deg, #b8a090, #a89080);
+}
+
+/* Адаптация для детской темы */
+body.theme-kids #splash-screen {
+    background: linear-gradient(145deg, #fff7f0, #fef0e8);
+}
+body.theme-kids .welcome-title {
+    color: #5a3a2a;
+}
+body.theme-kids .welcome-subtitle {
+    color: #9a8a7a;
+}
+body.theme-kids .welcome-desc {
+    color: #b0a090;
+}
+body.theme-kids .welcome-btn {
+    background: linear-gradient(135deg, #e0c8b0, #d0b8a0);
+}
+
+/* Безопасные зоны для iPhone */
+@supports (padding: max(0px)) {
+    #splash-screen {
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+        padding-top: max(20px, env(safe-area-inset-top));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+}
