@@ -1,5 +1,5 @@
 /* ============================================================
-   СТАРТОВЫЙ ЭКРАН (SPLASH) – отделён от основного приложения
+   СТАРТОВЫЙ ЭКРАН (SPLASH) – единая стилистика
    ============================================================ */
 
 #splash-screen {
@@ -8,7 +8,7 @@
     left: 0;
     width: 100%;
     height: 100dvh;
-    background: linear-gradient(145deg, #fdf6f0, #f8ede4);
+    background: linear-gradient(160deg, #f9f4ef 0%, #f0e8e0 100%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -37,13 +37,25 @@
     width: 100%;
 }
 
+/* SVG-иконка с анимацией */
 .welcome-icon {
-    font-size: 64px;
+    width: 80px;
+    height: 80px;
     display: block;
-    margin-bottom: 16px;
+    margin: 0 auto 20px;
     opacity: 0;
-    transform: translateY(10px);
-    animation: splashFadeIn 0.6s ease 0.2s forwards;
+    transform: scale(0.9) translateY(10px);
+    animation: splashIconFadeIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards,
+               splashIconPulse 3s ease-in-out 1.2s infinite;
+}
+
+@keyframes splashIconFadeIn {
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes splashIconPulse {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.04) rotate(-2deg); }
 }
 
 .welcome-title {
@@ -51,7 +63,7 @@
     font-weight: 800;
     color: #3d2a1a;
     letter-spacing: -0.5px;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     opacity: 0;
     transform: translateY(10px);
     animation: splashFadeIn 0.6s ease 0.4s forwards;
@@ -112,7 +124,7 @@
 
 /* Адаптация для тёмной темы */
 body.theme-dark #splash-screen {
-    background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+    background: linear-gradient(160deg, #2a2a2a, #1e1e1e);
 }
 body.theme-dark .welcome-title {
     color: #f0e8e0;
@@ -126,10 +138,17 @@ body.theme-dark .welcome-desc {
 body.theme-dark .welcome-btn {
     background: linear-gradient(135deg, #b8a090, #a89080);
 }
+body.theme-dark .welcome-icon path,
+body.theme-dark .welcome-icon circle {
+    stroke: #b8a090;
+}
+body.theme-dark .welcome-icon path:not([stroke]) {
+    fill: #b8a090;
+}
 
 /* Адаптация для детской темы */
 body.theme-kids #splash-screen {
-    background: linear-gradient(145deg, #fff7f0, #fef0e8);
+    background: linear-gradient(160deg, #fef8f4, #f8f0e8);
 }
 body.theme-kids .welcome-title {
     color: #5a3a2a;
@@ -142,6 +161,13 @@ body.theme-kids .welcome-desc {
 }
 body.theme-kids .welcome-btn {
     background: linear-gradient(135deg, #e0c8b0, #d0b8a0);
+}
+body.theme-kids .welcome-icon path,
+body.theme-kids .welcome-icon circle {
+    stroke: #e0c8b0;
+}
+body.theme-kids .welcome-icon path:not([stroke]) {
+    fill: #e0c8b0;
 }
 
 /* Безопасные зоны для iPhone */
