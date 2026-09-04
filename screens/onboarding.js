@@ -3,7 +3,7 @@
     'use strict';
 
     // ============================================================
-    // СПРАВОЧНИКИ
+    // СПРАВОЧНИКИ (без изменений)
     // ============================================================
 
     const ALLERGENS_LIST = [
@@ -51,7 +51,6 @@
     // ============================================================
 
     const STEPS = [
-        // 1. Имя
         {
             id: 'name',
             emoji: '👶',
@@ -63,7 +62,6 @@
             key: 'name',
             skipable: true
         },
-        // 2. Дата рождения
         {
             id: 'birth',
             emoji: '📅',
@@ -73,7 +71,6 @@
             inputType: 'date',
             key: 'birthDate'
         },
-        // 3. Срок беременности
         {
             id: 'gestational',
             emoji: '🤰',
@@ -82,7 +79,6 @@
             type: 'gestational',
             key: 'gestational'
         },
-        // 4. Тип вскармливания
         {
             id: 'feeding_type',
             emoji: '🍼',
@@ -93,7 +89,6 @@
             values: ['breast', 'formula', 'mixed'],
             key: 'feedingType'
         },
-        // 5. Начал ли прикорм (всегда показывать)
         {
             id: 'started',
             emoji: '🌱',
@@ -104,7 +99,6 @@
             key: 'feedingStarted',
             extra: 'start-date-field'
         },
-        // 6. Подход
         {
             id: 'approach',
             emoji: '🥄',
@@ -114,13 +108,12 @@
             options: ['Пюре', 'BLW', 'Комбинированный', 'Пока не знаю'],
             key: 'approach'
         },
-        // 7. Признаки готовности (6 вопросов)
         {
             id: 'readiness',
             emoji: '🧸',
             title: 'Признаки готовности к прикорму',
             desc: 'Отметьте то, что действительно наблюдаете',
-            type: 'readiness_checkboxes', // специальный тип
+            type: 'readiness_checkboxes',
             key: 'readiness',
             questions: [
                 {
@@ -148,9 +141,8 @@
                     id: 'breathingCoordination'
                 }
             ],
-            options: ['Да', 'Нет', 'Не уверена'] // для каждого вопроса
+            options: ['Да', 'Нет', 'Не уверена']
         },
-        // 8. Аллергии
         {
             id: 'allergies',
             emoji: '⚠️',
@@ -160,7 +152,6 @@
             options: [...ALLERGENS_LIST, 'Нет известных пищевых аллергий', 'Не знаю'],
             key: 'allergies'
         },
-        // 9. Особенности питания
         {
             id: 'diet',
             emoji: '🥗',
@@ -170,7 +161,6 @@
             options: DIET_OPTIONS,
             key: 'diet'
         },
-        // 10. Предпочтения по продуктам
         {
             id: 'favorites',
             emoji: '🍎',
@@ -180,7 +170,6 @@
             options: FAVORITE_FOODS,
             key: 'favoriteFoods'
         },
-        // 11. Тревоги
         {
             id: 'worries',
             emoji: '💛',
@@ -190,7 +179,6 @@
             options: WORRY_OPTIONS,
             key: 'worries'
         },
-        // 12. Уверенность
         {
             id: 'confidence',
             emoji: '💪',
@@ -273,7 +261,7 @@
     }
 
     // ============================================================
-    // ОЦЕНКА ГОТОВНОСТИ (по новым 6 вопросам)
+    // ОЦЕНКА ГОТОВНОСТИ
     // ============================================================
 
     function assessReadiness(readiness, ageMonths, birthTermCategory) {
@@ -293,12 +281,9 @@
             breathingCoordination = false
         } = readiness;
 
-        // Считаем основные признаки (первые 4)
         const core = [headControl, sitSupport, foodInterest, opensMouth].filter(Boolean).length;
-        // Безопасность глотания и дыхания
         const safety = swallowing && breathingCoordination;
 
-        // Если есть проблемы с дыханием/координацией – нужен осмотр
         if (!breathingCoordination || !swallowing) {
             return {
                 status: 'needs_review',
@@ -306,10 +291,8 @@
             };
         }
 
-        // Недоношенность
         const isPreterm = (birthTermCategory === 'preterm');
 
-        // Возрастной фактор
         if (ageMonths < 4) {
             if (isPreterm) {
                 return {
@@ -342,7 +325,7 @@
             };
         }
 
-        // Возраст >= 6 месяцев
+        // age >= 6
         if (isPreterm) {
             if (core >= 3 && safety) {
                 return {
@@ -356,7 +339,7 @@
             };
         }
 
-        // Доношенные, >= 6 месяцев
+        // доношенные >= 6
         if (core >= 3 && safety) {
             return {
                 status: 'ready',
@@ -396,7 +379,6 @@
         }
 
         if (step.type === 'checkboxes' || step.type === 'readiness_checkboxes') {
-            // Для готовности - особый сбор
             if (step.type === 'readiness_checkboxes') {
                 const readiness = {};
                 const questions = step.questions || [];
@@ -408,7 +390,6 @@
                 return;
             }
 
-            // Обычные чекбоксы
             const checks = document.querySelectorAll('.step-checkbox:checked');
             const values = Array.from(checks).map(el => el.value);
             tempData[step.key] = values;
@@ -445,7 +426,6 @@
             `;
         }
 
-        // Вычисляем возраст
         const birthDate = tempData.birthDate || child.birthDate;
         const age = calculateAge(birthDate);
         const ageMonths = age.months;
@@ -513,8 +493,8 @@
                 `;
             }
 
-            // Для шага 5 (начало прикорма) – если возраст < 4 мес, показываем предупреждение, но не блокируем
-            if (step.id === 'started' && ageMonths < 4) {
+            // --- ИСПРАВЛЕНИЕ: предупреждение только если выбран "Да" И возраст < 4 ---
+            if (step.id === 'started' && tempData.feedingStarted === 'Да' && ageMonths < 4) {
                 html += `
                     <div style="background:#fef9e7; padding:12px; border-radius:8px; margin-top:12px; border-left:4px solid #f1c40f;">
                         ⚠️ <strong>Обратите внимание</strong><br>
@@ -546,7 +526,6 @@
                 </label>
                 <small style="display:block; margin-top:10px; opacity:.7;">Например: 39 недель 2 дня. Если срок неизвестен — это нормально.</small>
             `;
-            // Если срок уже выбран, показываем категорию
             if (!unknown && weeks !== '') {
                 const cat = getBirthTermCategory(weeks, days);
                 const msg = getTermMessage(cat);
@@ -578,7 +557,7 @@
             html += `</div>`;
         }
 
-        // --- READINESS (специальный тип) ---
+        // --- READINESS ---
         if (step.type === 'readiness_checkboxes') {
             const readiness = tempData.readiness || {};
             const questions = step.questions || [];
@@ -601,7 +580,6 @@
             });
             html += `</div>`;
 
-            // Оценка готовности (если все ответы даны)
             const readinessData = tempData.readiness;
             if (readinessData && Object.keys(readinessData).length === questions.length) {
                 const assessment = assessReadiness(
@@ -659,7 +637,7 @@
     // ОБРАБОТЧИКИ СОБЫТИЙ
     // ============================================================
 
-    // Single choice – мгновенное обновление
+    // SINGLE CHOICE – мгновенное обновление
     document.addEventListener('click', function(event) {
         const choiceBtn = event.target.closest('.btn-group button[data-choice]');
         if (!choiceBtn) return;
@@ -669,19 +647,53 @@
         refreshOnboarding();
     });
 
-    // Изменения в чекбоксах (включая взаимоисключение)
-    document.addEventListener('change', function(event) {
+    // --- ИСПРАВЛЕНИЕ: ОТДЕЛЬНЫЙ ОБРАБОТЧИК ДЛЯ ЧЕКБОКСОВ (по клику) ---
+    document.addEventListener('click', function(event) {
         const checkbox = event.target.closest('.step-checkbox');
         if (!checkbox) return;
 
         const step = STEPS[currentStep];
-        if (!step || (step.type !== 'checkboxes' && step.type !== 'readiness_checkboxes')) return;
+        if (!step || step.type !== 'checkboxes') return;
 
-        // Для readiness – обрабатываем радио-кнопки отдельно (они уже меняют tempData через change)
-        if (step.type === 'readiness_checkboxes') {
-            // Собираем все ответы
-            const readiness = {};
+        // Даем браузеру обработать изменение состояния чекбокса
+        // Но мы должны прочитать новое состояние после события
+        // Используем setTimeout, чтобы дождаться изменения
+        setTimeout(function() {
+            const allChecks = document.querySelectorAll('.step-checkbox');
+            const checkedValues = Array.from(allChecks).filter(cb => cb.checked).map(cb => cb.value);
+
+            // Взаимоисключение для "Нет" и "Не знаю"
+            const noOptions = ['Нет', 'Нет известных пищевых аллергий', 'Не знаю'];
+            const hasNo = step.options.some(opt => noOptions.includes(opt));
+
+            if (hasNo) {
+                // Если выбрано "Нет" или "Не знаю" – снимаем конкретные
+                if (checkedValues.some(v => noOptions.includes(v))) {
+                    allChecks.forEach(cb => {
+                        if (!noOptions.includes(cb.value)) cb.checked = false;
+                    });
+                } else if (checkedValues.some(v => !noOptions.includes(v))) {
+                    // Если выбраны конкретные – снимаем "Нет" и "Не знаю"
+                    allChecks.forEach(cb => {
+                        if (noOptions.includes(cb.value)) cb.checked = false;
+                    });
+                }
+            }
+
+            const finalValues = Array.from(document.querySelectorAll('.step-checkbox:checked')).map(cb => cb.value);
+            tempData[step.key] = finalValues;
+            refreshOnboarding();
+        }, 0);
+    });
+
+    // Обработчик change для радио-кнопок readiness
+    document.addEventListener('change', function(event) {
+        const radio = event.target.closest('input[type="radio"][name^="readiness_"]');
+        if (radio) {
+            const step = STEPS[currentStep];
+            if (!step || step.type !== 'readiness_checkboxes') return;
             const questions = step.questions || [];
+            const readiness = {};
             questions.forEach(q => {
                 const input = document.querySelector(`input[name="readiness_${q.id}"]:checked`);
                 readiness[q.id] = input ? input.value === 'Да' : false;
@@ -690,33 +702,6 @@
             refreshOnboarding();
             return;
         }
-
-        // Обычные чекбоксы (allergies, diet, favorites, worries)
-        const allChecks = document.querySelectorAll('.step-checkbox');
-        const checkedValues = Array.from(allChecks).filter(cb => cb.checked).map(cb => cb.value);
-
-        // Взаимоисключение для "Нет" и "Не знаю"
-        const noOptions = ['Нет', 'Нет известных пищевых аллергий', 'Не знаю'];
-        const hasNo = step.options.some(opt => noOptions.includes(opt));
-
-        if (hasNo) {
-            // Если выбрано "Нет" или "Не знаю" – снимаем конкретные
-            if (checkedValues.some(v => noOptions.includes(v))) {
-                allChecks.forEach(cb => {
-                    if (!noOptions.includes(cb.value)) cb.checked = false;
-                });
-            } else if (checkedValues.some(v => !noOptions.includes(v))) {
-                // Если выбраны конкретные – снимаем "Нет" и "Не знаю"
-                allChecks.forEach(cb => {
-                    if (noOptions.includes(cb.value)) cb.checked = false;
-                });
-            }
-        }
-
-        // Обновляем tempData
-        const finalValues = Array.from(document.querySelectorAll('.step-checkbox:checked')).map(cb => cb.value);
-        tempData[step.key] = finalValues;
-        refreshOnboarding();
     });
 
     // Навигация
@@ -733,7 +718,6 @@
         const step = STEPS[currentStep];
         if (!step) return;
 
-        // Сохраняем текущий шаг
         saveCurrentStep();
 
         if (action === 'skip-step') {
@@ -838,7 +822,7 @@
         // --- Возраст ---
         const age = calculateAge(child.birthDate);
 
-        // --- Оценка готовности (если есть readiness) ---
+        // --- Оценка готовности ---
         if (child.readiness) {
             child.readinessAssessment = assessReadiness(
                 child.readiness,
@@ -847,7 +831,7 @@
             );
         }
 
-        // --- Версия профиля ---
+        // --- Версия ---
         child.profileVersion = 2;
         child.onboarding.completedAt = new Date().toISOString();
 
@@ -856,12 +840,10 @@
         state._onboardingChildId = null;
         state._onboardingMode = null;
 
-        // --- Глобальный флаг завершения онбординга (первый ребёнок) ---
         if (state.children.length === 1 && state.onboardingCompleted === false) {
             state.onboardingCompleted = true;
         }
 
-        // --- Переход на Home ---
         state.ui = state.ui || {};
         state.navigation = state.navigation || {};
         state.ui.screen = 'home';
@@ -869,7 +851,6 @@
 
         if (typeof saveState === 'function') saveState();
 
-        // --- Сброс локального состояния ---
         currentStep = 0;
         tempData = {};
         targetChildId = null;
@@ -881,10 +862,9 @@
             childId: child.id,
             childName: child.name,
             ageMonths: age.months,
-            readiness: child.readinessAssessment?.status || 'unknown',
-            totalChildren: state.children.length
+            readiness: child.readinessAssessment?.status || 'unknown'
         });
     }
 
-    console.log('✅ onboarding.js загружен — финальная версия по ТЗ');
+    console.log('✅ onboarding.js загружен — исправленная версия (чекбоксы + предупреждение)');
 })();
