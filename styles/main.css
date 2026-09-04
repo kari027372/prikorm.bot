@@ -140,267 +140,395 @@ body {
 .progress-text { margin-top: 8px; font-size: 14px; color: var(--text-muted); }
 .progress-file { margin-top: 4px; font-size: 12px; color: var(--text-light); }
 
-/* ONBOARDING (старые стили + улучшения) */
+/* ============================================================
+   ONBOARDING – УЛУЧШЕННЫЙ ИНТЕРФЕЙС
+   ============================================================ */
+
 .onboarding {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 80vh;
-    padding: 0 16px;
-    text-align: center;
-    animation: fadeIn 0.5s;
-}
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.onboarding .step-indicators {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin: 20px 0 30px;
-}
-.onboarding .step-indicators span {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--bg-hover);
-    transition: 0.3s;
-}
-.onboarding .step-indicators span.active {
-    background: var(--bg-primary);
-    width: 24px;
-    border-radius: 12px;
-}
-.onboarding .emoji-big { font-size: 72px; margin-bottom: 16px; }
-.onboarding h1 { font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
-.onboarding p { font-size: 16px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
-.onboarding .btn-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 8px;
-}
-.onboarding .btn-group button {
-    padding: 16px;
-    border: none;
-    border-radius: 16px;
-    font-size: 18px;
-    font-weight: 600;
-    background: var(--bg-hover);
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--text-primary);
-}
-.onboarding .btn-group button:active { transform: scale(0.96); }
-.onboarding .btn-group button.primary {
-    background: var(--bg-primary);
-    color: var(--text-on-primary);
-}
-.onboarding .btn-group button.primary:hover { background: var(--bg-primary-hover); }
-.onboarding .btn-group button.secondary {
-    background: transparent;
-    color: var(--text-muted);
-    font-weight: 400;
-}
-.onboarding input[type="date"],
-.onboarding input[type="text"] {
-    width: 100%;
-    padding: 16px;
-    border: 2px solid var(--border-input);
-    border-radius: 16px;
-    font-size: 18px;
-    text-align: center;
-    margin: 12px 0;
-    background: var(--bg-input);
-    color: var(--text-primary);
-    transition: border 0.2s;
-}
-.onboarding input:focus {
-    outline: none;
-    border-color: var(--bg-primary);
-}
-.onboarding .skip {
-    color: var(--text-light);
-    font-size: 14px;
-    margin-top: 16px;
-    background: none;
-    border: none;
-    text-decoration: underline;
-    cursor: pointer;
-}
-.onboarding .nav-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 24px;
-    gap: 12px;
-}
-.onboarding .nav-buttons button {
-    flex: 1;
-    padding: 14px;
-    border: none;
-    border-radius: 14px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.onboarding .nav-buttons button:active { transform: scale(0.96); }
-.onboarding .nav-buttons button.prev {
-    background: var(--bg-hover);
-    color: var(--text-secondary);
-}
-.onboarding .nav-buttons button.next {
-    background: var(--bg-primary);
-    color: var(--text-on-primary);
-}
-.onboarding .btn-group label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 400;
-    font-size: 16px;
-    background: var(--bg-card);
-    padding: 12px;
-    border-radius: 12px;
-    border: 2px solid transparent;
-    transition: background 0.2s, border-color 0.2s;
-    cursor: pointer;
-    color: var(--text-primary);
-}
-.onboarding .btn-group label:has(input:checked) {
-    background: var(--bg-success) !important;
-    border-color: #4caf50 !important;
-}
-.onboarding .btn-group label input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
+    padding: 16px 16px 20px;
+    max-width: 480px;
+    margin: 0 auto;
 }
 
-/* НОВЫЕ СТИЛИ ДЛЯ ПРОГРЕСС-БАРА, КАРТОЧКИ РЕЗУЛЬТАТА И Т.Д. */
+/* Прогресс-бар */
 .progress-bar-container {
     position: relative;
     width: 100%;
-    height: 6px;
+    height: 8px;
     background: #e9ecef;
-    border-radius: 4px;
-    margin-bottom: 24px;
+    border-radius: 20px;
     overflow: hidden;
+    margin-bottom: 24px;
 }
 .progress-bar {
     height: 100%;
     background: #6c8cff;
-    border-radius: 4px;
-    transition: width 0.3s ease;
+    border-radius: 20px;
+    transition: width 0.4s ease;
 }
 .progress-label {
-    display: block;
-    text-align: right;
-    font-size: 12px;
+    font-size: 13px;
     color: #6c757d;
+    text-align: right;
     margin-top: 4px;
 }
-.step-emoji { font-size: 40px; text-align: center; margin-bottom: 8px; }
-.step-title { font-size: 24px; font-weight: 600; text-align: center; color: var(--text-primary); margin-bottom: 4px; }
-.step-desc { font-size: 16px; text-align: center; color: var(--text-muted); margin-bottom: 24px; }
-.input-group { margin-bottom: 20px; }
-.onboarding-input {
-    width: 100%;
-    padding: 14px 16px;
-    font-size: 16px;
-    border: 2px solid var(--border-input);
-    border-radius: 12px;
-    background: var(--bg-input);
-    transition: border-color 0.2s;
+
+/* Шапка шага */
+.step-emoji {
+    font-size: 48px;
+    text-align: center;
+    margin-bottom: 4px;
 }
-.onboarding-input:focus { border-color: #6c8cff; outline: none; }
-.choice-btn {
-    background: var(--bg-hover);
+.step-title {
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
     color: var(--text-primary);
-    border: 2px solid var(--border-color);
-    width: 100%;
-    margin-bottom: 8px;
-    text-align: left;
-    padding: 14px 16px;
-    border-radius: 12px;
+    margin-bottom: 4px;
+}
+.step-desc {
     font-size: 16px;
-    font-weight: 500;
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.4;
+}
+
+/* Карточка для вопросов */
+.question-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 16px 16px 12px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+.question-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Радио-кнопки (кастомные) */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-input);
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.radio-option:hover {
+    background: var(--bg-hover);
+}
+.radio-option input[type="radio"] {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #ced4da;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
     cursor: pointer;
     transition: all 0.2s;
 }
-.choice-btn.primary {
+.radio-option input[type="radio"]:checked {
+    border-color: #6c8cff;
     background: #6c8cff;
-    color: #fff;
+}
+.radio-option input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+}
+.radio-option label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+}
+.radio-option.selected {
+    background: var(--bg-info);
     border-color: #6c8cff;
 }
-.choice-btn:active { transform: scale(0.98); }
-.btn-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-.nav-buttons { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); }
-.prev-btn { background: transparent; color: var(--text-muted); border: 2px solid var(--border-color); flex: 1; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; }
-.next-btn { background: #6c8cff; color: #fff; border: 2px solid #6c8cff; flex: 2; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; }
-.finish-btn { background: #28a745; color: #fff; border: 2px solid #28a745; flex: 2; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; }
-.skip-button { background: transparent; color: var(--text-muted); border: none; padding: 8px 16px; font-size: 14px; text-decoration: underline; cursor: pointer; }
 
-.checkbox-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-.checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 16px; color: var(--text-primary); cursor: pointer; }
-.checkbox-label input[type="checkbox"] { width: 20px; height: 20px; accent-color: #6c8cff; cursor: pointer; }
+/* Чекбоксы (кастомные) */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-input);
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.checkbox-option:hover {
+    background: var(--bg-hover);
+}
+.checkbox-option input[type="checkbox"] {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #ced4da;
+    border-radius: 6px;
+    flex-shrink: 0;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.checkbox-option input[type="checkbox"]:checked {
+    border-color: #6c8cff;
+    background: #6c8cff;
+}
+.checkbox-option input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+}
+.checkbox-option label {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-primary);
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+}
+.checkbox-option.selected {
+    background: var(--bg-info);
+    border-color: #6c8cff;
+}
 
-.readiness-group { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
-.readiness-item { background: var(--bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); }
-.readiness-question { font-weight: 500; margin: 0 0 8px 0; font-size: 15px; color: var(--text-primary); }
-.readiness-options { display: flex; gap: 12px; flex-wrap: wrap; }
-.radio-label { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--text-primary); cursor: pointer; }
-.radio-label input[type="radio"] { width: 18px; height: 18px; accent-color: #6c8cff; cursor: pointer; }
+/* Поля ввода (дата, текст) */
+.input-group {
+    margin-bottom: 16px;
+}
+.onboarding-input {
+    width: 100%;
+    padding: 16px 18px;
+    font-size: 18px;
+    border: 2px solid var(--border-input);
+    border-radius: 14px;
+    background: var(--bg-input);
+    transition: border 0.2s, background 0.2s;
+    color: var(--text-primary);
+}
+.onboarding-input:focus {
+    border-color: #6c8cff;
+    background: var(--bg-app);
+    outline: none;
+}
 
-.gestational-group { margin-bottom: 20px; }
-.gestational-row { display: flex; gap: 12px; margin-bottom: 12px; }
-.gestational-row label { flex: 1; font-size: 14px; color: var(--text-secondary); }
-.gestational-row input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid var(--border-input); border-radius: 10px; margin-top: 4px; background: var(--bg-input); }
-.hint { display: block; font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+/* Gestational (недели/дни) */
+.gestational-group {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border-color);
+}
+.gestational-row {
+    display: flex;
+    gap: 16px;
+}
+.gestational-row label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.gestational-row input {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    border: 2px solid var(--border-input);
+    border-radius: 12px;
+    margin-top: 4px;
+    background: var(--bg-app);
+    color: var(--text-primary);
+}
+.gestational-group .checkbox-label {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+}
+.hint {
+    display: block;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
 
+/* Кнопки навигации */
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+.prev-btn {
+    flex: 1;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.prev-btn:active {
+    transform: scale(0.96);
+}
+.next-btn, .finish-btn {
+    flex: 2;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.next-btn {
+    background: #6c8cff;
+    color: #fff;
+}
+.next-btn:active {
+    transform: scale(0.96);
+}
+.finish-btn {
+    background: #28a745;
+    color: #fff;
+}
+.finish-btn:active {
+    transform: scale(0.96);
+}
+.skip-button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 15px;
+    text-decoration: underline;
+    margin-top: 12px;
+    cursor: pointer;
+}
+
+/* Информационные/предупреждающие блоки */
 .info-box, .warning-box {
-    padding: 12px 16px;
-    border-radius: 10px;
+    padding: 14px 16px;
+    border-radius: 12px;
     margin-top: 16px;
     font-size: 15px;
     line-height: 1.5;
     border-left: 4px solid;
-    text-align: left;
 }
-.info-box { background: #e7f3ff; border-color: #6c8cff; color: #004085; }
-.warning-box { background: #fff3cd; border-color: #ffc107; color: #856404; }
+.info-box {
+    background: var(--bg-info);
+    border-color: #6c8cff;
+    color: #004085;
+}
+.warning-box {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
 
-/* РЕЗУЛЬТАТ */
-.result-screen { padding: 20px 0; }
-.result-header { text-align: center; margin-bottom: 24px; }
-.result-emoji { font-size: 48px; }
-.result-title { font-size: 24px; font-weight: 600; color: var(--text-primary); margin: 8px 0 0; }
-.result-card { background: var(--bg-card); border-radius: 16px; padding: 16px; box-shadow: var(--shadow-strong); margin-bottom: 20px; border: 1px solid var(--border-color); }
-.result-section { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
-.result-section:last-child { border-bottom: none; }
-.section-icon { font-size: 24px; width: 32px; text-align: center; flex-shrink: 0; }
-.section-content { flex: 1; text-align: left; }
-.section-label { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.section-value { font-size: 18px; font-weight: 600; color: var(--text-primary); }
-.section-status { font-size: 14px; margin-top: 4px; }
-.status-ok { color: #28a745; }
-.status-warning { color: #ffc107; }
-.status-danger { color: #dc3545; }
-.status-info { color: #17a2b8; }
-.skill-list { list-style: none; padding: 0; margin: 8px 0 0; }
-.skill-list li { font-size: 15px; padding: 4px 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; }
-.skill-badge { display: inline-block; width: 20px; text-align: center; }
-.result-overall { background: var(--bg-hover); border-radius: 10px; padding: 12px 16px; margin-top: 8px; }
-.overall-status { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-.status-green .overall-status { color: #28a745; }
-.status-yellow .overall-status { color: #ffc107; }
-.status-orange .overall-status { color: #fd7e14; }
-.status-blue .overall-status { color: #17a2b8; }
-.status-gray .overall-status { color: #6c757d; }
-.overall-recommendation { font-size: 16px; color: var(--text-secondary); line-height: 1.5; }
+/* Карточка результата */
+.result-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow-strong);
+    border: 1px solid var(--border-color);
+}
+.result-section {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.result-section:last-child {
+    border-bottom: none;
+}
+.section-icon {
+    font-size: 26px;
+    width: 36px;
+    text-align: center;
+}
+.section-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+.section-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.skill-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+}
+.skill-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+}
+.skill-badge {
+    display: inline-block;
+    width: 24px;
+    text-align: center;
+}
+.overall-status {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+.overall-recommendation {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
 
-/* Остальные стили (без изменений) */
+/* ============================================================
+   ОСТАЛЬНЫЕ СТИЛИ (СУЩЕСТВУЮЩИЕ) – СОХРАНЯЕМ БЕЗ ИЗМЕНЕНИЙ
+   ============================================================ */
+
 .dashboard { display: block; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: 8px; }
 .page-header h1 { font-size: 24px; font-weight: 700; color: var(--text-primary); }
@@ -524,4 +652,11 @@ body.modal-open { overflow: hidden; }
 }
 @media (min-width: 481px) {
     #app { border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
+}
+@media (max-width: 400px) {
+    .step-title { font-size: 20px; }
+    .radio-option, .checkbox-option { padding: 10px 12px; }
+    .radio-option label, .checkbox-option label { font-size: 15px; }
+    .prev-btn, .next-btn, .finish-btn { font-size: 15px; padding: 12px; }
+    .onboarding-input { font-size: 16px; padding: 14px; }
 }
