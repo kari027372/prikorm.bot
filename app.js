@@ -79,17 +79,15 @@ function initApp() {
     return 'ready';
 }
 
-// ===== ФУНКЦИЯ ПОКАЗА ПРИВЕТСТВЕННОГО ЭКРАНА =====
+// ===== ФУНКЦИЯ ПОКАЗА ПРИВЕТСТВЕННОГО ЭКРАНА (первый запуск) =====
 function showWelcomeScreen() {
     var welcomeScreen = document.getElementById('welcome-screen');
     if (!welcomeScreen) {
         console.warn('⚠️ Элемент #welcome-screen не найден, переходим в онбординг');
-        // fallback – сразу создаём ребёнка и открываем онбординг
         createChildAndStartOnboarding();
         return;
     }
     welcomeScreen.style.display = 'flex';
-    // Небольшая задержка для плавного появления
     setTimeout(function() {
         welcomeScreen.classList.add('active');
     }, 100);
@@ -138,7 +136,6 @@ function createChildAndStartOnboarding() {
         if (typeof saveState === 'function') {
             saveState();
         }
-        // Если не удалось создать – открываем home
         if (typeof render === 'function') {
             render('home');
         }
@@ -156,7 +153,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 welcomeScreen.classList.remove('active');
                 setTimeout(function() {
                     welcomeScreen.style.display = 'none';
-                    // Создаём ребёнка и переходим в онбординг
                     createChildAndStartOnboarding();
                 }, 300);
             } else {
@@ -262,9 +258,6 @@ function normalizeState() {
         STATE.waterLog = [];
     }
 
-    /*
-     * Старый формат onboarding → onboarding первого ребёнка.
-     */
     if (STATE.onboarding) {
         if (STATE.children.length > 0 && !STATE.children[0].onboarding) {
             STATE.children[0].onboarding = {
@@ -484,13 +477,11 @@ window.addEventListener('prikorm:themechange', function(event) {
 function startApplication() {
     var result = initApp();
 
-    // Если показано приветствие – дальше ничего не делаем (кнопка сама запустит онбординг)
     if (result === 'welcome') {
         console.log('🌸 Приветственный экран показан');
         return;
     }
 
-    // Если идёт онбординг – не продолжаем
     if (result === 'onboarding') {
         console.log('🌱 Приложение запущено в режиме онбординга');
         return;
@@ -498,7 +489,6 @@ function startApplication() {
 
     migrateLegacyProfile();
 
-    // Миграция старого объекта baby
     if (STATE.baby && Object.keys(STATE.baby).length > 0) {
         console.log('🔄 Обнаружен старый объект baby, мигрируем...');
         if (typeof window.migrateBabyToChildren === 'function') {
@@ -557,7 +547,6 @@ function startApplication() {
         }
     }
 
-    // Проверка и коррекция активного ребёнка
     if (typeof window.childService?.ensureActiveChild === 'function') {
         window.childService.ensureActiveChild();
     }
@@ -578,6 +567,15 @@ function startApplication() {
 
     if (typeof render === 'function') {
         render(screen);
+    }
+
+    // ===== ПОКАЗ ПРИВЕТСТВЕННОГО БАННЕРА НА ГЛАВНОЙ =====
+    if (Array.isArray(STATE.children) && STATE.children.length > 0 && screen === 'home') {
+        setTimeout(function() {
+            if (typeof window.showWelcomeBanner === 'function') {
+                window.showWelcomeBanner();
+            }
+        }, 400);
     }
 
     console.log('✅ Финальный экран:', screen);
