@@ -115,3 +115,134 @@ window.renderHome = function() {
         </div>
     `;
 };
+// ============================================================
+// ПРИВЕТСТВЕННЫЙ БАННЕР НА ГЛАВНОЙ
+// ============================================================
+
+function showWelcomeBanner() {
+    // Проверяем, есть ли уже баннер
+    if (document.querySelector('.welcome-banner')) return;
+
+    var state = window.STATE || {};
+    var children = Array.isArray(state.children) ? state.children : [];
+    var child = null;
+
+    // Находим активного ребёнка
+    if (state.currentChildId) {
+        child = children.find(c => c.id === state.currentChildId);
+    }
+    if (!child && children.length > 0) {
+        child = children[0];
+    }
+    if (!child) return;
+
+    var name = child.name || 'Малыш';
+    var birthDate = child.birthDate;
+    var ageText = '';
+
+    if (birthDate) {
+        var age = calculateAge(birthDate);
+        var months = age.months;
+        var days = age.days;
+        if (months > 0) {
+            ageText = months + ' ' + getMonthDeclension(months);
+            if (days > 0) {
+                ageText += ' ' + days + ' ' + getDayDeclension(days);
+            }
+        } else if (days > 0) {
+            ageText = days + ' ' + getDayDeclension(days);
+        } else {
+            ageText = 'только родился';
+        }
+    }
+
+    // Приветственные фразы
+    var greetings = [
+        'Доброе утро, ',
+        'Привет, ',
+        'Здравствуй, ',
+        'Солнышко, '
+    ];
+    var greeting = greetings[Math.floor(Math.random() * greetings.length)];
+
+    var wishes = [
+        '🌱 Сегодня новый вкус ждёт тебя!',
+        '🌸 Пусть день будет вкусным и радостным!',
+        '🥄 Готовы к новым открытиям?',
+        '🍎 Пришло время попробовать что-то новое!',
+        '💛 Мы рядом на каждом шагу!'
+    ];
+    var wish = wishes[Math.floor(Math.random() * wishes.length)];
+
+    // Создаём баннер
+    var banner = document.createElement('div');
+    banner.className = 'welcome-banner';
+    banner.innerHTML = `
+        <div class="welcome-banner-icon">🌸</div>
+        <div class="welcome-banner-content">
+            <div class="welcome-banner-greeting">${greeting}${name}!</div>
+            <div class="welcome-banner-age">${ageText ? ageText : ''}</div>
+            <div class="welcome-banner-wish">${wish}</div>
+        </div>
+        <button class="welcome-banner-close" aria-label="Закрыть">✕</button>
+    `;
+
+    // Добавляем в начало #app-content
+    var appContent = document.getElementById('app-content');
+    if (appContent) {
+        appContent.prepend(banner);
+        // Активируем анимацию после добавления
+        requestAnimationFrame(function() {
+            banner.classList.add('visible');
+        });
+    }
+
+    // Закрытие по кнопке
+    var closeBtn = banner.querySelector('.welcome-banner-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            closeWelcomeBanner(banner);
+        });
+    }
+
+    // Автоматическое закрытие через 5 секунд
+    setTimeout(function() {
+        if (banner && banner.parentNode) {
+            closeWelcomeBanner(banner);
+        }
+    }, 5000);
+
+    // Клик по баннеру не закрывает (только кнопка)
+}
+
+function closeWelcomeBanner(banner) {
+    if (!banner) return;
+    banner.classList.remove('visible');
+    banner.classList.add('hiding');
+    setTimeout(function() {
+        if (banner.parentNode) {
+            banner.parentNode.removeChild(banner);
+        }
+    }, 400);
+}
+
+function getMonthDeclension(n) {
+    var lastDigit = n % 10;
+    var lastTwo = n % 100;
+    if (lastTwo >= 11 && lastTwo <= 19) return 'месяцев';
+    if (lastDigit === 1) return 'месяц';
+    if (lastDigit >= 2 && lastDigit <= 4) return 'месяца';
+    return 'месяцев';
+}
+
+function getDayDeclension(n) {
+    var lastDigit = n % 10;
+    var lastTwo = n % 100;
+    if (lastTwo >= 11 && lastTwo <= 19) return 'дней';
+    if (lastDigit === 1) return 'день';
+    if (lastDigit >= 2 && lastDigit <= 4) return 'дня';
+    return 'дней';
+}
+
+// Экспортируем функцию для вызова из app.js
+window.showWelcomeBanner = showWelcomeBanner;
