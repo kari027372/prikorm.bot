@@ -1132,3 +1132,160 @@ body.theme-kids .welcome-btn {
     .welcome-emoji { font-size: 56px; }
     .welcome-btn { padding: 14px 32px; font-size: 16px; }
 }
+/* ============================================================
+   ПРИВЕТСТВЕННЫЙ БАННЕР НА ГЛАВНОЙ
+   ============================================================ */
+
+.welcome-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, rgba(253, 246, 240, 0.95), rgba(248, 237, 228, 0.95));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 32px rgba(180, 140, 120, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-banner.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.welcome-banner.hiding {
+    transform: translateY(-20px);
+    opacity: 0;
+}
+
+.welcome-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 215, 190, 0.2) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.welcome-banner-icon {
+    font-size: 40px;
+    flex-shrink: 0;
+    animation: welcomePulse 2s ease-in-out infinite;
+}
+
+.welcome-banner-content {
+    flex: 1;
+    z-index: 1;
+}
+
+.welcome-banner-greeting {
+    font-size: 18px;
+    font-weight: 700;
+    color: #3d2a1a;
+    letter-spacing: -0.2px;
+}
+
+.welcome-banner-age {
+    font-size: 14px;
+    font-weight: 500;
+    color: #8a7a6a;
+    margin-top: 2px;
+}
+
+.welcome-banner-wish {
+    font-size: 15px;
+    font-weight: 400;
+    color: #6a5a4a;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.welcome-banner-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #b09585;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    z-index: 1;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.welcome-banner-close:hover {
+    background: rgba(0,0,0,0.05);
+    color: #7a6a5a;
+}
+
+.welcome-banner-close:active {
+    transform: scale(0.9);
+}
+
+@keyframes welcomePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05) rotate(-3deg); }
+}
+
+/* Адаптация для тёмной темы */
+body.theme-dark .welcome-banner {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.95), rgba(30, 30, 30, 0.95));
+    border-color: rgba(255,255,255,0.1);
+}
+body.theme-dark .welcome-banner-greeting {
+    color: #f0e8e0;
+}
+body.theme-dark .welcome-banner-age {
+    color: #a09888;
+}
+body.theme-dark .welcome-banner-wish {
+    color: #b0a898;
+}
+body.theme-dark .welcome-banner-close {
+    color: #a09888;
+}
+body.theme-dark .welcome-banner-close:hover {
+    background: rgba(255,255,255,0.05);
+    color: #c0b0a0;
+}
+
+/* Адаптация для детской темы */
+body.theme-kids .welcome-banner {
+    background: linear-gradient(135deg, rgba(255, 248, 245, 0.95), rgba(254, 240, 232, 0.95));
+    border-color: rgba(255, 215, 200, 0.4);
+}
+body.theme-kids .welcome-banner-greeting {
+    color: #5a3a2a;
+}
+body.theme-kids .welcome-banner-age {
+    color: #9a8a7a;
+}
+body.theme-kids .welcome-banner-wish {
+    color: #7a6a5a;
+}
+
+@media (max-width: 400px) {
+    .welcome-banner {
+        padding: 14px 16px;
+        gap: 12px;
+    }
+    .welcome-banner-icon {
+        font-size: 32px;
+    }
+    .welcome-banner-greeting {
+        font-size: 16px;
+    }
+    .welcome-banner-wish {
+        font-size: 14px;
+    }
+}
