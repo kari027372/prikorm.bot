@@ -1,4 +1,4 @@
-// screens/onboarding.js – ФИНАЛЬНАЯ ВЕРСИЯ (встроенная логика)
+// screens/onboarding.js – ФИНАЛЬНАЯ ВЕРСИЯ С УЛУЧШЕННЫМ ИНТЕРФЕЙСОМ
 (function () {
     'use strict';
 
@@ -438,7 +438,7 @@
     }
 
     // ============================================================
-    // 6. ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений)
+    // 6. ОСТАЛЬНЫЕ ФУНКЦИИ
     // ============================================================
 
     function saveCurrentStep() {
@@ -527,20 +527,22 @@
             ${step.desc ? `<p class="step-desc">${escapeHtml(step.desc)}</p>` : ''}
         `;
 
+        // --- INPUT ---
         if (step.type === 'input') {
             const value = tempData[step.key] !== undefined ? tempData[step.key] : (child[step.key] || '');
             html += `
-                <div class="input-group">
-                    <input type="${step.inputType}" id="onboarding-input" class="onboarding-input" placeholder="${escapeHtml(step.placeholder || '')}" value="${escapeHtml(value)}" autocomplete="${step.key === 'name' ? 'name' : 'off'}">
+                <div class="question-card">
+                    <div class="input-group">
+                        <input type="${step.inputType}" id="onboarding-input" class="onboarding-input" placeholder="${escapeHtml(step.placeholder || '')}" value="${escapeHtml(value)}" autocomplete="${step.key === 'name' ? 'name' : 'off'}">
+                    </div>
+                    ${step.skipable ? `<button class="skip-button" data-action="skip-step" type="button">Пропустить →</button>` : ''}
                 </div>
             `;
-            if (step.skipable) {
-                html += `<button class="skip-button" data-action="skip-step" type="button">Пропустить →</button>`;
-            }
         }
 
+        // --- CHOICE ---
         if (step.type === 'choice') {
-            html += `<div class="btn-group" role="group">`;
+            html += `<div class="question-card"><div class="btn-group">`;
             step.options.forEach((option, index) => {
                 let currentValue = tempData[step.key] !== undefined ? tempData[step.key] : '';
                 if (!currentValue && step.key === 'feedingType') {
@@ -590,14 +592,16 @@
                     </div>
                 `;
             }
+            html += `</div>`;
         }
 
+        // --- GESTATIONAL ---
         if (step.type === 'gestational') {
             const weeks = tempData.gestationalWeeks !== undefined ? tempData.gestationalWeeks : (child.gestationalAgeWeeks ?? '');
             const days = tempData.gestationalDays !== undefined ? tempData.gestationalDays : (child.gestationalAgeDays ?? '');
             const unknown = tempData.gestationalUnknown !== undefined ? tempData.gestationalUnknown : (child.birthTermCategory === 'unknown');
             html += `
-                <div class="gestational-group">
+                <div class="question-card gestational-group">
                     <div class="gestational-row">
                         <label>
                             Недели
@@ -628,34 +632,36 @@
             }
         }
 
+        // --- CHECKBOXES (обычные) ---
         if (step.type === 'checkboxes') {
             let selected = tempData[step.key] !== undefined ? tempData[step.key] : (child.onboarding?.[step.key] || []);
             if (!Array.isArray(selected)) selected = [];
-            html += `<div class="checkbox-group">`;
+
+            html += `<div class="question-card"><div class="checkbox-group">`;
             step.options.forEach(option => {
                 const checked = selected.includes(option);
                 html += `
-                    <label class="checkbox-label">
+                    <label class="checkbox-option">
                         <input type="checkbox" class="step-checkbox" value="${escapeHtml(option)}" ${checked ? 'checked' : ''}>
                         ${escapeHtml(option)}
                     </label>
                 `;
             });
-            html += `</div>`;
+            html += `</div></div>`;
         }
 
+        // --- READINESS (специальный) ---
         if (step.type === 'readiness_checkboxes') {
             const readiness = tempData.readiness || {};
             const questions = step.questions || [];
-            html += `<div class="readiness-group">`;
             questions.forEach(q => {
                 const selected = readiness[q.id] || '';
                 html += `
-                    <div class="readiness-item">
+                    <div class="question-card">
                         <p class="readiness-question">${escapeHtml(q.label)}</p>
-                        <div class="readiness-options">
+                        <div class="radio-group">
                             ${q.options.map(opt => `
-                                <label class="radio-label">
+                                <label class="radio-option">
                                     <input type="radio" name="readiness_${q.id}" value="${escapeHtml(opt)}" ${selected === opt ? 'checked' : ''}>
                                     ${escapeHtml(opt)}
                                 </label>
@@ -664,9 +670,9 @@
                     </div>
                 `;
             });
-            html += `</div>`;
         }
 
+        // --- НАВИГАЦИЯ ---
         html += `<div class="nav-buttons">`;
         if (currentStep > 0) {
             html += `<button class="prev-btn" data-action="prev-step" type="button">← Назад</button>`;
@@ -684,6 +690,10 @@
         return html;
     }
 
+    // ============================================================
+    // 7. PUBLIC RENDER (с fallback)
+    // ============================================================
+
     window.renderOnboarding = function() {
         const state = getState();
         if (!targetChildId) {
@@ -698,6 +708,10 @@
     function refreshOnboarding() {
         if (typeof render === 'function') render('onboarding');
     }
+
+    // ============================================================
+    // 8. ОБРАБОТЧИКИ СОБЫТИЙ
+    // ============================================================
 
     document.addEventListener('click', function(event) {
         const choiceBtn = event.target.closest('.choice-btn[data-choice]');
@@ -784,6 +798,10 @@
         }
     });
 
+    // ============================================================
+    // 9. ЗАВЕРШЕНИЕ И ПОКАЗ РЕЗУЛЬТАТА
+    // ============================================================
+
     function finishOnboardingAndShowResult() {
         const state = getState();
         if (!targetChildId) {
@@ -868,6 +886,10 @@
 
         showResultScreen(child, assessment);
     }
+
+    // ============================================================
+    // 10. ЭКРАН РЕЗУЛЬТАТА
+    // ============================================================
 
     function showResultScreen(child, assessment) {
         if (!assessment || typeof assessment !== 'object') {
@@ -1058,5 +1080,5 @@
         if (target) completeOnboarding();
     });
 
-    console.log('✅ onboarding.js загружен – ФИНАЛЬНАЯ ВЕРСИЯ С ВСТРОЕННОЙ ЛОГИКОЙ');
+    console.log('✅ onboarding.js загружен – ФИНАЛЬНАЯ ВЕРСИЯ С ВСТРОЕННОЙ ЛОГИКОЙ И УЛУЧШЕННЫМ ИНТЕРФЕЙСОМ');
 })();
