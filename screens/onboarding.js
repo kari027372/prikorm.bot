@@ -239,12 +239,11 @@
     }
 
     // ============================================================
-    // 5. МЕДИЦИНСКАЯ ЛОГИКА (используем сервис)
+    // 5. МЕДИЦИНСКАЯ ЛОГИКА (используем сервис + fallback)
     // ============================================================
 
     const feedingService = window.feedingReadiness || null;
 
-    // Функции-заглушки, если сервис не загружен
     const calculateAge = feedingService?.calculateAge || function(birthDate) {
         if (!birthDate) return { months: 0, days: 0 };
         const birth = new Date(birthDate);
@@ -293,7 +292,7 @@
     };
 
     const evaluateReadiness = feedingService?.evaluateReadiness || function(childData) {
-        // fallback-оценка, если сервис не загружен
+        // fallback
         const age = calculateAge(childData.birthDate);
         const chronologicalMonths = age.months;
         const gestationalWeeks = childData.gestationalAgeWeeks || 40;
@@ -796,20 +795,37 @@
     }
 
     // ============================================================
-    // 11. ЭКРАН РЕЗУЛЬТАТА (исправлен, все переменные берутся из assessment)
+    // 11. ЭКРАН РЕЗУЛЬТАТА (все данные берутся из assessment)
     // ============================================================
 
     function showResultScreen(child, assessment) {
         // Защита от отсутствия assessment
         if (!assessment || typeof assessment !== 'object') {
             console.error('❌ Оценка не получена');
+            // Показываем сообщение об ошибке
+            const container = document.querySelector('.onboarding');
+            if (container) {
+                container.innerHTML = `
+                    <div class="onboarding result-screen">
+                        <div class="result-header">
+                            <div class="result-emoji">⚠️</div>
+                            <h1 class="result-title">Ошибка оценки</h1>
+                            <p>Не удалось получить оценку готовности. Пожалуйста, попробуйте ещё раз.</p>
+                        </div>
+                        <div class="nav-buttons">
+                            <button class="finish-btn" data-action="complete-onboarding" type="button">Перейти в приложение →</button>
+                        </div>
+                    </div>
+                `;
+                const btn = container.querySelector('[data-action="complete-onboarding"]');
+                if (btn) btn.addEventListener('click', completeOnboarding);
+            }
             return;
         }
 
         const {
             ageBlock = { chronologicalMonths: 0, chronologicalDays: 0, correctedMonths: null, isPreterm: false },
             termBlock = { category: 'unknown', label: 'Срок не указан', weeks: 40 },
-            readinessBlock = {},
             safetyBlock = { hasFeedingProblems: false, seriousProblems: false, problemsList: [] },
             overallStatus = 'unknown',
             overallMessage = '🔵 Данных недостаточно',
@@ -817,15 +833,21 @@
             originalReadiness = {}
         } = assessment;
 
-        // Безопасное получение данных
+        // Безопасно извлекаем возрастные данные
         const chronologicalMonths = ageBlock.chronologicalMonths || 0;
         const chronologicalDays = ageBlock.chronologicalDays || 0;
         const correctedMonths = ageBlock.correctedMonths;
         const isPreterm = ageBlock.isPreterm || false;
 
-        const ageText = isPreterm
-            ? `${chronologicalMonths} мес (скорректированный ${correctedMonths !== null ? correctedMonths.toFixed(1) : '?'} мес)`
-            : `${chronologicalMonths} мес`;
+        // Формируем текст возраста
+        let ageText;
+        if (isPreterm && correctedMonths !== null) {
+            ageText = `${chronologicalMonths} мес (скорректированный ${correctedMonths.toFixed(1)} мес)`;
+        } else if (isPreterm && correctedMonths === null) {
+            ageText = `${chronologicalMonths} мес (скорректированный возраст не рассчитан)`;
+        } else {
+            ageText = `${chronologicalMonths} мес`;
+        }
 
         const termText = termBlock.label + (termBlock.weeks ? ` (${termBlock.weeks} нед)` : '');
 
@@ -994,5 +1016,5 @@
         }
     });
 
-    console.log('✅ onboarding.js загружен – финальная исправленная версия');
+    console.log('✅ onboarding.js загружен – финальная версия без chronologicalMonths');
 })();
