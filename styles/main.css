@@ -1219,3 +1219,16 @@ body.theme-kids .welcome-banner-wish {
         font-size: 14px;
     }
 }
+/* ============================================================
+   ONBOARDING – растянутый на всю ширину
+   ============================================================ */
+
+.onboarding {
+    padding: 20px 8px 30px;
+    max-width: 100%;
+    margin: 0 auto;
+    background: linear-gradient(145deg, #fdf6f0 0%, #f8ede4 100%);
+    border-radius: 0 0 40px 40px;
+    position: relative;
+    overflow: hidden;
+}
