@@ -1,3 +1,4 @@
+// screens/home.js – с приветственным баннером и встроенной calculateAge
 window.renderHome = function() {
     const state = window.STATE || {};
     const currentChild = window.getCurrentChild ? window.getCurrentChild() : (state.baby || {});
@@ -114,12 +115,25 @@ window.renderHome = function() {
 };
 
 // ============================================================
-// ПРИВЕТСТВЕННЫЙ БАННЕР НА ГЛАВНОЙ (обновлённая версия)
+// ПРИВЕТСТВЕННЫЙ БАННЕР НА ГЛАВНОЙ (с встроенной calculateAge)
 // ============================================================
 
 function showWelcomeBanner() {
     // Проверяем, есть ли уже баннер
     if (document.querySelector('.welcome-banner')) return;
+
+    // Встроенная функция расчёта возраста (чтобы не зависеть от глобальной)
+    function calculateAge(birthDate) {
+        if (!birthDate) return { months: 0, days: 0 };
+        var birth = new Date(birthDate);
+        var now = new Date();
+        var months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+        if (now.getDate() < birth.getDate()) months--;
+        return {
+            months: Math.max(0, months),
+            days: Math.max(0, Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24)))
+        };
+    }
 
     var state = window.STATE || {};
     var children = Array.isArray(state.children) ? state.children : [];
