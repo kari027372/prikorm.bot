@@ -16,7 +16,7 @@
 
     <!-- ===== CSS ===== -->
     <link rel="stylesheet" href="styles/main.css?v=2.1.25">
-    <link rel="stylesheet" href="styles/welcome.css?v=2.1.25"> <!-- НОВЫЙ CSS ДЛЯ SPLASH -->
+    <link rel="stylesheet" href="styles/welcome.css?v=2.1.25">
 </head>
 <body>
     <!-- ===== ЗАГРУЗОЧНЫЙ ЭКРАН (пока загружаются скрипты) ===== -->
@@ -30,12 +30,24 @@
         </div>
     </div>
 
-    <!-- ===== СТАРТОВЫЙ ЭКРАН (SPLASH) – показывается после загрузки приложения ===== -->
+    <!-- ===== СТАРТОВЫЙ ЭКРАН (SPLASH) – обновлён ===== -->
     <div id="splash-screen" style="display:none;">
         <div class="welcome-content">
-            <div class="welcome-icon">🥄</div>
-            <div class="welcome-title">PRIKORM.BOT</div>
-            <div class="welcome-subtitle">Прикорм без паники</div>
+            <!-- Минималистичная SVG-иконка (ложка + миска) -->
+            <svg class="welcome-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="40" cy="40" r="36" stroke="#d4b8a0" stroke-width="2" fill="rgba(212,184,160,0.08)"/>
+                <path d="M28 38 L28 48 C28 52 32 56 36 56 L44 56 C48 56 52 52 52 48 L52 38" stroke="#d4b8a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M32 44 L48 44" stroke="#d4b8a0" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M36 48 L44 48" stroke="#d4b8a0" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M40 24 L40 32" stroke="#d4b8a0" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M40 32 L42 35 L40 38 L38 35 L40 32Z" fill="#d4b8a0"/>
+                <circle cx="40" cy="26" r="2.5" fill="#d4b8a0"/>
+                <path d="M56 28 L60 24 L64 28 L60 32 L56 28Z" fill="#d4b8a0" opacity="0.6"/>
+                <path d="M54 30 L58 26 L62 30" stroke="#d4b8a0" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+
+            <div class="welcome-title">Прикорм</div>
+            <div class="welcome-subtitle">Без паники</div>
             <div class="welcome-desc">Понятно. По возрасту. С заботой о малыше.</div>
             <button class="welcome-btn" id="start-app-btn">Начать</button>
         </div>
@@ -105,7 +117,6 @@
          ============================================================ -->
     <script>
         (function() {
-            // Функция скрытия загрузочного экрана
             function hideLoading() {
                 var ls = document.getElementById('loading-screen');
                 if (ls) {
@@ -116,19 +127,16 @@
                 }
             }
 
-            // Функция показа стартового экрана (splash)
             function showSplash() {
                 var splash = document.getElementById('splash-screen');
                 if (splash) {
                     splash.style.display = 'flex';
-                    // Плавное появление
                     setTimeout(function() {
                         splash.classList.add('visible');
                     }, 50);
                 }
             }
 
-            // Функция скрытия стартового экрана и показа приложения
             function hideSplashAndShowApp() {
                 var splash = document.getElementById('splash-screen');
                 if (splash) {
@@ -136,26 +144,20 @@
                     splash.classList.add('hiding');
                     setTimeout(function() {
                         splash.style.display = 'none';
-                        // Показываем приложение
                         var app = document.getElementById('app');
                         if (app) {
                             app.style.display = 'block';
-                            // Если приложение уже отрендерилось, скрывать не нужно
                         }
-                        // Удаляем класс hiding для возможности повторного показа
                         splash.classList.remove('hiding');
                     }, 400);
                 } else {
-                    // Если splash нет, сразу показываем app
                     var app = document.getElementById('app');
                     if (app) app.style.display = 'block';
                 }
             }
 
-            // Основная функция запуска
             function startApp() {
                 console.log('🚀 Запуск приложения...');
-                // Запускаем существующее приложение (рендеринг)
                 if (typeof startApplication === 'function') {
                     startApplication();
                 } else if (typeof initApp === 'function') {
@@ -165,18 +167,10 @@
                 } else {
                     console.warn('⚠️ Не найдена функция запуска приложения!');
                 }
-
-                // Скрываем загрузочный экран (спиннер)
                 hideLoading();
-
-                // Показываем стартовый экран (splash)
                 showSplash();
-
-                // Приложение уже отрендерилось, но скрыто (display:none).
-                // После нажатия кнопки мы покажем его.
             }
 
-            // Обработчик кнопки «Начать»
             document.addEventListener('DOMContentLoaded', function() {
                 var startBtn = document.getElementById('start-app-btn');
                 if (startBtn) {
@@ -184,13 +178,11 @@
                         hideSplashAndShowApp();
                     });
                 } else {
-                    // Если кнопки нет, возможно, splash не нужен — показываем приложение сразу
                     var app = document.getElementById('app');
                     if (app) app.style.display = 'block';
                 }
             });
 
-            // Запускаем приложение, когда DOM готов
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', startApp);
             } else {
