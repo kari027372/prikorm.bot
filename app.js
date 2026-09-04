@@ -43,7 +43,7 @@ function initApp() {
     var onboardingDone = STATE.onboardingCompleted === true;
 
     if (!hasChildren && !onboardingDone) {
-        // Показываем приветственный экран
+        // Показываем приветственный экран (для первого запуска, не путать со стартовым)
         showWelcomeScreen();
         return 'welcome';
     }
@@ -567,13 +567,6 @@ function startApplication() {
 
     if (typeof render === 'function') {
         render(screen);
-    }
-
-    // ===== ПОКАЗ ПРИВЕТСТВЕННОГО БАННЕРА НА ГЛАВНОЙ (сразу, без задержки) =====
-    if (Array.isArray(STATE.children) && STATE.children.length > 0 && screen === 'home') {
-        if (typeof window.showWelcomeBanner === 'function') {
-            window.showWelcomeBanner();
-        }
     }
 
     console.log('✅ Финальный экран:', screen);
