@@ -1000,3 +1000,135 @@ body.theme-kids .onboarding .choice-btn.primary {
     border-color: #f0c8a0 !important;
     color: #fff !important;
 }
+/* ============================================================
+   ПРИВЕТСТВЕННЫЙ ЭКРАН (ПЕРВЫЙ ЗАПУСК)
+   ============================================================ */
+
+#welcome-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #fdf6f0 0%, #f8ede4 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#welcome-screen.active {
+    opacity: 1;
+}
+
+.welcome-content {
+    text-align: center;
+    max-width: 360px;
+    animation: fadeUp 1s ease forwards;
+}
+
+.welcome-emoji {
+    font-size: 72px;
+    display: block;
+    margin-bottom: 16px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.welcome-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #3d2a1a;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.welcome-subtitle {
+    font-size: 18px;
+    font-weight: 500;
+    color: #6a5a4a;
+    margin-bottom: 8px;
+}
+
+.welcome-desc {
+    font-size: 16px;
+    color: #8a7a6a;
+    line-height: 1.5;
+    margin-bottom: 32px;
+}
+
+.welcome-btn {
+    background: linear-gradient(135deg, #f7b8a0, #e8927a);
+    border: none;
+    border-radius: 30px;
+    padding: 16px 40px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 24px rgba(232, 146, 122, 0.3);
+    touch-action: manipulation;
+}
+
+.welcome-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(232, 146, 122, 0.4);
+}
+
+.welcome-btn:active {
+    transform: scale(0.96);
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Адаптация для тёмной темы */
+body.theme-dark #welcome-screen {
+    background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+}
+body.theme-dark .welcome-title {
+    color: #f0e8e0;
+}
+body.theme-dark .welcome-subtitle {
+    color: #b0a898;
+}
+body.theme-dark .welcome-desc {
+    color: #a09888;
+}
+body.theme-dark .welcome-btn {
+    background: linear-gradient(135deg, #b8946a, #a8845a);
+}
+
+/* Адаптация для детской темы */
+body.theme-kids #welcome-screen {
+    background: linear-gradient(145deg, #fff7f0, #fef0e8);
+}
+body.theme-kids .welcome-title {
+    color: #5a3a2a;
+}
+body.theme-kids .welcome-subtitle {
+    color: #9a8a7a;
+}
+body.theme-kids .welcome-desc {
+    color: #b0a090;
+}
+body.theme-kids .welcome-btn {
+    background: linear-gradient(135deg, #f0c8a0, #e0b890);
+}
+
+@media (max-width: 400px) {
+    .welcome-title { font-size: 28px; }
+    .welcome-emoji { font-size: 56px; }
+    .welcome-btn { padding: 14px 32px; font-size: 16px; }
+}
