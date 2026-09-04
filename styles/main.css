@@ -1457,3 +1457,158 @@ h1, h2, h3, h4, h5, h6 {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.03) rotate(-2deg); }
 }
+/* ============================================================
+   ГЛАВНАЯ KENORA – премиальный дизайн
+   ============================================================ */
+
+/* Карточка профиля */
+.baby-profile-card {
+    background: #FFFDFC;
+    border-radius: 20px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+    border: 1px solid #EDE5DE;
+    box-shadow: 0 2px 8px rgba(64, 59, 57, 0.04);
+}
+.baby-profile-card .baby-avatar {
+    font-size: 44px;
+}
+.baby-profile-card strong {
+    font-size: 20px;
+    font-weight: 700;
+    color: #403B39;
+    font-family: 'Cormorant Garamond', serif;
+}
+.baby-profile-card .muted {
+    font-size: 14px;
+    color: #B5A8A2;
+}
+.baby-profile-card .icon-button {
+    color: #B5A8A2;
+}
+
+/* Сегодняшний продукт */
+.today-product {
+    background: #FFFDFC;
+    border-radius: 20px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border: 1px solid #EDE5DE;
+    box-shadow: 0 2px 8px rgba(64, 59, 57, 0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.today-product-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #7A6F6A;
+}
+.today-product-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #7D5874;
+}
+
+/* Сетка статистики (4 карточки) */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.stat-card {
+    background: #FFFDFC;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid #EDE5DE;
+    box-shadow: 0 2px 8px rgba(64, 59, 57, 0.04);
+}
+.stat-icon {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 4px;
+}
+.stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #403B39;
+    display: block;
+}
+.stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #B5A8A2;
+    display: block;
+    margin-top: 2px;
+}
+
+/* Последний приём пищи */
+.last-meal {
+    background: #FFFDFC;
+    border-radius: 20px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border: 1px solid #EDE5DE;
+    box-shadow: 0 2px 8px rgba(64, 59, 57, 0.04);
+}
+.last-meal-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #7A6F6A;
+}
+.last-meal-time {
+    color: #B5A8A2;
+}
+.last-meal-content {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.last-meal-food {
+    font-size: 16px;
+    font-weight: 600;
+    color: #403B39;
+}
+.last-meal-amount {
+    font-size: 14px;
+    color: #7A6F6A;
+}
+.last-meal-status {
+    font-size: 13px;
+    font-weight: 500;
+    color: #AFC0B0;
+    margin-left: auto;
+}
+
+/* Кнопка "Начать" */
+.start-btn {
+    background: #C982A4;
+    border: none;
+    border-radius: 30px;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFFDFC;
+    width: 100%;
+    max-width: 200px;
+    display: block;
+    margin: 16px auto 0;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 16px rgba(201, 130, 164, 0.15);
+}
+.start-btn:hover {
+    background: #B87896;
+    box-shadow: 0 6px 20px rgba(201, 130, 164, 0.2);
+}
+.start-btn:active {
+    transform: scale(0.97);
+}
