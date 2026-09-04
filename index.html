@@ -15,21 +15,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- ===== CSS ===== -->
-    <link rel="stylesheet" href="styles/main.css?v=2.1.24">
+    <link rel="stylesheet" href="styles/main.css?v=2.1.25">
+    <link rel="stylesheet" href="styles/welcome.css?v=2.1.25"> <!-- НОВЫЙ CSS ДЛЯ SPLASH -->
 </head>
 <body>
+    <!-- ===== ЗАГРУЗОЧНЫЙ ЭКРАН (пока загружаются скрипты) ===== -->
     <div id="loading-screen">
-        <div class="spinner"></div>
-        <div class="loading-text">🌸 Загрузка приложения...</div>
-        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-        <div class="progress-text" id="progress-text">0%</div>
-        <div class="progress-file" id="progress-file">Загрузка файлов...</div>
-        <div class="loading-version">v2.1.0</div>
+        <div class="splash-content">
+            <div class="splash-emoji">🌸</div>
+            <h1 class="splash-title">Прикорм</h1>
+            <div class="splash-subtitle">С заботой о малыше</div>
+            <div class="splash-loader"></div>
+            <div class="splash-text">Загрузка...</div>
+        </div>
     </div>
 
-    <div id="app"></div>
+    <!-- ===== СТАРТОВЫЙ ЭКРАН (SPLASH) – показывается после загрузки приложения ===== -->
+    <div id="splash-screen" style="display:none;">
+        <div class="welcome-content">
+            <div class="welcome-icon">🥄</div>
+            <div class="welcome-title">PRIKORM.BOT</div>
+            <div class="welcome-subtitle">Прикорм без паники</div>
+            <div class="welcome-desc">Понятно. По возрасту. С заботой о малыше.</div>
+            <button class="welcome-btn" id="start-app-btn">Начать</button>
+        </div>
+    </div>
 
-    <!-- ===== ПРИВЕТСТВЕННЫЙ ЭКРАН (для первого запуска) ===== -->
+    <!-- ===== ОСНОВНОЕ ПРИЛОЖЕНИЕ ===== -->
+    <div id="app" style="display:none;"></div>
+
+    <!-- ===== ПРИВЕТСТВЕННЫЙ ЭКРАН ДЛЯ ПЕРВОГО ЗАПУСКА (не путать со стартовым) ===== -->
     <div id="welcome-screen" style="display:none;">
         <div class="welcome-content">
             <div class="welcome-emoji">🌸</div>
@@ -41,93 +56,141 @@
     </div>
 
     <!-- ============================================================
-         ПОДКЛЮЧЕНИЕ СКРИПТОВ С ВЕРСИЕЙ 2.1.24
+         ПОДКЛЮЧЕНИЕ СКРИПТОВ С ВЕРСИЕЙ 2.1.25
          ============================================================ -->
     <!-- Корневые файлы -->
-    <script src="config.js?v=2.1.24"></script>
-    <script src="utils.js?v=2.1.24"></script>
+    <script src="config.js?v=2.1.25"></script>
+    <script src="utils.js?v=2.1.25"></script>
 
     <!-- СЕРВИСЫ -->
-    <script src="services/storage-service.js?v=2.1.24"></script>
-    <script src="services/child-service.js?v=2.1.24"></script>
-    <script src="services/feeding-readiness-service.js?v=2.1.24"></script>
+    <script src="services/storage-service.js?v=2.1.25"></script>
+    <script src="services/child-service.js?v=2.1.25"></script>
+    <script src="services/feeding-readiness-service.js?v=2.1.25"></script>
 
-    <script src="state.js?v=2.1.24"></script>
-    <script src="ui.js?v=2.1.24"></script>
-    <script src="updater.js?v=2.1.24"></script>
-    <script src="theme.js?v=2.1.24"></script>
-    <script src="handlers.js?v=2.1.24"></script>
+    <script src="state.js?v=2.1.25"></script>
+    <script src="ui.js?v=2.1.25"></script>
+    <script src="updater.js?v=2.1.25"></script>
+    <script src="theme.js?v=2.1.25"></script>
+    <script src="handlers.js?v=2.1.25"></script>
 
-    <script src="data/products.js?v=2.1.24"></script>
-    <script src="data/recipes.js?v=2.1.24"></script>
-    <script src="data/safety.js?v=2.1.24"></script>
-    <script src="data/recommendations.js?v=2.1.24"></script>
+    <script src="data/products.js?v=2.1.25"></script>
+    <script src="data/recipes.js?v=2.1.25"></script>
+    <script src="data/safety.js?v=2.1.25"></script>
+    <script src="data/recommendations.js?v=2.1.25"></script>
 
-    <script src="components/header.js?v=2.1.24"></script>
-    <script src="components/bottom-nav.js?v=2.1.24"></script>
-    <script src="components/product-card.js?v=2.1.24"></script>
-    <script src="components/recipe-card.js?v=2.1.24"></script>
-    <script src="components/modal.js?v=2.1.24"></script>
-    <script src="components/toast.js?v=2.1.24"></script>
+    <script src="components/header.js?v=2.1.25"></script>
+    <script src="components/bottom-nav.js?v=2.1.25"></script>
+    <script src="components/product-card.js?v=2.1.25"></script>
+    <script src="components/recipe-card.js?v=2.1.25"></script>
+    <script src="components/modal.js?v=2.1.25"></script>
+    <script src="components/toast.js?v=2.1.25"></script>
 
-    <script src="screens/rendering.js?v=2.1.24"></script>
-    <script src="screens/home.js?v=2.1.24"></script>
-    <script src="screens/products.js?v=2.1.24"></script>
-    <script src="screens/today.js?v=2.1.24"></script>
-    <script src="screens/diary.js?v=2.1.24"></script>
-    <script src="screens/recipes.js?v=2.1.24"></script>
-    <script src="screens/baby.js?v=2.1.24"></script>
-    <script src="screens/settings.js?v=2.1.24"></script>
-    <script src="screens/onboarding.js?v=2.1.24"></script>
+    <script src="screens/rendering.js?v=2.1.25"></script>
+    <script src="screens/home.js?v=2.1.25"></script>
+    <script src="screens/products.js?v=2.1.25"></script>
+    <script src="screens/today.js?v=2.1.25"></script>
+    <script src="screens/diary.js?v=2.1.25"></script>
+    <script src="screens/recipes.js?v=2.1.25"></script>
+    <script src="screens/baby.js?v=2.1.25"></script>
+    <script src="screens/settings.js?v=2.1.25"></script>
+    <script src="screens/onboarding.js?v=2.1.25"></script>
 
-    <script src="app.js?v=2.1.24"></script>
+    <script src="app.js?v=2.1.25"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 
     <!-- ============================================================
-         ЗАПУСК ПРИЛОЖЕНИЯ
+         ЗАПУСК ПРИЛОЖЕНИЯ (с управлением splash-экраном)
          ============================================================ -->
     <script>
         (function() {
+            // Функция скрытия загрузочного экрана
             function hideLoading() {
                 var ls = document.getElementById('loading-screen');
                 if (ls) {
                     ls.classList.add('hidden');
-                    setTimeout(function() { ls.style.display = 'none'; }, 600);
+                    setTimeout(function() {
+                        ls.style.display = 'none';
+                    }, 600);
                 }
             }
 
+            // Функция показа стартового экрана (splash)
+            function showSplash() {
+                var splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.display = 'flex';
+                    // Плавное появление
+                    setTimeout(function() {
+                        splash.classList.add('visible');
+                    }, 50);
+                }
+            }
+
+            // Функция скрытия стартового экрана и показа приложения
+            function hideSplashAndShowApp() {
+                var splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.remove('visible');
+                    splash.classList.add('hiding');
+                    setTimeout(function() {
+                        splash.style.display = 'none';
+                        // Показываем приложение
+                        var app = document.getElementById('app');
+                        if (app) {
+                            app.style.display = 'block';
+                            // Если приложение уже отрендерилось, скрывать не нужно
+                        }
+                        // Удаляем класс hiding для возможности повторного показа
+                        splash.classList.remove('hiding');
+                    }, 400);
+                } else {
+                    // Если splash нет, сразу показываем app
+                    var app = document.getElementById('app');
+                    if (app) app.style.display = 'block';
+                }
+            }
+
+            // Основная функция запуска
             function startApp() {
                 console.log('🚀 Запуск приложения...');
+                // Запускаем существующее приложение (рендеринг)
                 if (typeof startApplication === 'function') {
                     startApplication();
-                    hideLoading();
-                    return;
-                }
-                if (typeof initApp === 'function') {
+                } else if (typeof initApp === 'function') {
                     initApp();
-                    hideLoading();
-                    return;
-                }
-                if (typeof render === 'function') {
+                } else if (typeof render === 'function') {
                     render();
-                    hideLoading();
-                    return;
+                } else {
+                    console.warn('⚠️ Не найдена функция запуска приложения!');
                 }
-                console.warn('⚠️ render() не найдена, создана заглушка.');
-                window.render = function() {
-                    document.getElementById('app').innerHTML = 
-                        '<div style="padding:40px;text-align:center;">' +
-                        '<div style="font-size:48px;">🌸</div>' +
-                        '<h2 style="margin:20px 0 10px;">Прикорм</h2>' +
-                        '<p style="color:var(--text-muted);">Заглушка render() – проверьте rendering.js</p>' +
-                        '</div>';
-                };
-                render();
+
+                // Скрываем загрузочный экран (спиннер)
                 hideLoading();
+
+                // Показываем стартовый экран (splash)
+                showSplash();
+
+                // Приложение уже отрендерилось, но скрыто (display:none).
+                // После нажатия кнопки мы покажем его.
             }
 
+            // Обработчик кнопки «Начать»
+            document.addEventListener('DOMContentLoaded', function() {
+                var startBtn = document.getElementById('start-app-btn');
+                if (startBtn) {
+                    startBtn.addEventListener('click', function() {
+                        hideSplashAndShowApp();
+                    });
+                } else {
+                    // Если кнопки нет, возможно, splash не нужен — показываем приложение сразу
+                    var app = document.getElementById('app');
+                    if (app) app.style.display = 'block';
+                }
+            });
+
+            // Запускаем приложение, когда DOM готов
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', startApp);
             } else {
