@@ -1,4 +1,4 @@
-// screens/onboarding.js – финальная версия с исправлениями выбора, fallback для ребёнка, компактным результатом
+// screens/onboarding.js – финальная версия (исправлен показ проблем)
 (function () {
     'use strict';
 
@@ -230,14 +230,7 @@
     function getTargetChild() {
         const state = getState();
         const id = targetChildId || state._onboardingChildId || state.currentChildId;
-        if (!id) {
-            console.warn('⚠️ targetChildId не найден, попытка найти первого ребёнка');
-            const children = Array.isArray(state.children) ? state.children : [];
-            if (children.length > 0) {
-                return children[0];
-            }
-            return null;
-        }
+        if (!id) return null;
         const children = Array.isArray(state.children) ? state.children : [];
         return children.find(child => child.id === id) || null;
     }
@@ -445,7 +438,7 @@
     }
 
     // ============================================================
-    // 6. СОХРАНЕНИЕ ТЕКУЩЕГО ШАГА
+    // 6. ОСТАЛЬНЫЕ ФУНКЦИИ
     // ============================================================
 
     function saveCurrentStep() {
@@ -498,10 +491,6 @@
         }
     }
 
-    // ============================================================
-    // 7. РЕНДЕР
-    // ============================================================
-
     function renderStep() {
         const step = STEPS[currentStep];
         if (!step) return '';
@@ -551,7 +540,7 @@
             `;
         }
 
-        // --- CHOICE (ИСПРАВЛЕНАЯ ЛОГИКА) ---
+        // --- CHOICE ---
         if (step.type === 'choice') {
             html += `<div class="question-card"><div class="btn-group">`;
             step.options.forEach((option, index) => {
@@ -702,7 +691,7 @@
     }
 
     // ============================================================
-    // 8. PUBLIC RENDER (с fallback для ребёнка)
+    // 7. PUBLIC RENDER (с fallback для ребёнка)
     // ============================================================
 
     window.renderOnboarding = function() {
@@ -711,7 +700,6 @@
             targetChildId = state._onboardingChildId || state.currentChildId || null;
             if (!targetChildId && Array.isArray(state.children) && state.children.length > 0) {
                 targetChildId = state.children[0].id;
-                console.log('🔄 Онбординг: используем первого ребёнка как fallback');
             }
         }
         return renderStep();
@@ -722,7 +710,7 @@
     }
 
     // ============================================================
-    // 9. ОБРАБОТЧИКИ СОБЫТИЙ
+    // 8. ОБРАБОТЧИКИ СОБЫТИЙ
     // ============================================================
 
     document.addEventListener('click', function(event) {
@@ -811,7 +799,7 @@
     });
 
     // ============================================================
-    // 10. ЗАВЕРШЕНИЕ И ПОКАЗ РЕЗУЛЬТАТА
+    // 9. ЗАВЕРШЕНИЕ И ПОКАЗ РЕЗУЛЬТАТА
     // ============================================================
 
     function finishOnboardingAndShowResult() {
@@ -820,7 +808,6 @@
             targetChildId = state._onboardingChildId || state.currentChildId || null;
             if (!targetChildId && Array.isArray(state.children) && state.children.length > 0) {
                 targetChildId = state.children[0].id;
-                console.log('🔄 Завершение: используем первого ребёнка как fallback');
             }
         }
         const child = getTargetChild();
@@ -900,7 +887,7 @@
     }
 
     // ============================================================
-    // 11. ЭКРАН РЕЗУЛЬТАТА (компактный)
+    // 10. ЭКРАН РЕЗУЛЬТАТА (исправлен показ проблем)
     // ============================================================
 
     function showResultScreen(child, assessment) {
@@ -1011,7 +998,7 @@
                             </ul>
                         </div>
                     </div>
-                    ${safetyBlock.hasFeedingProblems ? `
+                    ${safetyBlock.problemsList.length > 0 ? `
                     <div class="result-section">
                         <div class="section-icon">🩺</div>
                         <div class="section-content">
@@ -1092,5 +1079,5 @@
         if (target) completeOnboarding();
     });
 
-    console.log('✅ onboarding.js загружен – финальная версия с исправлениями');
+    console.log('✅ onboarding.js загружен – финальная версия');
 })();
