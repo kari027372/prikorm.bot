@@ -1,4 +1,4 @@
-// screens/onboarding.js – ФИНАЛЬНАЯ ВЕРСИЯ С УЛУЧШЕННЫМ ИНТЕРФЕЙСОМ
+// screens/onboarding.js – финальная версия с исправлениями выбора, fallback для ребёнка, компактным результатом
 (function () {
     'use strict';
 
@@ -230,7 +230,14 @@
     function getTargetChild() {
         const state = getState();
         const id = targetChildId || state._onboardingChildId || state.currentChildId;
-        if (!id) return null;
+        if (!id) {
+            console.warn('⚠️ targetChildId не найден, попытка найти первого ребёнка');
+            const children = Array.isArray(state.children) ? state.children : [];
+            if (children.length > 0) {
+                return children[0];
+            }
+            return null;
+        }
         const children = Array.isArray(state.children) ? state.children : [];
         return children.find(child => child.id === id) || null;
     }
@@ -438,7 +445,7 @@
     }
 
     // ============================================================
-    // 6. ОСТАЛЬНЫЕ ФУНКЦИИ
+    // 6. СОХРАНЕНИЕ ТЕКУЩЕГО ШАГА
     // ============================================================
 
     function saveCurrentStep() {
@@ -491,6 +498,10 @@
         }
     }
 
+    // ============================================================
+    // 7. РЕНДЕР
+    // ============================================================
+
     function renderStep() {
         const step = STEPS[currentStep];
         if (!step) return '';
@@ -540,7 +551,7 @@
             `;
         }
 
-        // --- CHOICE ---
+        // --- CHOICE (ИСПРАВЛЕНАЯ ЛОГИКА) ---
         if (step.type === 'choice') {
             html += `<div class="question-card"><div class="btn-group">`;
             step.options.forEach((option, index) => {
@@ -553,7 +564,7 @@
                 if (!currentValue && step.key === 'feedingStarted') {
                     currentValue = child.feedingStarted ? 'Да' : '';
                 }
-                if (!currentValue && child[step.key]) {
+                if (!currentValue && child[step.key] && typeof child[step.key] === 'string') {
                     currentValue = child[step.key];
                 }
                 const value = step.values ? step.values[index] : option;
@@ -691,7 +702,7 @@
     }
 
     // ============================================================
-    // 7. PUBLIC RENDER (с fallback)
+    // 8. PUBLIC RENDER (с fallback для ребёнка)
     // ============================================================
 
     window.renderOnboarding = function() {
@@ -700,6 +711,7 @@
             targetChildId = state._onboardingChildId || state.currentChildId || null;
             if (!targetChildId && Array.isArray(state.children) && state.children.length > 0) {
                 targetChildId = state.children[0].id;
+                console.log('🔄 Онбординг: используем первого ребёнка как fallback');
             }
         }
         return renderStep();
@@ -710,7 +722,7 @@
     }
 
     // ============================================================
-    // 8. ОБРАБОТЧИКИ СОБЫТИЙ
+    // 9. ОБРАБОТЧИКИ СОБЫТИЙ
     // ============================================================
 
     document.addEventListener('click', function(event) {
@@ -799,7 +811,7 @@
     });
 
     // ============================================================
-    // 9. ЗАВЕРШЕНИЕ И ПОКАЗ РЕЗУЛЬТАТА
+    // 10. ЗАВЕРШЕНИЕ И ПОКАЗ РЕЗУЛЬТАТА
     // ============================================================
 
     function finishOnboardingAndShowResult() {
@@ -808,6 +820,7 @@
             targetChildId = state._onboardingChildId || state.currentChildId || null;
             if (!targetChildId && Array.isArray(state.children) && state.children.length > 0) {
                 targetChildId = state.children[0].id;
+                console.log('🔄 Завершение: используем первого ребёнка как fallback');
             }
         }
         const child = getTargetChild();
@@ -875,7 +888,6 @@
         const correctedAge = calculateCorrectedAge(age.months, child.gestationalAgeWeeks || 40);
         child.correctedAgeMonths = Math.round(correctedAge * 10) / 10;
 
-        // Вызываем встроенную оценку
         const assessment = evaluateReadiness(child);
         child.readinessAssessment = assessment;
 
@@ -888,7 +900,7 @@
     }
 
     // ============================================================
-    // 10. ЭКРАН РЕЗУЛЬТАТА
+    // 11. ЭКРАН РЕЗУЛЬТАТА (компактный)
     // ============================================================
 
     function showResultScreen(child, assessment) {
@@ -963,7 +975,7 @@
             <div class="onboarding result-screen">
                 <div class="result-header">
                     <div class="result-emoji">🍼</div>
-                    <h1 class="result-title">Оценка готовности к прикорму</h1>
+                    <h1 class="result-title">Оценка готовности</h1>
                 </div>
                 <div class="result-card">
                     <div class="result-section">
@@ -972,7 +984,7 @@
                             <div class="section-label">Возраст</div>
                             <div class="section-value">${ageText}</div>
                             <div class="section-status ${isPreterm ? 'status-warning' : 'status-ok'}">
-                                ${isPreterm ? '🟡 Скорректированный возраст учтён' : '🟢 Календарный возраст'}
+                                ${isPreterm ? '🟡 Скорректированный учтён' : '🟢 Календарный'}
                             </div>
                         </div>
                     </div>
@@ -1003,7 +1015,7 @@
                     <div class="result-section">
                         <div class="section-icon">🩺</div>
                         <div class="section-content">
-                            <div class="section-label">Проблемы с кормлением</div>
+                            <div class="section-label">Проблемы</div>
                             <div class="section-status status-warning">🟠 Отмечены особенности</div>
                             <ul class="skill-list">
                                 ${safetyBlock.problemsList.map(p => `<li>• ${escapeHtml(p)}</li>`).join('')}
@@ -1021,7 +1033,7 @@
                     </div>
                 </div>
                 <div class="nav-buttons">
-                    <button class="finish-btn" data-action="complete-onboarding" type="button">Перейти в приложение →</button>
+                    <button class="finish-btn" data-action="complete-onboarding" type="button">Перейти →</button>
                 </div>
             </div>
         `;
@@ -1080,5 +1092,5 @@
         if (target) completeOnboarding();
     });
 
-    console.log('✅ onboarding.js загружен – ФИНАЛЬНАЯ ВЕРСИЯ С ВСТРОЕННОЙ ЛОГИКОЙ И УЛУЧШЕННЫМ ИНТЕРФЕЙСОМ');
+    console.log('✅ onboarding.js загружен – финальная версия с исправлениями');
 })();
