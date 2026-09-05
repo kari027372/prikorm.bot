@@ -1,5 +1,5 @@
 /* ============================================================
-   SPLASH-ЭКРАН KENORA – ДЕТСКИЙ СТИЛЬ
+   SPLASH-ЭКРАН KENORA – с улыбающейся тарелкой
    ============================================================ */
 
 #splash-screen {
@@ -43,7 +43,7 @@
     gap: 6px;
 }
 
-/* ---------- ИЛЛЮСТРАЦИЯ: УЛЫБАЮЩАЯСЯ ТАРЕЛКА С ЕДОЙ ---------- */
+/* ---------- ИЛЛЮСТРАЦИЯ ---------- */
 .splash-illustration {
     width: 120px;
     height: 120px;
@@ -52,31 +52,28 @@
     transform: scale(0.9);
     animation: popIn 0.6s ease 0.2s forwards;
 }
-
 @keyframes popIn {
     to { opacity: 1; transform: scale(1); }
 }
 
-/* ---------- ЛОГОТИП (буквы с весёлым акцентом) ---------- */
+/* ---------- ЛОГОТИП ---------- */
 .splash-logo {
     display: flex;
     justify-content: center;
     gap: 4px;
     font-family: 'Nunito', sans-serif;
-    font-weight: 800;
+    font-weight: 900;
     font-size: 48px;
     letter-spacing: 2px;
     color: #F5A88C;
     text-shadow: 0 4px 12px rgba(245, 168, 140, 0.2);
     margin-top: 4px;
 }
-
 .splash-letter {
     opacity: 0;
     transform: translateY(12px);
     animation: letterBounce 0.5s ease forwards;
 }
-
 @keyframes letterBounce {
     0% { opacity: 0; transform: translateY(12px); }
     60% { opacity: 1; transform: translateY(-4px); }
@@ -86,16 +83,15 @@
 /* ---------- ПОДЗАГОЛОВОК ---------- */
 .splash-subtitle {
     font-family: 'Nunito', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 18px;
     letter-spacing: 1.5px;
-    color: #6D8F8A;
+    color: #8FBCB5;
     text-transform: lowercase;
     opacity: 0;
     transform: translateY(6px);
     animation: fadeUp 0.5s ease 1.2s forwards;
 }
-
 @keyframes fadeUp {
     to { opacity: 1; transform: translateY(0); }
 }
@@ -107,7 +103,7 @@
     border-radius: 50px;
     padding: 18px 48px;
     font-family: 'Nunito', sans-serif;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 20px;
     color: #FFFFFF;
     cursor: pointer;
@@ -122,34 +118,17 @@
     transform: translateY(8px);
     animation: fadeUp 0.5s ease 1.8s forwards;
 }
-
-.splash-btn:hover {
-    background: #E8977A;
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(245, 168, 140, 0.4);
-}
-
-.splash-btn:active {
-    transform: scale(0.96);
-}
+.splash-btn:hover { background: #E8977A; transform: translateY(-2px); box-shadow: 0 12px 28px rgba(245, 168, 140, 0.4); }
+.splash-btn:active { transform: scale(0.96); }
 
 /* ===== ТЁМНАЯ ТЕМА ===== */
 body.theme-dark #splash-screen {
     background: linear-gradient(160deg, #2A2A2A, #1E1E1E);
 }
-body.theme-dark .splash-logo {
-    color: #E8B0A0;
-}
-body.theme-dark .splash-subtitle {
-    color: #8AA8A2;
-}
-body.theme-dark .splash-btn {
-    background: #C28A7A;
-    box-shadow: 0 8px 24px rgba(194, 138, 122, 0.3);
-}
-body.theme-dark .splash-btn:hover {
-    background: #B07A6A;
-}
+body.theme-dark .splash-logo { color: #E8B0A0; }
+body.theme-dark .splash-subtitle { color: #8AA8A2; }
+body.theme-dark .splash-btn { background: #C28A7A; box-shadow: 0 8px 24px rgba(194, 138, 122, 0.3); }
+body.theme-dark .splash-btn:hover { background: #B07A6A; }
 
 /* ===== БЕЗОПАСНЫЕ ЗОНЫ ДЛЯ IPHONE ===== */
 @supports (padding: max(0px)) {
@@ -163,10 +142,7 @@ body.theme-dark .splash-btn:hover {
 
 /* ===== ОТКЛЮЧЕНИЕ АНИМАЦИИ ===== */
 @media (prefers-reduced-motion: reduce) {
-    .splash-illustration,
-    .splash-letter,
-    .splash-subtitle,
-    .splash-btn {
+    .splash-illustration, .splash-letter, .splash-subtitle, .splash-btn {
         animation: none;
         opacity: 1;
         transform: none;
