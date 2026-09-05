@@ -1,4 +1,4 @@
-// screens/products.js
+// screens/products.js (исправленная версия)
 (function() {
     'use strict';
 
@@ -56,7 +56,7 @@
         html += '    <span class="product-count">' + filtered.length + ' из ' + PRODUCTS.length + '</span>';
         html += '  </div>';
 
-        // === ИЗМЕНЕНИЕ 1: ПОЛЕ ПОИСКА с id="product-search" ===
+        // === ИЗМЕНЕНИЕ 1: id="product-search" (было productSearch) ===
         html += '  <div class="products-search">';
         html += '    <input type="text" id="product-search" placeholder="🔍 Поиск продуктов..." value="' + escapeHtml(searchQuery) + '">';
         html += '  </div>';
@@ -104,7 +104,7 @@
                     highlights = firstTwo.map(function(h) { return '<span class="highlight">' + h + '</span>'; }).join(' ');
                 }
 
-                // === ИЗМЕНЕНИЕ 2: ДОБАВЛЕН data-action="open-product" ===
+                // === ИЗМЕНЕНИЕ 2: добавлен data-action="open-product" ===
                 html += '    <div class="product-card" data-action="open-product" data-product-id="' + product.id + '" data-status="' + product.status + '">';
                 html += '      <div class="product-emoji">' + product.emoji + '</div>';
                 html += '      <div class="product-info">';
