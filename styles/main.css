@@ -1,5 +1,5 @@
 /* ============================================================
-   KENORA – ДЕТСКИЙ СТИЛЬ ДЛЯ ПРИКОРМА
+   KENORA – ЕДИНЫЙ ДЕТСКИЙ СТИЛЬ
    ============================================================ */
 
 :root {
@@ -19,7 +19,6 @@
     --kenora-radius-sm: 16px;
     --kenora-radius-lg: 32px;
     --font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-family-heading: 'Nunito', sans-serif;
 }
 
 /* ===== ОБЩИЕ СТИЛИ ===== */
@@ -43,8 +42,8 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-family-heading);
-    font-weight: 700;
+    font-family: var(--font-family);
+    font-weight: 800;
     line-height: 1.2;
     color: var(--kenora-text);
 }
@@ -72,10 +71,7 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 9999;
     transition: opacity 0.6s;
 }
-#loading-screen.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
+#loading-screen.hidden { opacity: 0; pointer-events: none; }
 .spinner {
     width: 48px;
     height: 48px;
@@ -85,7 +81,7 @@ h1, h2, h3, h4, h5, h6 {
     animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { margin-top: 20px; font-size: 18px; color: var(--kenora-text-muted); }
+.loading-text { margin-top: 20px; font-size: 18px; font-weight: 700; color: var(--kenora-text-muted); }
 .loading-version { margin-top: 8px; font-size: 14px; color: var(--kenora-text-muted); }
 .progress-track { width: 80%; max-width: 300px; margin-top: 16px; background: var(--kenora-border); border-radius: 16px; overflow: hidden; height: 8px; }
 .progress-fill { width: 0%; height: 100%; background: var(--kenora-primary); transition: width 0.3s; }
@@ -134,7 +130,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ===== ГЛАВНАЯ СТАТИСТИКА ===== */
 .today-product {
-    background: var(--kenora-card);
+    background: linear-gradient(135deg, #FFF7F1, #FFF0E6);
     border: 2px solid var(--kenora-border);
     border-radius: var(--kenora-radius);
     padding: 16px 20px;
@@ -142,9 +138,8 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, #FFF7F1, #FFF0E6);
 }
-.today-product-label { font-size: 15px; font-weight: 600; color: var(--kenora-text-secondary); }
+.today-product-label { font-size: 15px; font-weight: 700; color: var(--kenora-text-secondary); }
 .today-product-name { font-size: 18px; font-weight: 800; color: var(--kenora-primary); }
 
 .stats-grid {
@@ -160,12 +155,11 @@ h1, h2, h3, h4, h5, h6 {
     padding: 16px;
     text-align: center;
     box-shadow: var(--kenora-shadow);
-    transition: all 0.2s;
 }
 .stat-card:active { transform: scale(0.96); }
 .stat-icon { font-size: 32px; display: block; margin-bottom: 4px; }
 .stat-value { font-size: 26px; font-weight: 800; color: var(--kenora-text); display: block; }
-.stat-label { font-size: 13px; font-weight: 600; color: var(--kenora-text-muted); display: block; margin-top: 2px; }
+.stat-label { font-size: 13px; font-weight: 700; color: var(--kenora-text-muted); display: block; margin-top: 2px; }
 
 .last-meal {
     background: var(--kenora-card);
@@ -179,7 +173,7 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: space-between;
     margin-bottom: 8px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--kenora-text-secondary);
 }
 .last-meal-time { color: var(--kenora-text-muted); }
@@ -188,25 +182,24 @@ h1, h2, h3, h4, h5, h6 {
     gap: 14px;
     align-items: center;
 }
-.last-meal-food { font-size: 18px; font-weight: 700; color: var(--kenora-text); }
+.last-meal-food { font-size: 18px; font-weight: 800; color: var(--kenora-text); }
 .last-meal-amount { font-size: 15px; color: var(--kenora-text-secondary); }
 .last-meal-status {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--kenora-secondary);
     margin-left: auto;
     background: rgba(143, 188, 181, 0.15);
-    padding: 4px 12px;
+    padding: 4px 14px;
     border-radius: 20px;
 }
-
 .start-btn {
     background: var(--kenora-primary);
     border: none;
     border-radius: 50px;
     padding: 18px;
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--kenora-white);
     width: 100%;
     max-width: 220px;
@@ -239,7 +232,7 @@ h1, h2, h3, h4, h5, h6 {
     background: none;
     border: none;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--kenora-text-muted);
     cursor: pointer;
     display: flex;
@@ -254,7 +247,10 @@ h1, h2, h3, h4, h5, h6 {
 .bottom-navigation .nav-item.active { color: var(--kenora-primary); }
 .bottom-navigation .nav-item:active { transform: scale(0.95); }
 
-/* ===== ONBOARDING ===== */
+/* ============================================================
+   ONBOARDING – ИСПРАВЛЕННЫЙ
+   ============================================================ */
+
 .onboarding {
     padding: 20px 8px 30px;
     max-width: 100%;
@@ -271,17 +267,18 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 28px;
 }
 .progress-bar { height: 100%; background: var(--kenora-primary); border-radius: 20px; transition: width 0.5s; }
-.progress-label { font-size: 13px; color: var(--kenora-text-muted); text-align: right; margin-top: 6px; font-weight: 600; }
+.progress-label { font-size: 13px; font-weight: 700; color: var(--kenora-text-muted); text-align: right; margin-top: 6px; }
 .step-emoji { font-size: 56px; text-align: center; margin-bottom: 4px; }
 .step-title {
-    font-size: 26px;
-    font-weight: 800;
+    font-size: 28px;
+    font-weight: 900;
     text-align: center;
     color: var(--kenora-text);
-    font-family: var(--font-family-heading);
+    font-family: var(--font-family);
 }
-.step-desc { font-size: 16px; text-align: center; color: var(--kenora-text-muted); margin-bottom: 28px; }
+.step-desc { font-size: 17px; text-align: center; color: var(--kenora-text-muted); margin-bottom: 28px; font-weight: 600; }
 .question-card { padding: 18px; margin-bottom: 16px; }
+
 .radio-option, .checkbox-option {
     display: flex;
     align-items: center;
@@ -292,14 +289,15 @@ h1, h2, h3, h4, h5, h6 {
     border: 2px solid var(--kenora-border);
     transition: all 0.25s ease;
     cursor: pointer;
+    font-weight: 600;
 }
 .radio-option:hover, .checkbox-option:hover { border-color: var(--kenora-primary); background: #FFF7F1; }
 .radio-option input[type="radio"],
 .checkbox-option input[type="checkbox"] {
     appearance: none;
-    width: 22px;
-    height: 22px;
-    border: 2px solid var(--kenora-text-muted);
+    width: 24px;
+    height: 24px;
+    border: 2.5px solid var(--kenora-text-muted);
     background: var(--kenora-white);
     flex-shrink: 0;
     position: relative;
@@ -336,12 +334,12 @@ h1, h2, h3, h4, h5, h6 {
     left: 50%;
     transform: translate(-50%, -50%);
     color: var(--kenora-white);
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 900;
 }
 .radio-option label, .checkbox-option label {
     font-size: 17px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--kenora-text);
     cursor: pointer;
     flex: 1;
@@ -351,11 +349,11 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
     padding: 18px 20px;
     font-size: 18px;
+    font-weight: 600;
     border: 2px solid var(--kenora-border);
     border-radius: var(--kenora-radius-sm);
     background: var(--kenora-white);
     color: var(--kenora-text);
-    font-weight: 500;
 }
 .onboarding-input:focus {
     border-color: var(--kenora-primary);
@@ -364,11 +362,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 .gestational-group { padding: 20px; }
 .gestational-row { display: flex; gap: 16px; }
-.gestational-row label { flex: 1; font-size: 15px; font-weight: 600; color: var(--kenora-text-secondary); }
+.gestational-row label { flex: 1; font-size: 15px; font-weight: 700; color: var(--kenora-text-secondary); }
 .gestational-row input {
     width: 100%;
     padding: 16px;
     font-size: 18px;
+    font-weight: 600;
     border: 2px solid var(--kenora-border);
     border-radius: var(--kenora-radius-sm);
     background: var(--kenora-white);
@@ -387,7 +386,7 @@ h1, h2, h3, h4, h5, h6 {
     flex: 1;
     padding: 18px;
     font-size: 17px;
-    font-weight: 700;
+    font-weight: 800;
     background: transparent;
     color: var(--kenora-text-secondary);
     border: 2px solid var(--kenora-border);
@@ -401,7 +400,7 @@ h1, h2, h3, h4, h5, h6 {
     flex: 2;
     padding: 18px;
     font-size: 17px;
-    font-weight: 700;
+    font-weight: 800;
     border: none;
     border-radius: var(--kenora-radius-sm);
     cursor: pointer;
@@ -422,7 +421,7 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: var(--kenora-radius-sm);
     padding: 16px 20px;
     font-size: 17px;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
     width: 100%;
     box-shadow: 0 4px 16px rgba(245, 168, 140, 0.2);
@@ -436,7 +435,7 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: var(--kenora-radius-sm);
     padding: 16px 20px;
     font-size: 17px;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
     width: 100%;
     box-shadow: 0 4px 16px rgba(143, 188, 181, 0.2);
@@ -449,7 +448,7 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: 16px;
     border-left: 6px solid;
     background: var(--kenora-card);
-    font-weight: 500;
+    font-weight: 600;
 }
 .info-box { border-color: var(--kenora-secondary); }
 .warning-box { border-color: var(--kenora-primary); }
@@ -485,7 +484,7 @@ h1, h2, h3, h4, h5, h6 {
     padding: 14px 20px;
     border-radius: var(--kenora-radius-sm);
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     text-align: center;
     opacity: 0;
     transform: translateY(-20px);
@@ -493,3 +492,12 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--kenora-shadow-strong);
 }
 .toast.visible { opacity: 1; transform: translateY(0); }
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 400px) {
+    .step-title { font-size: 24px; }
+    .radio-option, .checkbox-option { padding: 14px; }
+    .radio-option label, .checkbox-option label { font-size: 16px; }
+    .prev-btn, .next-btn, .finish-btn { font-size: 16px; padding: 16px; }
+    .onboarding-input { font-size: 16px; padding: 16px; }
+}
