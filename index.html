@@ -14,9 +14,11 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
 
-    <!-- ШРИФТЫ -->
+    <!-- ШРИФТЫ (Nunito – основной для детского стиля) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Дополнительные шрифты на случай, если нужны -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- CSS -->
@@ -35,13 +37,26 @@
         </div>
     </div>
 
-    <!-- ===== СТАРТОВЫЙ ЭКРАН (SPLASH) – с минималистичной ложкой ===== -->
+    <!-- ===== СТАРТОВЫЙ ЭКРАН (SPLASH) – УЛЫБАЮЩАЯСЯ ТАРЕЛКА ===== -->
     <div id="splash-screen" style="display:none;">
         <div class="splash-container">
-            <!-- Минималистичная ложка -->
-            <svg class="splash-icon" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M30 14 L30 32" stroke="#C4A88C" stroke-width="2" stroke-linecap="round" opacity="0" />
-                <ellipse cx="30" cy="12" rx="8" ry="4" stroke="#C4A88C" stroke-width="2" fill="none" opacity="0" />
+            <!-- Улыбающаяся тарелка с едой -->
+            <svg class="splash-illustration" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Тарелка -->
+                <circle cx="60" cy="72" r="32" stroke="#F5A88C" stroke-width="3" fill="#FFF0E6"/>
+                <circle cx="60" cy="70" r="26" stroke="#F5A88C" stroke-width="2" fill="#FFE4D6"/>
+                <!-- Еда (брокколи) -->
+                <path d="M50 52 C50 44 56 38 60 38 C64 38 70 44 70 52" stroke="#8FBCB5" stroke-width="2.5" fill="#C4E0D8"/>
+                <circle cx="55" cy="48" r="4" fill="#8FBCB5"/>
+                <circle cx="65" cy="48" r="4" fill="#8FBCB5"/>
+                <!-- Глазки -->
+                <circle cx="54" cy="56" r="3" fill="#4A3A30"/>
+                <circle cx="66" cy="56" r="3" fill="#4A3A30"/>
+                <!-- Улыбка -->
+                <path d="M54 62 Q60 68 66 62" stroke="#4A3A30" stroke-width="2" stroke-linecap="round"/>
+                <!-- Щёчки -->
+                <ellipse cx="50" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
+                <ellipse cx="70" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
             </svg>
 
             <div class="splash-logo">
