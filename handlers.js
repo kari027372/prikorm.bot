@@ -2197,3 +2197,46 @@ window.changeDay =
 
 window.openDatePicker =
     openDatePicker;
+    // handlers.js – добавить в конец файла или в функцию initHandlers
+
+import { renderProducts, setProductsFilter, setProductsSearch } from '../screens/products.js';
+import { showProductDetailModal } from '../components/modal.js';
+import { PRODUCTS } from '../data/products.js';
+import { renderCurrentScreen } from '../screens/rendering.js'; // предполагаем, что есть
+
+// Обработчик клика по карточке продукта – открытие модалки
+document.addEventListener('click', (e) => {
+  const card = e.target.closest('.product-card');
+  if (!card) return;
+  const productId = card.dataset.productId;
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (product) {
+    showProductDetailModal(product);
+  }
+});
+
+// Обработчик фильтров
+document.addEventListener('click', (e) => {
+  const filterBtn = e.target.closest('.filter-btn');
+  if (!filterBtn) return;
+  const category = filterBtn.dataset.category;
+  if (category) {
+    setProductsFilter(category);
+    renderCurrentScreen(); // перерендерить текущий экран
+  }
+});
+
+// Обработчик поиска (с debounce для производительности)
+let searchTimeout;
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'productSearch') {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      setProductsSearch(e.target.value);
+      renderCurrentScreen();
+    }, 300);
+  }
+});
+
+// Также нужно обновить renderCurrentScreen, чтобы он использовал renderProducts
+// В файле rendering.js уже должно быть что-то подобное. Если нет – добавить.
