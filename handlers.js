@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js (без дублирующего блока .product-card)
+   handlers.js (исправленная модалка)
    ============================================================ */
 
 function setupEventListeners() {
@@ -24,7 +24,7 @@ function setupEventListeners() {
 }
 
 // ============================================================
-// ДОБАВЛЕНА ФУНКЦИЯ escapeHTML (исправление №2)
+// ДОБАВЛЕНА ФУНКЦИЯ escapeHTML
 // ============================================================
 
 function escapeHTML(str) {
@@ -38,10 +38,9 @@ function escapeHTML(str) {
 }
 
 // ============================================================
-// ОСНОВНОЙ ОБРАБОТЧИК КЛИКОВ (без дублирующего блока)
+// ОСНОВНОЙ ОБРАБОТЧИК КЛИКОВ
 // ============================================================
 function handleDocumentClick(event) {
-    // --- Сначала обрабатываем элементы с data-action ---
     var target = event.target.closest("[data-action]");
     if (target) {
         var action = target.dataset.action;
@@ -214,13 +213,12 @@ function handleDocumentClick(event) {
                 }
                 break;
             default:
-                // ничего не делаем
                 break;
         }
-        return; // если было data-action, дальше не идём
+        return;
     }
 
-    // --- Обработка нижней навигации (если нет data-action) ---
+    // Нижняя навигация
     var navItem = event.target.closest('.nav-item');
     if (navItem) {
         var screen = navItem.dataset.screen;
@@ -231,7 +229,7 @@ function handleDocumentClick(event) {
         }
     }
 
-    // --- Обработка фильтров (если нет data-action) ---
+    // Фильтры
     var filterBtn = event.target.closest('.filter-btn');
     if (filterBtn) {
         var category = filterBtn.dataset.category;
@@ -243,7 +241,7 @@ function handleDocumentClick(event) {
         }
     }
 
-    // --- Закрытие модалки (если нет data-action) ---
+    // Закрытие модалки
     var closeBtn = event.target.closest('.btn-close-modal');
     if (closeBtn) {
         var modal = closeBtn.closest('.modal-overlay');
@@ -259,7 +257,7 @@ function handleDocumentClick(event) {
         return;
     }
 
-    // --- Кнопка "Назад" (если нет data-action) ---
+    // Назад
     var backBtn = event.target.closest('.btn-back');
     if (backBtn) {
         event.preventDefault();
@@ -268,7 +266,7 @@ function handleDocumentClick(event) {
         return;
     }
 
-    // --- Кнопка "Создать" (заглушка) ---
+    // Создать
     var createBtn = event.target.closest('.btn-create');
     if (createBtn) {
         event.preventDefault();
@@ -276,7 +274,7 @@ function handleDocumentClick(event) {
         return;
     }
 
-    // --- Переключение темы (если нет data-action) ---
+    // Тема
     var themeBtn = event.target.closest('.theme-toggle');
     if (themeBtn) {
         event.preventDefault();
@@ -315,7 +313,7 @@ function navigateHandler(screen) {
 }
 
 // ============================================================
-// ИСПРАВЛЕННЫЕ ФУНКЦИИ (теперь используют window.PRODUCTS)
+// РАБОТА С ПРОДУКТАМИ (исправлены getProductById и openProductDetails)
 // ============================================================
 
 function getProductById(id) {
@@ -341,42 +339,162 @@ function openProductFromCard(productId) {
     openProductDetails(product);
 }
 
+// ============================================================
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ (центрирование + правильные поля)
+// ============================================================
+
 function openProductDetails(product) {
-    var root = document.getElementById("modal-root");
-    if (!root) return;
-    var safety = typeof getSafetyWarning === "function" ? getSafetyWarning(product.name) : null;
-    var introduced = STATE.products.introduced.some(function(item) {
-        return ((typeof item === "object" ? item.id : item) === product.id);
+    if (!product) return;
+
+    // Удаляем старую модалку, если есть
+    var oldModal = document.querySelector('.modal-overlay');
+    if (oldModal) oldModal.remove();
+
+    // Определяем возраст
+    var ageText = '—';
+    if (product.introduction && product.introduction.fromMonths) {
+        ageText = 'с ' + product.introduction.fromMonths + ' мес.';
+    } else if (product.min_age_months) {
+        ageText = 'с ' + product.min_age_months + ' мес.';
+    } else if (product.min_age) {
+        ageText = 'с ' + product.min_age + ' мес.';
+    }
+
+    // Определяем категорию
+    var categoryText = product.category || product.cat || '—';
+
+    // Определяем, есть ли железо
+    var ironText = (product.iron || (product.nutrients && product.nutrients.includes('iron'))) ? '✓' : '—';
+
+    // Описание
+    var desc = product.desc || product.description || '';
+
+    // Польза (highlights)
+    var highlightsHtml = '';
+    if (product.highlights && product.highlights.length) {
+        highlightsHtml = '<ul>' + product.highlights.map(function(h) {
+            return '<li>' + escapeHTML(h) + '</li>';
+        }).join('') + '</ul>';
+    }
+
+    // Аллергены
+    var allergenHtml = '';
+    if (product.allergen && product.allergenType && product.allergenType.length) {
+        allergenHtml = '<div class="warning-block"><strong>⚠️ Аллерген</strong><p>Тип: ' + escapeHTML(product.allergenType.join(', ')) + '. Вводите с осторожностью.</p></div>';
+    }
+
+    // Безопасность (safety)
+    var safetyHtml = '';
+    if (typeof getSafetyWarning === 'function') {
+        var safety = getSafetyWarning(product.name);
+        if (safety) {
+            safetyHtml = '<div class="warning-block"><strong>⚠️ Безопасность</strong><p>' + escapeHTML(safety.warning || safety) + '</p></div>';
+        }
+    }
+
+    // Форма подачи (если есть)
+    var safeFormsHtml = '';
+    if (product.safeForms && product.safeForms.length) {
+        safeFormsHtml = '<div><strong>✅ Безопасные формы:</strong><ul>' + product.safeForms.map(function(f) {
+            return '<li>' + escapeHTML(f) + '</li>';
+        }).join('') + '</ul></div>';
+    }
+
+    // Риск удушья
+    var chokingHtml = '';
+    if (product.chokingRisk && product.chokingRisk !== 'none') {
+        var riskLabels = { low: 'низкий', medium: 'средний', high: 'высокий' };
+        chokingHtml = '<div><strong>🚨 Риск удушья:</strong> ' + (riskLabels[product.chokingRisk] || product.chokingRisk) + '</div>';
+    }
+
+    // Интересный факт
+    var factHtml = '';
+    if (product.interestingFact) {
+        factHtml = '<div class="fact-block"><strong>💡 Интересный факт:</strong><p>' + escapeHTML(product.interestingFact) + '</p></div>';
+    }
+
+    // Магазинные проверки
+    var labelChecksHtml = '';
+    if (product.commercialProduct && product.labelChecks && product.labelChecks.length) {
+        var labelMap = {
+            addedSugar: 'добавленный сахар',
+            addedSalt: 'добавленная соль',
+            honey: 'мёд',
+            sweeteners: 'подсластители',
+            unpasteurized: 'непастеризовано'
+        };
+        labelChecksHtml = '<div><strong>🛒 Проверьте состав:</strong><ul>' +
+            product.labelChecks.map(function(check) {
+                return '<li>⚠️ ' + escapeHTML(labelMap[check] || check) + '</li>';
+            }).join('') +
+            '</ul></div>';
+    }
+
+    // Строим содержимое модалки
+    var content = `
+        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:80%; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                <span style="font-size:48px;">${product.emoji || '🍽️'}</span>
+                <h2 style="margin:0; font-size:24px;">${escapeHTML(product.name)}</h2>
+                <button type="button" onclick="this.closest('.modal-overlay').remove()" style="margin-left:auto; background:none; border:none; font-size:24px; cursor:pointer;">×</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
+                <div><span style="color:#888;">Категория</span><br><strong>${escapeHTML(categoryText)}</strong></div>
+                <div><span style="color:#888;">Возраст</span><br><strong>${escapeHTML(ageText)}</strong></div>
+                <div><span style="color:#888;">Железо</span><br><strong>${ironText}</strong></div>
+            </div>
+
+            ${desc ? `<div style="margin-bottom:12px;"><strong>О продукте</strong><p>${escapeHTML(desc)}</p></div>` : ''}
+
+            ${highlightsHtml ? `<div style="margin-bottom:12px;"><strong>🧠 Польза</strong>${highlightsHtml}</div>` : ''}
+
+            ${allergenHtml}
+
+            ${safetyHtml}
+
+            ${safeFormsHtml ? `<div style="margin-bottom:12px;">${safeFormsHtml}</div>` : ''}
+
+            ${chokingHtml ? `<div style="margin-bottom:12px;">${chokingHtml}</div>` : ''}
+
+            ${factHtml}
+
+            ${labelChecksHtml}
+
+            <div style="margin-top:16px;">
+                <button type="button" class="primary-button" data-action="add-food" data-product-id="${escapeHTML(product.id)}" style="width:100%; padding:12px; border-radius:30px; border:none; background:#F5A88C; color:white; font-size:16px; cursor:pointer;">➕ Добавить продукт</button>
+            </div>
+        </div>
+    `;
+
+    // Создаём оверлей с центрированием
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(74, 58, 48, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    `;
+    overlay.innerHTML = content;
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
     });
-    root.innerHTML =
-        '<div class="modal-overlay" data-action="close-modal">' +
-        '<div class="modal-sheet" data-modal-content>' +
-        '<div class="modal-header">' +
-        '<div>' +
-        '<span class="product-large-emoji">' + (product.emoji || "🥣") + "</span>" +
-        "<h2>" + escapeHTML(product.name) + "</h2>" +
-        "</div>" +
-        '<button type="button" class="icon-button" data-action="close-modal">×</button>' +
-        "</div>" +
-        '<div class="modal-body">' +
-        '<div class="product-info-grid">' +
-        "<div><span>Категория</span><strong>" + escapeHTML(product.cat || product.category || "—") + "</strong></div>" +
-        "<div><span>Возраст</span><strong>" + (product.min_age ? product.min_age + "+ мес." : "—") + "</strong></div>" +
-        "<div><span>Железо</span><strong>" + (product.iron ? "✓" : "—") + "</strong></div>" +
-        "</div>" +
-        (product.desc ? '<div class="info-block"><h3>О продукте</h3><p>' + escapeHTML(product.desc) + "</p></div>" : "") +
-        (safety ? '<div class="warning-block"><strong>⚠️ Безопасность</strong><p>' + escapeHTML(safety.warning || safety) + "</p></div>" : "") +
-        (product.allergen ? '<div class="warning-block"><strong>⚠️ Аллерген</strong><p>Вводите продукт внимательно и наблюдайте за реакцией малыша.</p></div>' : "") +
-        '<div class="modal-actions">' +
-        (introduced
-            ? '<div class="success-box">✓ Этот продукт уже знаком малышу</div>'
-            : '<button type="button" class="primary-button full-width" data-action="add-food" data-product-id="' + escapeHTML(product.id) + '">+ Добавить продукт</button>'
-        ) +
-        "</div>" +
-        "</div>" +
-        "</div>" +
-        "</div>";
+
+    document.body.appendChild(overlay);
 }
+
+// ============================================================
+// ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений)
+// ============================================================
 
 function toggleFavoriteHandler(productId) {
     if (!productId) return;
@@ -514,10 +632,6 @@ function saveFoodHandler() {
     showToast("Запись добавлена в дневник ❤️", "success");
     showScreen("diary");
 }
-
-// ============================================================
-// ИСПРАВЛЕННАЯ renderProductPicker (использует window.PRODUCTS)
-// ============================================================
 
 function renderProductPicker(query) {
     var container = document.getElementById("picker-products");
@@ -839,4 +953,4 @@ window.openBabyEditModal = openBabyEditModal;
 window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
-console.log('✅ handlers.js загружен (исправлены getProductById, escapeHTML, renderProductPicker)');
+console.log('✅ handlers.js загружен (модалка исправлена, теперь видна и содержит все данные)');
