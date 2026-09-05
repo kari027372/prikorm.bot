@@ -1298,3 +1298,20 @@ window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
 console.log('✅ handlers.js загружен (с поддержкой новых элементов)');
+// ============================================================
+// ДОПОЛНИТЕЛЬНЫЙ ОБРАБОТЧИК ДЛЯ КАРТОЧЕК ПРОДУКТОВ
+// (без изменения существующей логики)
+// ============================================================
+document.addEventListener('click', function(e) {
+    var card = e.target.closest('.product-card');
+    if (card) {
+        var productId = card.dataset.productId;
+        if (productId && typeof window.showProductDetailModal === 'function') {
+            e.preventDefault();
+            e.stopPropagation(); // предотвращаем срабатывание других обработчиков (если они есть)
+            window.showProductDetailModal(productId);
+        }
+    }
+});
+
+console.log('✅ Дополнительный обработчик карточек продуктов добавлен');
