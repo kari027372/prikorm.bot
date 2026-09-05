@@ -1,5 +1,5 @@
 // data/products.js
-export const PRODUCTS = [
+window.PRODUCTS = [
   // ========== ОВОЩИ ==========
   {
     id: "potato",
@@ -3852,7 +3852,7 @@ export const PRODUCTS = [
 ];
 
 // Категории для фильтрации
-export const CATEGORIES = [
+window.CATEGORIES = [
   { id: 'vegetables', label: 'Овощи', icon: '🥬' },
   { id: 'fruits', label: 'Фрукты/ягоды', icon: '🍎' },
   { id: 'grains', label: 'Крупы/злаки', icon: '🌾' },
