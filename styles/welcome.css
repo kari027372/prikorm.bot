@@ -1,5 +1,5 @@
 /* ============================================================
-   SPLASH-ЭКРАН KENORA – минималистичный (как на скриншоте)
+   SPLASH-ЭКРАН KENORA – минималистичный с ложкой
    ============================================================ */
 
 #splash-screen {
@@ -40,28 +40,43 @@
     text-align: center;
     width: 100%;
     max-width: 400px;
-    gap: 0px;
+    gap: 4px;
 }
 
-/* ---------- ЛОГОТИП KENORA ---------- */
+/* ---------- МИНИМАЛИСТИЧНАЯ ЛОЖКА ---------- */
+.splash-icon {
+    width: 60px;
+    height: 60px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.splash-icon path,
+.splash-icon ellipse {
+    animation: fadeInSpoon 0.6s ease 0.2s forwards;
+}
+
+@keyframes fadeInSpoon {
+    to { opacity: 1; }
+}
+
+/* ---------- ЛОГОТИП ---------- */
 .splash-logo {
     display: flex;
     justify-content: center;
     gap: 4px;
     font-family: 'Cormorant Garamond', serif;
     font-weight: 700;
-    font-size: 52px;
+    font-size: 48px;
     letter-spacing: 4px;
     color: #6D6A60;
-    margin-bottom: 4px;
 }
 
 .splash-letter {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
     animation: letterFade 0.4s ease forwards;
 }
-
 @keyframes letterFade {
     to { opacity: 1; transform: translateY(0); }
 }
@@ -100,7 +115,7 @@
     width: 100%;
     max-width: 280px;
     min-height: 56px;
-    margin-top: 32px;
+    margin-top: 20px;
     opacity: 0;
     transform: translateY(8px);
     animation: fadeUp 0.5s ease 1.8s forwards;
@@ -109,7 +124,6 @@
 .splash-btn:hover {
     background: #C4A898;
 }
-
 .splash-btn:active {
     transform: scale(0.97);
 }
@@ -130,6 +144,10 @@ body.theme-dark .splash-btn {
 body.theme-dark .splash-btn:hover {
     background: #5A5850;
 }
+body.theme-dark .splash-icon path,
+body.theme-dark .splash-icon ellipse {
+    stroke: #C4A88C;
+}
 
 /* ===== БЕЗОПАСНЫЕ ЗОНЫ ДЛЯ IPHONE ===== */
 @supports (padding: max(0px)) {
@@ -143,6 +161,8 @@ body.theme-dark .splash-btn:hover {
 
 /* ===== ОТКЛЮЧЕНИЕ АНИМАЦИИ ===== */
 @media (prefers-reduced-motion: reduce) {
+    .splash-icon path,
+    .splash-icon ellipse,
     .splash-letter,
     .splash-subtitle,
     .splash-btn {
