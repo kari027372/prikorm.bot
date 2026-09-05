@@ -491,3 +491,53 @@
     );
 
 })();
+// screens/rendering.js
+import { renderHome } from './home.js';
+import { renderBaby } from './baby.js';
+import { renderProducts } from './products.js';
+import { renderDiary } from './diary.js';
+import { renderRecipes } from './recipes.js';
+import { renderToday } from './today.js';
+import { renderSettings } from './settings.js';
+import { renderOnboarding } from './onboarding.js';
+
+/**
+ * Рендерит экран по имени
+ */
+export function renderCurrentScreen() {
+  const state = window.STATE || {};
+  const currentScreen = state.currentScreen || 'home';
+  const appEl = document.getElementById('app');
+  if (!appEl) return;
+
+  let html = '';
+  switch (currentScreen) {
+    case 'home':
+      html = renderHome(state);
+      break;
+    case 'baby':
+      html = renderBaby(state);
+      break;
+    case 'products':
+      html = renderProducts(state);
+      break;
+    case 'diary':
+      html = renderDiary(state);
+      break;
+    case 'recipes':
+      html = renderRecipes(state);
+      break;
+    case 'today':
+      html = renderToday(state);
+      break;
+    case 'settings':
+      html = renderSettings(state);
+      break;
+    case 'onboarding':
+      html = renderOnboarding(state);
+      break;
+    default:
+      html = '<div>Экран не найден</div>';
+  }
+  appEl.innerHTML = html;
+}
