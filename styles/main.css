@@ -560,3 +560,332 @@ h1, h2, h3, h4, h5, h6 {
     .bottom-navigation .nav-item .nav-icon svg { width: 20px; height: 20px; }
     .bottom-navigation .nav-item .nav-label { font-size: 10px; }
 }
+/* ===== Products Screen ===== */
+.products-screen {
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.screen-header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.product-count {
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Поиск */
+.products-search {
+  margin-bottom: 16px;
+}
+
+.products-search input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 30px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  font-size: 16px;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* Фильтры */
+.products-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.filter-btn:hover {
+  opacity: 0.8;
+}
+
+/* Сетка карточек */
+.products-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.product-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: transform 0.15s;
+  border: 1px solid var(--border-color);
+}
+
+.product-card:active {
+  transform: scale(0.98);
+}
+
+.product-emoji {
+  font-size: 36px;
+  min-width: 48px;
+  text-align: center;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-name {
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-icon {
+  font-size: 16px;
+}
+
+.product-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.highlight {
+  background: var(--bg-secondary);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.product-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.badge.age-ok {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.age-not {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge.allergen {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge.iron {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.badge.omega {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.badge.choking {
+  background: #f5c6cb;
+  color: #721c24;
+}
+
+.badge.commercial {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.product-arrow {
+  font-size: 24px;
+  color: var(--text-secondary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-secondary);
+  font-size: 18px;
+}
+
+/* ===== Модалка деталей продукта ===== */
+.product-detail-modal .modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.modal-emoji {
+  font-size: 48px;
+}
+
+.modal-status {
+  padding: 4px 14px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.modal-status.recommended {
+  background: #d4edda;
+  color: #155724;
+}
+
+.modal-status.caution {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.modal-status.avoid {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.modal-status.age_limited {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.product-detail-modal .modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-section {
+  margin: 16px 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-section:last-child {
+  border-bottom: none;
+}
+
+.modal-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.modal-section ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.modal-section li {
+  margin: 6px 0;
+}
+
+.allergen-section {
+  background: #fdf2f2;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-left: 4px solid #dc3545;
+}
+
+.choking-section {
+  background: #fff3cd;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-left: 4px solid #ffc107;
+}
+
+.fact-section {
+  background: #e8f4fd;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-left: 4px solid #17a2b8;
+}
+
+.medical-note {
+  background: #f5f5f5;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-left: 4px solid #6c757d;
+}
+
+.modal-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn-close-modal {
+  padding: 12px 40px;
+  border-radius: 30px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  font-size: 16px;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+}
+
+.disclaimer {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Адаптив для модалки */
+@media (max-width: 480px) {
+  .product-detail-modal .modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .modal-status {
+    margin-left: 0;
+  }
+}
