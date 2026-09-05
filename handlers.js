@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js (исправленная модалка + searchProducts + закрытие/прокрутка)
+   handlers.js (исправленное закрытие и прокрутка)
    ============================================================ */
 
 function setupEventListeners() {
@@ -41,6 +41,24 @@ function escapeHTML(str) {
 // ОСНОВНОЙ ОБРАБОТЧИК КЛИКОВ
 // ============================================================
 function handleDocumentClick(event) {
+
+    // === ЗАКРЫТИЕ МОДАЛКИ (обрабатываем до проверки data-action) ===
+    var closeBtn = event.target.closest('.btn-close-modal');
+    if (closeBtn) {
+        var modal = closeBtn.closest('.modal-overlay');
+        if (modal) {
+            event.preventDefault();
+            modal.remove();
+            return;
+        }
+    }
+    var modalOverlay = event.target.closest('.modal-overlay');
+    if (modalOverlay && event.target === modalOverlay) {
+        modalOverlay.remove();
+        return;
+    }
+
+    // --- ДАЛЕЕ ИДЁТ ОСНОВНАЯ ЛОГИКА ---
     var target = event.target.closest("[data-action]");
     if (target) {
         var action = target.dataset.action;
@@ -241,22 +259,6 @@ function handleDocumentClick(event) {
         }
     }
 
-    // Закрытие модалки
-    var closeBtn = event.target.closest('.btn-close-modal');
-    if (closeBtn) {
-        var modal = closeBtn.closest('.modal-overlay');
-        if (modal) {
-            event.preventDefault();
-            modal.remove();
-            return;
-        }
-    }
-    var modalOverlay = event.target.closest('.modal-overlay');
-    if (modalOverlay && event.target === modalOverlay) {
-        modalOverlay.remove();
-        return;
-    }
-
     // Назад
     var backBtn = event.target.closest('.btn-back');
     if (backBtn) {
@@ -313,7 +315,7 @@ function navigateHandler(screen) {
 }
 
 // ============================================================
-// РАБОТА С ПРОДУКТАМИ (исправлены getProductById и openProductDetails)
+// РАБОТА С ПРОДУКТАМИ
 // ============================================================
 
 function getProductById(id) {
@@ -340,17 +342,15 @@ function openProductFromCard(productId) {
 }
 
 // ============================================================
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ (центрирование + правильные поля + прокрутка + закрытие)
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ (с прокруткой)
 // ============================================================
 
 function openProductDetails(product) {
     if (!product) return;
 
-    // Удаляем старую модалку, если есть
     var oldModal = document.querySelector('.modal-overlay');
     if (oldModal) oldModal.remove();
 
-    // Определяем возраст
     var ageText = '—';
     if (product.introduction && product.introduction.fromMonths) {
         ageText = 'с ' + product.introduction.fromMonths + ' мес.';
@@ -360,16 +360,10 @@ function openProductDetails(product) {
         ageText = 'с ' + product.min_age + ' мес.';
     }
 
-    // Определяем категорию
     var categoryText = product.category || product.cat || '—';
-
-    // Определяем, есть ли железо
     var ironText = (product.iron || (product.nutrients && product.nutrients.includes('iron'))) ? '✓' : '—';
-
-    // Описание
     var desc = product.desc || product.description || '';
 
-    // Польза (highlights)
     var highlightsHtml = '';
     if (product.highlights && product.highlights.length) {
         highlightsHtml = '<ul>' + product.highlights.map(function(h) {
@@ -377,13 +371,11 @@ function openProductDetails(product) {
         }).join('') + '</ul>';
     }
 
-    // Аллергены
     var allergenHtml = '';
     if (product.allergen && product.allergenType && product.allergenType.length) {
         allergenHtml = '<div class="warning-block"><strong>⚠️ Аллерген</strong><p>Тип: ' + escapeHTML(product.allergenType.join(', ')) + '. Вводите с осторожностью.</p></div>';
     }
 
-    // Безопасность (safety)
     var safetyHtml = '';
     if (typeof getSafetyWarning === 'function') {
         var safety = getSafetyWarning(product.name);
@@ -392,7 +384,6 @@ function openProductDetails(product) {
         }
     }
 
-    // Форма подачи (если есть)
     var safeFormsHtml = '';
     if (product.safeForms && product.safeForms.length) {
         safeFormsHtml = '<div><strong>✅ Безопасные формы:</strong><ul>' + product.safeForms.map(function(f) {
@@ -400,20 +391,17 @@ function openProductDetails(product) {
         }).join('') + '</ul></div>';
     }
 
-    // Риск удушья
     var chokingHtml = '';
     if (product.chokingRisk && product.chokingRisk !== 'none') {
         var riskLabels = { low: 'низкий', medium: 'средний', high: 'высокий' };
         chokingHtml = '<div><strong>🚨 Риск удушья:</strong> ' + (riskLabels[product.chokingRisk] || product.chokingRisk) + '</div>';
     }
 
-    // Интересный факт
     var factHtml = '';
     if (product.interestingFact) {
         factHtml = '<div class="fact-block"><strong>💡 Интересный факт:</strong><p>' + escapeHTML(product.interestingFact) + '</p></div>';
     }
 
-    // Магазинные проверки
     var labelChecksHtml = '';
     if (product.commercialProduct && product.labelChecks && product.labelChecks.length) {
         var labelMap = {
@@ -430,9 +418,8 @@ function openProductDetails(product) {
             '</ul></div>';
     }
 
-    // Строим содержимое модалки
     var content = `
-        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                 <span style="font-size:48px;">${product.emoji || '🍽️'}</span>
                 <h2 style="margin:0; font-size:24px;">${escapeHTML(product.name)}</h2>
@@ -467,7 +454,6 @@ function openProductDetails(product) {
         </div>
     `;
 
-    // Создаём оверлей с центрированием
     var overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.style.cssText = `
@@ -529,7 +515,7 @@ function changeProductCategory(category, clickedButton) {
 }
 
 // ============================================================
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ПОИСКА (теперь без полной перерисовки)
+// ПОИСК (без полной перерисовки)
 // ============================================================
 
 var CURRENT_PRODUCT_SEARCH = "";
@@ -539,7 +525,6 @@ function searchProducts(value) {
         window.updateProductsList();
         return;
     }
-    // fallback для старой системы
     CURRENT_PRODUCT_SEARCH = String(value || "").trim().toLowerCase();
     if (typeof renderProducts === "function") renderProducts();
 }
@@ -959,4 +944,4 @@ window.openBabyEditModal = openBabyEditModal;
 window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
-console.log('✅ handlers.js загружен (модалка исправлена, searchProducts обновлён, закрытие/прокрутка добавлены)');
+console.log('✅ handlers.js загружен (модалка исправлена, закрытие и прокрутка работают)');
