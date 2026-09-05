@@ -1,5 +1,5 @@
 /* ============================================================
-   SPLASH-ЭКРАН KENORA – минималистичный с ложкой
+   SPLASH-ЭКРАН KENORA – ДЕТСКИЙ СТИЛЬ
    ============================================================ */
 
 #splash-screen {
@@ -8,7 +8,7 @@
     left: 0;
     width: 100%;
     height: 100dvh;
-    background: #FFF7F1;
+    background: linear-gradient(160deg, #FFF0E6 0%, #FFE4D6 100%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,7 +18,7 @@
     opacity: 0;
     transition: opacity 0.8s ease, visibility 0.8s ease;
     visibility: hidden;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 #splash-screen.visible {
@@ -40,54 +40,56 @@
     text-align: center;
     width: 100%;
     max-width: 400px;
-    gap: 4px;
+    gap: 6px;
 }
 
-/* ---------- МИНИМАЛИСТИЧНАЯ ЛОЖКА ---------- */
-.splash-icon {
-    width: 60px;
-    height: 60px;
-    display: block;
-    margin-bottom: 6px;
+/* ---------- ИЛЛЮСТРАЦИЯ: УЛЫБАЮЩАЯСЯ ТАРЕЛКА С ЕДОЙ ---------- */
+.splash-illustration {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: scale(0.9);
+    animation: popIn 0.6s ease 0.2s forwards;
 }
 
-.splash-icon path,
-.splash-icon ellipse {
-    animation: fadeInSpoon 0.6s ease 0.2s forwards;
+@keyframes popIn {
+    to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes fadeInSpoon {
-    to { opacity: 1; }
-}
-
-/* ---------- ЛОГОТИП ---------- */
+/* ---------- ЛОГОТИП (буквы с весёлым акцентом) ---------- */
 .splash-logo {
     display: flex;
     justify-content: center;
     gap: 4px;
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
     font-size: 48px;
-    letter-spacing: 4px;
-    color: #6D6A60;
+    letter-spacing: 2px;
+    color: #F5A88C;
+    text-shadow: 0 4px 12px rgba(245, 168, 140, 0.2);
+    margin-top: 4px;
 }
 
 .splash-letter {
     opacity: 0;
-    transform: translateY(8px);
-    animation: letterFade 0.4s ease forwards;
+    transform: translateY(12px);
+    animation: letterBounce 0.5s ease forwards;
 }
-@keyframes letterFade {
-    to { opacity: 1; transform: translateY(0); }
+
+@keyframes letterBounce {
+    0% { opacity: 0; transform: translateY(12px); }
+    60% { opacity: 1; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
 /* ---------- ПОДЗАГОЛОВОК ---------- */
 .splash-subtitle {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 16px;
-    letter-spacing: 2px;
-    color: #A76B6A;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 1.5px;
+    color: #6D8F8A;
     text-transform: lowercase;
     opacity: 0;
     transform: translateY(6px);
@@ -100,21 +102,21 @@
 
 /* ---------- КНОПКА ---------- */
 .splash-btn {
-    background: #D4B8A8;
+    background: #F5A88C;
     border: none;
-    border-radius: 30px;
-    padding: 16px 48px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 18px;
-    color: #FFF7F1;
+    border-radius: 50px;
+    padding: 18px 48px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: #FFFFFF;
     cursor: pointer;
     transition: all 0.25s ease;
-    box-shadow: 0 4px 16px rgba(164, 132, 120, 0.15);
+    box-shadow: 0 8px 24px rgba(245, 168, 140, 0.3);
     touch-action: manipulation;
     width: 100%;
     max-width: 280px;
-    min-height: 56px;
+    min-height: 60px;
     margin-top: 20px;
     opacity: 0;
     transform: translateY(8px);
@@ -122,31 +124,31 @@
 }
 
 .splash-btn:hover {
-    background: #C4A898;
+    background: #E8977A;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(245, 168, 140, 0.4);
 }
+
 .splash-btn:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
 }
 
 /* ===== ТЁМНАЯ ТЕМА ===== */
 body.theme-dark #splash-screen {
-    background: #1E1E1E;
+    background: linear-gradient(160deg, #2A2A2A, #1E1E1E);
 }
 body.theme-dark .splash-logo {
-    color: #C4B8B0;
+    color: #E8B0A0;
 }
 body.theme-dark .splash-subtitle {
-    color: #B08C8C;
+    color: #8AA8A2;
 }
 body.theme-dark .splash-btn {
-    background: #6D6A60;
+    background: #C28A7A;
+    box-shadow: 0 8px 24px rgba(194, 138, 122, 0.3);
 }
 body.theme-dark .splash-btn:hover {
-    background: #5A5850;
-}
-body.theme-dark .splash-icon path,
-body.theme-dark .splash-icon ellipse {
-    stroke: #C4A88C;
+    background: #B07A6A;
 }
 
 /* ===== БЕЗОПАСНЫЕ ЗОНЫ ДЛЯ IPHONE ===== */
@@ -161,8 +163,7 @@ body.theme-dark .splash-icon ellipse {
 
 /* ===== ОТКЛЮЧЕНИЕ АНИМАЦИИ ===== */
 @media (prefers-reduced-motion: reduce) {
-    .splash-icon path,
-    .splash-icon ellipse,
+    .splash-illustration,
     .splash-letter,
     .splash-subtitle,
     .splash-btn {
