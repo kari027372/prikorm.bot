@@ -13,17 +13,11 @@
         'мясо': ['meat'],
         'рыба': ['fish'],
         'молочные': ['dairy'],
-        'аллергены': ['allergens']   // пока оставим, хотя это не food group
+        'аллергены': ['allergens']
     };
 
-    /**
-     * Возвращает нормализованные пищевые группы продукта
-     * @param {Object} product - объект продукта
-     * @returns {string[]} массив групп (например, ['vegetables'])
-     */
     function getProductGroups(product) {
         if (!product) return [];
-        // Если у продукта есть явное поле foodGroups – используем его
         if (Array.isArray(product.foodGroups) && product.foodGroups.length > 0) {
             return product.foodGroups.slice();
         }
@@ -55,6 +49,21 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
+            rules: {
+                age: { minMonths: 4, maxMonths: null },
+                serving: {
+                    allowed: ['Пюре', 'Мягкие кусочки (с 8 мес.)'],
+                    blocked: ['Сырой кабачок']
+                },
+                allergy: { isAllergen: false, types: [], crossReactivity: [] },
+                safety: {
+                    chokingRisk: 'low',
+                    requiresSupervision: false,
+                    preparationNotes: 'Отварить или запечь, пюре или мягкие кусочки.'
+                },
+                restrictions: { medical: null }
+            },
+            // сохраняем старые поля для обратной совместимости
             min_age_months: 4,
             iron: false,
             desc: 'Нейтральный вкус, легко усваивается. Начинайте с 1 ч.л. пюре.'
@@ -1291,6 +1300,20 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
+            rules: {
+                age: { minMonths: 6, maxMonths: null },
+                serving: {
+                    allowed: ['Варёное яйцо, размятое вилкой', 'Омлет (без соли, с 8 мес.)'],
+                    blocked: ['Сырое яйцо', 'Недостаточно приготовленное яйцо']
+                },
+                allergy: { isAllergen: true, types: ['egg'], crossReactivity: [] },
+                safety: {
+                    chokingRisk: 'low',
+                    requiresSupervision: false,
+                    preparationNotes: 'Полностью приготовить (вкрутую, омлет без соли).'
+                },
+                restrictions: { medical: null }
+            },
             min_age_months: 8,
             iron: false,
             desc: 'Белок – сильный аллерген. Начинайте с желтка.'
@@ -1315,6 +1338,20 @@
             labelChecks: [],
             ageRestrictions: ['до 12 месяцев – строгий запрет'],
             medicalNote: 'Риск младенческого ботулизма.',
+            rules: {
+                age: { minMonths: 12, maxMonths: null },
+                serving: {
+                    allowed: ['После 12 мес. в малых количествах'],
+                    blocked: ['До 12 мес.']
+                },
+                allergy: { isAllergen: false, types: [], crossReactivity: [] },
+                safety: {
+                    chokingRisk: 'low',
+                    requiresSupervision: false,
+                    preparationNotes: 'Не давать до 12 месяцев.'
+                },
+                restrictions: { medical: 'Риск младенческого ботулизма' }
+            },
             min_age_months: 12,
             iron: false,
             desc: 'Опасно до года (ботулизм).'
@@ -1453,16 +1490,12 @@
     ];
 
     // ============================================================
-    // ПУБЛИЧНЫЙ API (НОВЫЙ)
+    // ПУБЛИЧНЫЙ API
     // ============================================================
     window.products = {
         getAll: function() { return window.PRODUCTS; },
-        getById: function(id) {
-            return window.PRODUCTS.find(p => p.id === id) || null;
-        },
-        getByCategory: function(category) {
-            return window.PRODUCTS.filter(p => p.category === category);
-        },
+        getById: function(id) { return window.PRODUCTS.find(p => p.id === id) || null; },
+        getByCategory: function(category) { return window.PRODUCTS.filter(p => p.category === category); },
         getProductGroups: getProductGroups
     };
 
