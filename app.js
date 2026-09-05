@@ -177,7 +177,8 @@ function initializeState() {
                 children: [],
                 currentChildId: null,
                 _onboardingChildId: null,
-                onboardingCompleted: false
+                onboardingCompleted: false,
+                productStateMigrationVersion: 0
             };
         }
     }
@@ -195,7 +196,8 @@ function initializeState() {
             children: [],
             currentChildId: null,
             _onboardingChildId: null,
-            onboardingCompleted: false
+            onboardingCompleted: false,
+            productStateMigrationVersion: 0
         };
     }
 
@@ -205,6 +207,11 @@ function initializeState() {
 
     if (typeof STATE.onboardingCompleted !== 'boolean') {
         STATE.onboardingCompleted = false;
+    }
+
+    // ----- МИГРАЦИЯ PRODUCT STATE (добавлено для Stage 6) -----
+    if (window.productStateService?.migrateGlobalData) {
+        window.productStateService.migrateGlobalData();
     }
 }
 
@@ -256,6 +263,18 @@ function normalizeState() {
     }
     if (!Array.isArray(STATE.waterLog)) {
         STATE.waterLog = [];
+    }
+    // Добавляем поле для миграции, если его нет
+    if (typeof STATE.productStateMigrationVersion !== 'number') {
+        STATE.productStateMigrationVersion = 0;
+    }
+    // Добавляем productState каждому ребёнку, если отсутствует
+    if (STATE.children) {
+        STATE.children.forEach(function(child) {
+            if (!child.productState) {
+                child.productState = {};
+            }
+        });
     }
 
     if (STATE.onboarding) {
@@ -396,7 +415,8 @@ function resetState() {
         children: [],
         currentChildId: null,
         _onboardingChildId: null,
-        onboardingCompleted: false
+        onboardingCompleted: false,
+        productStateMigrationVersion: 0
     };
     if (typeof saveState === 'function') {
         saveState();
@@ -512,7 +532,8 @@ function startApplication() {
                     favoriteFoods: [],
                     worries: [],
                     confidence: ''
-                }
+                },
+                productState: {}
             };
             if (!STATE.children) {
                 STATE.children = [];
