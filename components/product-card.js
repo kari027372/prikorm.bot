@@ -14,17 +14,20 @@
      */
     window.renderProductCard = function(product) {
         if (!product) return '';
+
         return `
-            <div class="product-card" data-product-id="${product.id || ''}">
-                <span class="product-emoji">${product.emoji || '🥑'}</span>
-                <h3>${product.name || 'Продукт'}</h3>
-                <div class="product-tags">
-                    ${(product.tags || []).map(tag => `<span>${tag}</span>`).join('')}
+            <div class="product-card" data-action="open-product" data-product-id="${product.id}">
+                <div class="product-emoji">${product.emoji || ''}</div>
+                <div class="product-info">
+                    <h3>${product.name || 'Продукт'}</h3>
+                    <div class="product-tags">
+                        ${(product.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                    ${product.introduced ? '<div class="product-status">✅ Введён</div>' : ''}
                 </div>
-                ${product.introduced ? '<div class="introduced-label">✅ Введён</div>' : ''}
             </div>
         `;
     };
 
-    console.log('✅ product-card.js загружен');
+    console.log('✅ product-card.js загружен (с data-action)');
 })();
