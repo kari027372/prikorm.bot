@@ -1,13 +1,13 @@
 /* ============================================================
-   KENORA – нейтральная премиальная система
+   KENORA – единая бежево-нейтральная система
    ============================================================ */
 
 :root {
-    --kenora-bg: #F7F1EA;
-    --kenora-white: #FFFDFC;
-    --kenora-card: #FFFDFC;
+    --kenora-bg: #FFF7F1;
+    --kenora-white: #FFFFFF;
+    --kenora-card: #FFFFFF;
     --kenora-text: #403B39;
-    --kenora-text-secondary: #7A6F6A;
+    --kenora-text-secondary: #6D6A60;
     --kenora-text-muted: #B5A8A2;
     --kenora-primary: #B08C9E;
     --kenora-secondary: #C4A88C;
@@ -21,7 +21,7 @@
     --font-family-heading: 'Cormorant Garamond', serif;
 }
 
-/* ===== ОБЩИЕ ===== */
+/* ===== ОБЩИЕ СТИЛИ ===== */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -58,7 +58,7 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
 }
 
-/* ===== ЗАГРУЗОЧНЫЙ ===== */
+/* ===== ЗАГРУЗОЧНЫЙ ЭКРАН ===== */
 #loading-screen {
     position: fixed;
     top: 0;
@@ -93,7 +93,7 @@ h1, h2, h3, h4, h5, h6 {
 .progress-text { margin-top: 8px; font-size: 14px; color: var(--kenora-text-muted); }
 .progress-file { margin-top: 4px; font-size: 12px; color: var(--kenora-text-muted); }
 
-/* ===== КАРТОЧКИ, БЛОКИ ===== */
+/* ===== ОСНОВНЫЕ БЛОКИ ===== */
 .baby-profile-card,
 .progress-card,
 .question-card,
@@ -418,20 +418,79 @@ h1, h2, h3, h4, h5, h6 {
 .finish-btn:active { transform: scale(0.96); }
 
 /* ===== ОБЩИЕ КОМПОНЕНТЫ ===== */
-.primary-button { background: var(--kenora-primary); color: var(--kenora-white); border: none; border-radius: var(--kenora-radius-sm); padding: 14px 20px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
+.primary-button {
+    background: var(--kenora-primary);
+    color: var(--kenora-white);
+    border: none;
+    border-radius: var(--kenora-radius-sm);
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+}
 .primary-button:hover { background: #A07A8E; }
 .primary-button:active { transform: scale(0.98); }
-.secondary-button { background: var(--kenora-secondary); color: var(--kenora-white); border: none; border-radius: var(--kenora-radius-sm); padding: 14px 20px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
+.secondary-button {
+    background: var(--kenora-secondary);
+    color: var(--kenora-white);
+    border: none;
+    border-radius: var(--kenora-radius-sm);
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+}
 .secondary-button:hover { background: #B8987C; }
 .secondary-button:active { transform: scale(0.98); }
-.info-box, .warning-box { padding: 16px 20px; border-radius: var(--kenora-radius-sm); margin-top: 16px; border-left: 4px solid; background: var(--kenora-card); }
+.info-box, .warning-box {
+    padding: 16px 20px;
+    border-radius: var(--kenora-radius-sm);
+    margin-top: 16px;
+    border-left: 4px solid;
+    background: var(--kenora-card);
+}
 .info-box { border-color: var(--kenora-secondary); }
 .warning-box { border-color: var(--kenora-primary); }
-.modal-overlay { position: fixed; inset: 0; background: rgba(64, 59, 57, 0.3); display: flex; justify-content: center; align-items: flex-end; z-index: 1000; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(64, 59, 57, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 1000;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
 .modal-overlay.active { opacity: 1; pointer-events: auto; }
-.modal-sheet { background: var(--kenora-white); max-width: 400px; width: 100%; border-radius: var(--kenora-radius-lg) var(--kenora-radius-lg) 0 0; padding: 24px 20px 20px; transform: translateY(100%); transition: transform 0.3s; max-height: 85vh; overflow-y: auto; }
+.modal-sheet {
+    background: var(--kenora-white);
+    max-width: 400px;
+    width: 100%;
+    border-radius: var(--kenora-radius-lg) var(--kenora-radius-lg) 0 0;
+    padding: 24px 20px 20px;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+    max-height: 85vh;
+    overflow-y: auto;
+}
 .modal-overlay.active .modal-sheet { transform: translateY(0); }
-.toast { background: var(--kenora-text); color: var(--kenora-white); padding: 12px 20px; border-radius: var(--kenora-radius-sm); font-size: 14px; text-align: center; opacity: 0; transform: translateY(-20px); transition: all 0.3s; box-shadow: var(--kenora-shadow-strong); }
+.toast {
+    background: var(--kenora-text);
+    color: var(--kenora-white);
+    padding: 12px 20px;
+    border-radius: var(--kenora-radius-sm);
+    font-size: 14px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s;
+    box-shadow: var(--kenora-shadow-strong);
+}
 .toast.visible { opacity: 1; transform: translateY(0); }
 
 /* ===== АДАПТИВНОСТЬ ===== */
