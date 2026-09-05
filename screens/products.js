@@ -213,11 +213,15 @@
     // Функции управления фильтрами (используются в handlers.js)
     function setProductsFilter(category) {
         currentCategory = category;
+        // Если после смены категории нужно обновить список без перерисовки
+        if (typeof window.updateProductsList === 'function') {
+            window.updateProductsList();
+        }
     }
 
+    // ИСПРАВЛЕННАЯ: теперь обновляет список без перерисовки
     function setProductsSearch(query) {
         searchQuery = query;
-        // Также обновляем список при изменении поиска
         if (typeof window.updateProductsList === 'function') {
             window.updateProductsList();
         }
