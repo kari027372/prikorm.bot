@@ -1,4 +1,4 @@
-// screens/products.js (исправленная версия)
+// screens/products.js (исправленная версия с updateProductsList)
 (function() {
     'use strict';
 
@@ -127,6 +127,89 @@
         return html;
     }
 
+    // ============================================================
+    // НОВАЯ ФУНКЦИЯ — обновляет только список и счётчик (без перерисовки экрана)
+    // ============================================================
+    function updateProductsList() {
+        var state = window.STATE || {};
+        var child = state.children ? state.children.find(function(c) { return c.id === state.currentChildId; }) : null;
+        var childAgeMonths = child ? child.ageMonths : 0;
+
+        var filtered = PRODUCTS.slice();
+        if (currentCategory !== 'all') {
+            filtered = filtered.filter(function(p) { return p.category === currentCategory; });
+        }
+        if (searchQuery.trim()) {
+            var q = searchQuery.toLowerCase().trim();
+            filtered = filtered.filter(function(p) {
+                return p.name.toLowerCase().includes(q) ||
+                    (p.highlights && p.highlights.some(function(h) { return h.toLowerCase().includes(q); })) ||
+                    (p.interestingFact && p.interestingFact.toLowerCase().includes(q));
+            });
+        }
+
+        var statusOrder = { recommended: 0, caution: 1, age_limited: 2, avoid: 3 };
+        filtered.sort(function(a, b) {
+            return (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
+        });
+
+        // Обновляем счётчик
+        var countEl = document.querySelector('.product-count');
+        if (countEl) {
+            countEl.textContent = filtered.length + ' из ' + PRODUCTS.length;
+        }
+
+        // Обновляем список карточек
+        var gridEl = document.querySelector('.products-grid');
+        if (!gridEl) return;
+
+        var html = '';
+        if (filtered.length === 0) {
+            html = '<div class="empty-state">😕 Ничего не найдено</div>';
+        } else {
+            filtered.forEach(function(product) {
+                var ageOk = childAgeMonths >= product.introduction.fromMonths;
+                var isAllergen = product.allergen;
+                var hasIron = product.nutrients && product.nutrients.indexOf('iron') !== -1;
+                var hasOmega = product.nutrients && product.nutrients.indexOf('omega3') !== -1;
+                var isHighChoking = product.chokingRisk === 'high';
+                var isCommercial = product.commercialProduct;
+
+                var statusIcon = '';
+                if (product.status === 'recommended') statusIcon = '🟢';
+                else if (product.status === 'caution') statusIcon = '🟡';
+                else if (product.status === 'avoid') statusIcon = '🔴';
+                else if (product.status === 'age_limited') statusIcon = '⏳';
+
+                var badges = '';
+                if (ageOk) badges += '<span class="badge age-ok">✅ с ' + product.introduction.fromMonths + ' мес.</span>';
+                else badges += '<span class="badge age-not">⏳ с ' + product.introduction.fromMonths + ' мес.</span>';
+                if (isAllergen) badges += '<span class="badge allergen">⚠️ Аллерген</span>';
+                if (hasIron) badges += '<span class="badge iron">⚡ Железо</span>';
+                if (hasOmega) badges += '<span class="badge omega">🧠 Омега-3</span>';
+                if (isHighChoking) badges += '<span class="badge choking">🚨 Риск удушья</span>';
+                if (isCommercial) badges += '<span class="badge commercial">🏷️ Магазинный</span>';
+
+                var highlights = '';
+                if (product.highlights && product.highlights.length) {
+                    var firstTwo = product.highlights.slice(0, 2);
+                    highlights = firstTwo.map(function(h) { return '<span class="highlight">' + h + '</span>'; }).join(' ');
+                }
+
+                html += '<div class="product-card" data-action="open-product" data-product-id="' + product.id + '" data-status="' + product.status + '">';
+                html += '  <div class="product-emoji">' + product.emoji + '</div>';
+                html += '  <div class="product-info">';
+                html += '    <div class="product-name">' + product.name + ' <span class="status-icon">' + statusIcon + '</span></div>';
+                html += '    <div class="product-highlights">' + highlights + '</div>';
+                html += '    <div class="product-badges">' + badges + '</div>';
+                html += '  </div>';
+                html += '  <div class="product-arrow">›</div>';
+                html += '</div>';
+            });
+        }
+        gridEl.innerHTML = html;
+    }
+
     // Функции управления фильтрами (используются в handlers.js)
     function setProductsFilter(category) {
         currentCategory = category;
@@ -134,6 +217,10 @@
 
     function setProductsSearch(query) {
         searchQuery = query;
+        // Также обновляем список при изменении поиска
+        if (typeof window.updateProductsList === 'function') {
+            window.updateProductsList();
+        }
     }
 
     function getProductsFilter() {
@@ -145,6 +232,7 @@
     window.setProductsFilter = setProductsFilter;
     window.setProductsSearch = setProductsSearch;
     window.getProductsFilter = getProductsFilter;
+    window.updateProductsList = updateProductsList;
 
-    console.log('✅ screens/products.js загружен (с data-action и поиском)');
+    console.log('✅ screens/products.js загружен (с data-action, поиском и updateProductsList)');
 })();
