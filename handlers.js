@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js — финальная версия (центрирование + крестик)
+   handlers.js — финальная версия (доработанная модалка)
    ============================================================ */
 
 function setupEventListeners() {
@@ -41,6 +41,7 @@ function handleDocumentClick(event) {
         var modal = closeBtn.closest('.modal-overlay');
         if (modal) {
             event.preventDefault();
+            event.stopPropagation(); // НЕ передаём клик под модалку
             modal.remove();
             return;
         }
@@ -335,7 +336,7 @@ function openProductFromCard(productId) {
 }
 
 // ============================================================
-// ФИНАЛЬНАЯ МОДАЛКА (центрирование, прокрутка, видимый крестик)
+// ФИНАЛЬНАЯ МОДАЛКА (с доработанными стилями для мобильных устройств)
 // ============================================================
 
 function openProductDetails(product) {
@@ -412,7 +413,7 @@ function openProductDetails(product) {
     }
 
     var content = `
-        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch; box-shadow:0 4px 20px rgba(0,0,0,0.2); position:relative; margin:auto; width:100%;">
+        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:calc(100vh - 40px); overflow-y:auto; -webkit-overflow-scrolling:touch; box-shadow:0 4px 20px rgba(0,0,0,0.2); position:relative; margin:auto; width:100%; flex-shrink:1; min-height:0;">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                 <span style="font-size:48px;">${product.emoji || '🍽️'}</span>
                 <h2 style="margin:0; font-size:24px; flex:1;">${escapeHTML(product.name)}</h2>
@@ -463,6 +464,9 @@ function openProductDetails(product) {
         opacity: 1;
         padding: 20px;
         box-sizing: border-box;
+        overflow: hidden;
+        pointer-events: auto;
+        overscroll-behavior: contain;
     `;
     overlay.innerHTML = content;
     overlay.addEventListener('click', function(e) {
@@ -935,4 +939,4 @@ window.openBabyEditModal = openBabyEditModal;
 window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
-console.log('✅ handlers.js загружен — финальная версия с центрированием и видимым крестиком');
+console.log('✅ handlers.js загружен — доработанная модалка для мобильных устройств');
