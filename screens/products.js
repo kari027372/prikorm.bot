@@ -1,150 +1,111 @@
-// screens/products.js (исправленная версия)
-(function() {
-    'use strict';
+// screens/products.js
+import { PRODUCTS, CATEGORIES, CATEGORY_LABELS } from '../data/products.js';
+import { getCurrentChild, getProductEntriesForChild } from '../services/child-service.js';
 
-    // Используем глобальные данные
-    var PRODUCTS = window.PRODUCTS || [];
-    var CATEGORIES = window.CATEGORIES || [];
+/**
+ * Рендеринг экрана «Продукты»
+ * @param {Object} state - глобальный STATE
+ */
+export function renderProducts(state) {
+  const child = getCurrentChild(state);
+  const enteredProductIds = child ? getProductEntriesForChild(child.id).map(e => e.productId) : [];
 
-    // Состояние фильтров (локальное)
-    var currentCategory = 'all';
-    var searchQuery = '';
+  // Получаем параметры фильтрации из URL или из состояния (пока просто используем состояние)
+  const currentCategory = state.productsFilterCategory || 'все';
+  const searchQuery = state.productsSearchQuery || '';
 
-    // Функция для экранирования HTML (защита от XSS)
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
+  // Фильтруем продукты
+  let filtered = PRODUCTS;
+  if (currentCategory !== 'все') {
+    filtered = filtered.filter(p => p.category === currentCategory);
+  }
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase().trim();
+    filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q));
+  }
 
-    /**
-     * Основная функция рендера экрана "Продукты"
-     */
-    function renderProducts() {
-        var state = window.STATE || {};
-        var child = state.children ? state.children.find(function(c) { return c.id === state.currentChildId; }) : null;
-        var childAgeMonths = child ? child.ageMonths : 0;
+  // Сортируем: сначала те, что уже введены (чтобы видеть прогресс)
+  filtered = filtered.sort((a, b) => {
+    const aEntered = enteredProductIds.includes(a.id);
+    const bEntered = enteredProductIds.includes(b.id);
+    if (aEntered && !bEntered) return -1;
+    if (!aEntered && bEntered) return 1;
+    return a.name.localeCompare(b.name);
+  });
 
-        // Фильтрация
-        var filtered = PRODUCTS.slice();
-        if (currentCategory !== 'all') {
-            filtered = filtered.filter(function(p) { return p.category === currentCategory; });
-        }
-        if (searchQuery.trim()) {
-            var q = searchQuery.toLowerCase().trim();
-            filtered = filtered.filter(function(p) {
-                return p.name.toLowerCase().includes(q) ||
-                    (p.highlights && p.highlights.some(function(h) { return h.toLowerCase().includes(q); })) ||
-                    (p.interestingFact && p.interestingFact.toLowerCase().includes(q));
-            });
-        }
+  // HTML для фильтров
+  let filterButtons = `
+    <div class="products-filters">
+      <button class="filter-btn ${currentCategory === 'все' ? 'active' : ''}" data-category="все">Все</button>
+  `;
+  CATEGORIES.forEach(cat => {
+    const label = CATEGORY_LABELS[cat] || cat;
+    filterButtons += `
+      <button class="filter-btn ${currentCategory === cat ? 'active' : ''}" data-category="${cat}">${label}</button>
+    `;
+  });
+  filterButtons += `</div>`;
 
-        // Сортировка: recommended → caution → age_limited → avoid
-        var statusOrder = { recommended: 0, caution: 1, age_limited: 2, avoid: 3 };
-        filtered.sort(function(a, b) {
-            return (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
-        });
+  // Поиск
+  const searchHtml = `
+    <div class="products-search">
+      <input type="text" id="productsSearchInput" placeholder="🔍 Найти продукт..." value="${searchQuery}">
+    </div>
+  `;
 
-        // Построение HTML
-        var html = '';
-        html += '<div class="screen products-screen">';
-        html += '  <div class="screen-header">';
-        html += '    <h2>Продукты</h2>';
-        html += '    <span class="product-count">' + filtered.length + ' из ' + PRODUCTS.length + '</span>';
-        html += '  </div>';
+  // Карточки продуктов
+  let cardsHtml = '';
+  if (filtered.length === 0) {
+    cardsHtml = `<div class="empty-state">Ничего не найдено 😕</div>`;
+  } else {
+    filtered.forEach(product => {
+      const isEntered = enteredProductIds.includes(product.id);
+      const ageMonths = child ? child.ageMonths || 0 : 0;
+      const isAvailable = ageMonths >= product.min_age_months;
+      const cardClass = isEntered ? 'product-card entered' : 'product-card';
+      const enteredBadge = isEntered ? `<span class="entered-badge">✅ Введён</span>` : '';
+      const ageBadge = !isAvailable ? `<span class="age-badge">⏳ с ${product.min_age_months} мес.</span>` : '';
 
-        // === ИЗМЕНЕНИЕ 1: id="product-search" (было productSearch) ===
-        html += '  <div class="products-search">';
-        html += '    <input type="text" id="product-search" placeholder="🔍 Поиск продуктов..." value="' + escapeHtml(searchQuery) + '">';
-        html += '  </div>';
+      cardsHtml += `
+        <div class="${cardClass}" data-product-id="${product.id}" data-entered="${isEntered}">
+          <div class="product-emoji">${product.emoji}</div>
+          <div class="product-info">
+            <div class="product-name">${product.name}</div>
+            <div class="product-desc">${product.desc}</div>
+            <div class="product-meta">
+              <span class="product-category">${CATEGORY_LABELS[product.category] || product.category}</span>
+              ${product.iron ? '<span class="badge-iron">⚡ Железо</span>' : ''}
+              ${product.allergen ? '<span class="badge-allergen">⚠️ Аллерген</span>' : ''}
+              ${ageBadge}
+            </div>
+          </div>
+          <div class="product-status">
+            ${enteredBadge}
+            <button class="btn-add-entry ${isEntered ? 'btn-remove' : ''}" data-product-id="${product.id}">
+              ${isEntered ? '🗑️' : '➕'}
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  }
 
-        // Фильтры по категориям
-        html += '  <div class="products-filters">';
-        html += '    <button class="filter-btn' + (currentCategory === 'all' ? ' active' : '') + '" data-action="product-category" data-category="all">Все</button>';
-        CATEGORIES.forEach(function(cat) {
-            var active = currentCategory === cat.id ? ' active' : '';
-            html += '    <button class="filter-btn' + active + '" data-action="product-category" data-category="' + cat.id + '">' + cat.icon + ' ' + cat.label + '</button>';
-        });
-        html += '  </div>';
+  const html = `
+    <div class="screen products-screen">
+      <div class="screen-header">
+        <h2>Продукты</h2>
+      </div>
+      ${searchHtml}
+      ${filterButtons}
+      <div class="products-grid">
+        ${cardsHtml}
+      </div>
+    </div>
+  `;
 
-        // Список продуктов
-        html += '  <div class="products-grid">';
-        if (filtered.length === 0) {
-            html += '    <div class="empty-state">😕 Ничего не найдено</div>';
-        } else {
-            filtered.forEach(function(product) {
-                var ageOk = childAgeMonths >= product.introduction.fromMonths;
-                var isAllergen = product.allergen;
-                var hasIron = product.nutrients && product.nutrients.indexOf('iron') !== -1;
-                var hasOmega = product.nutrients && product.nutrients.indexOf('omega3') !== -1;
-                var isHighChoking = product.chokingRisk === 'high';
-                var isCommercial = product.commercialProduct;
+  // После рендера привязываем события (через делегирование или обработчики)
+  // Это будет сделано в handlers.js, но можно добавить здесь временно
+  // Но мы вернём HTML, а в handlers.js повесим обработчики
 
-                var statusIcon = '';
-                if (product.status === 'recommended') statusIcon = '🟢';
-                else if (product.status === 'caution') statusIcon = '🟡';
-                else if (product.status === 'avoid') statusIcon = '🔴';
-                else if (product.status === 'age_limited') statusIcon = '⏳';
-
-                var badges = '';
-                if (ageOk) badges += '<span class="badge age-ok">✅ с ' + product.introduction.fromMonths + ' мес.</span>';
-                else badges += '<span class="badge age-not">⏳ с ' + product.introduction.fromMonths + ' мес.</span>';
-                if (isAllergen) badges += '<span class="badge allergen">⚠️ Аллерген</span>';
-                if (hasIron) badges += '<span class="badge iron">⚡ Железо</span>';
-                if (hasOmega) badges += '<span class="badge omega">🧠 Омега-3</span>';
-                if (isHighChoking) badges += '<span class="badge choking">🚨 Риск удушья</span>';
-                if (isCommercial) badges += '<span class="badge commercial">🏷️ Магазинный</span>';
-
-                var highlights = '';
-                if (product.highlights && product.highlights.length) {
-                    var firstTwo = product.highlights.slice(0, 2);
-                    highlights = firstTwo.map(function(h) { return '<span class="highlight">' + h + '</span>'; }).join(' ');
-                }
-
-                // === ИЗМЕНЕНИЕ 2: добавлен data-action="open-product" ===
-                html += '    <div class="product-card" data-action="open-product" data-product-id="' + product.id + '" data-status="' + product.status + '">';
-                html += '      <div class="product-emoji">' + product.emoji + '</div>';
-                html += '      <div class="product-info">';
-                html += '        <div class="product-name">' + product.name + ' <span class="status-icon">' + statusIcon + '</span></div>';
-                html += '        <div class="product-highlights">' + highlights + '</div>';
-                html += '        <div class="product-badges">' + badges + '</div>';
-                html += '      </div>';
-                html += '      <div class="product-arrow">›</div>';
-                html += '    </div>';
-            });
-        }
-        html += '  </div>';
-
-        // Дисклеймер
-        html += '  <div class="disclaimer">';
-        html += '    ⚕️ Информация носит справочный характер. При наличии аллергии или сомнений проконсультируйтесь с врачом.';
-        html += '  </div>';
-        html += '</div>';
-
-        return html;
-    }
-
-    // Функции управления фильтрами (используются в handlers.js)
-    function setProductsFilter(category) {
-        currentCategory = category;
-    }
-
-    function setProductsSearch(query) {
-        searchQuery = query;
-    }
-
-    function getProductsFilter() {
-        return { category: currentCategory, search: searchQuery };
-    }
-
-    // Регистрируем глобально
-    window.renderProducts = renderProducts;
-    window.setProductsFilter = setProductsFilter;
-    window.setProductsSearch = setProductsSearch;
-    window.getProductsFilter = getProductsFilter;
-
-    console.log('✅ screens/products.js загружен (с data-action и поиском)');
-})();
+  return html;
+}
