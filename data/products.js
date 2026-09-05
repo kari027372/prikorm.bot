@@ -2,6 +2,36 @@
 (function() {
     'use strict';
 
+    // ============================================================
+    // НОРМАЛИЗАЦИЯ ГРУПП ПРОДУКТОВ (ТОЛЬКО FOOD GROUPS)
+    // ============================================================
+
+    const CATEGORY_TO_GROUPS = {
+        'овощи': ['vegetables'],
+        'фрукты': ['fruits'],
+        'крупы': ['grains'],
+        'мясо': ['meat'],
+        'рыба': ['fish'],
+        'молочные': ['dairy'],
+        'аллергены': ['allergens']   // пока оставим, хотя это не food group
+    };
+
+    /**
+     * Возвращает нормализованные пищевые группы продукта
+     * @param {Object} product - объект продукта
+     * @returns {string[]} массив групп (например, ['vegetables'])
+     */
+    function getProductGroups(product) {
+        if (!product) return [];
+        // Если у продукта есть явное поле foodGroups – используем его
+        if (Array.isArray(product.foodGroups) && product.foodGroups.length > 0) {
+            return product.foodGroups.slice();
+        }
+        const category = product.category || 'другое';
+        const groups = CATEGORY_TO_GROUPS[category];
+        return groups ? groups.slice() : ['other'];
+    }
+
     // ========== БАЗА ПРОДУКТОВ ==========
     window.PRODUCTS = [
         // --- ОВОЩИ ---
@@ -25,7 +55,6 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            // сохраняем старые поля для обратной совместимости
             min_age_months: 4,
             iron: false,
             desc: 'Нейтральный вкус, легко усваивается. Начинайте с 1 ч.л. пюре.'
@@ -1422,6 +1451,20 @@
         { id: 'молочные', label: 'Молочные', icon: '🥛' },
         { id: 'аллергены', label: 'Аллергены', icon: '⚠️' }
     ];
+
+    // ============================================================
+    // ПУБЛИЧНЫЙ API (НОВЫЙ)
+    // ============================================================
+    window.products = {
+        getAll: function() { return window.PRODUCTS; },
+        getById: function(id) {
+            return window.PRODUCTS.find(p => p.id === id) || null;
+        },
+        getByCategory: function(category) {
+            return window.PRODUCTS.filter(p => p.category === category);
+        },
+        getProductGroups: getProductGroups
+    };
 
     console.log('✅ data/products.js загружен, продуктов:', window.PRODUCTS.length);
 })();
