@@ -1,4 +1,4 @@
-// components/bottom-nav.js – иконки KENORA
+// components/bottom-nav.js – KENORA навигация
 window.renderBottomNav = function(active) {
     const items = [
         { id: 'home', icon: '🏠', label: 'Главная' },
@@ -10,7 +10,7 @@ window.renderBottomNav = function(active) {
 
     let html = `<div class="bottom-navigation">`;
     items.forEach(item => {
-        const isActive = active === item.id;
+        const isActive = (active === item.id);
         html += `
             <button class="nav-item ${isActive ? 'active' : ''}" data-action="navigate" data-screen="${item.id}">
                 <span>${item.icon}</span>
