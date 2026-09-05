@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js (исправленное закрытие и прокрутка)
+   handlers.js — финальная версия (центрирование + крестик)
    ============================================================ */
 
 function setupEventListeners() {
@@ -23,10 +23,6 @@ function setupEventListeners() {
     });
 }
 
-// ============================================================
-// ДОБАВЛЕНА ФУНКЦИЯ escapeHTML
-// ============================================================
-
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -37,12 +33,9 @@ function escapeHTML(str) {
         .replace(/'/g, '&#039;');
 }
 
-// ============================================================
-// ОСНОВНОЙ ОБРАБОТЧИК КЛИКОВ
-// ============================================================
 function handleDocumentClick(event) {
 
-    // === ЗАКРЫТИЕ МОДАЛКИ (обрабатываем до проверки data-action) ===
+    // === ЗАКРЫТИЕ МОДАЛКИ (обрабатываем до data-action) ===
     var closeBtn = event.target.closest('.btn-close-modal');
     if (closeBtn) {
         var modal = closeBtn.closest('.modal-overlay');
@@ -58,7 +51,7 @@ function handleDocumentClick(event) {
         return;
     }
 
-    // --- ДАЛЕЕ ИДЁТ ОСНОВНАЯ ЛОГИКА ---
+    // --- ДАЛЕЕ ОСНОВНАЯ ЛОГИКА ---
     var target = event.target.closest("[data-action]");
     if (target) {
         var action = target.dataset.action;
@@ -342,7 +335,7 @@ function openProductFromCard(productId) {
 }
 
 // ============================================================
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ (с прокруткой)
+// ФИНАЛЬНАЯ МОДАЛКА (центрирование, прокрутка, видимый крестик)
 // ============================================================
 
 function openProductDetails(product) {
@@ -419,11 +412,11 @@ function openProductDetails(product) {
     }
 
     var content = `
-        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch; box-shadow:0 4px 20px rgba(0,0,0,0.2); position:relative; margin:auto; width:100%;">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                 <span style="font-size:48px;">${product.emoji || '🍽️'}</span>
-                <h2 style="margin:0; font-size:24px;">${escapeHTML(product.name)}</h2>
-                <button type="button" class="btn-close-modal" style="margin-left:auto; background:none; border:none; font-size:24px; cursor:pointer;">×</button>
+                <h2 style="margin:0; font-size:24px; flex:1;">${escapeHTML(product.name)}</h2>
+                <button type="button" class="btn-close-modal" style="color:#333; font-size:32px; font-weight:bold; background:transparent; border:none; cursor:pointer; padding:0 8px; line-height:1; flex-shrink:0;">×</button>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
@@ -468,6 +461,8 @@ function openProductDetails(product) {
         justify-content: center;
         z-index: 1000;
         opacity: 1;
+        padding: 20px;
+        box-sizing: border-box;
     `;
     overlay.innerHTML = content;
     overlay.addEventListener('click', function(e) {
@@ -513,10 +508,6 @@ function changeProductCategory(category, clickedButton) {
     });
     if (typeof renderProducts === "function") renderProducts();
 }
-
-// ============================================================
-// ПОИСК (без полной перерисовки)
-// ============================================================
 
 var CURRENT_PRODUCT_SEARCH = "";
 function searchProducts(value) {
@@ -944,4 +935,4 @@ window.openBabyEditModal = openBabyEditModal;
 window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
-console.log('✅ handlers.js загружен (модалка исправлена, закрытие и прокрутка работают)');
+console.log('✅ handlers.js загружен — финальная версия с центрированием и видимым крестиком');
