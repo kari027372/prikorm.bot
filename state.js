@@ -32,7 +32,8 @@
         },
         navigation: {
             currentScreen: 'home'
-        }
+        },
+        productStateMigrationVersion: 0   // <-- добавлено для Stage 6
     };
 
     // ============================================================
@@ -184,7 +185,8 @@
             },
             diary: [],
             plan: {},
-            settings: {}
+            settings: {},
+            productState: {}   // <-- добавлено для Stage 6
         };
 
         window.STATE.children.push(newChild);
