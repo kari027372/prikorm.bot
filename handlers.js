@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js (исправленная модалка)
+   handlers.js (исправленная модалка + searchProducts)
    ============================================================ */
 
 function setupEventListeners() {
@@ -527,13 +527,18 @@ function changeProductCategory(category, clickedButton) {
     if (typeof renderProducts === "function") renderProducts();
 }
 
+// ============================================================
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ПОИСКА (теперь без полной перерисовки)
+// ============================================================
+
 var CURRENT_PRODUCT_SEARCH = "";
 function searchProducts(value) {
-    if (typeof window.setProductsSearch === 'function') {
+    if (typeof window.setProductsSearch === 'function' && typeof window.updateProductsList === 'function') {
         window.setProductsSearch(value);
-        if (typeof window.render === 'function') window.render('products');
+        window.updateProductsList();
         return;
     }
+    // fallback для старой системы
     CURRENT_PRODUCT_SEARCH = String(value || "").trim().toLowerCase();
     if (typeof renderProducts === "function") renderProducts();
 }
@@ -953,4 +958,4 @@ window.openBabyEditModal = openBabyEditModal;
 window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
-console.log('✅ handlers.js загружен (модалка исправлена, теперь видна и содержит все данные)');
+console.log('✅ handlers.js загружен (модалка исправлена, searchProducts обновлён)');
