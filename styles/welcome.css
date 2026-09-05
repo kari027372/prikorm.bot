@@ -1,7 +1,3 @@
-/* ============================================================
-   KENORA SPLASH SCREEN – premium, soft, минималистичный
-   ============================================================ */
-
 #splash-screen {
     position: fixed;
     top: 0;
@@ -20,17 +16,8 @@
     visibility: hidden;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
-
-#splash-screen.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-#splash-screen.hiding {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
+#splash-screen.visible { opacity: 1; visibility: visible; }
+#splash-screen.hiding { opacity: 0; visibility: hidden; pointer-events: none; }
 
 .splash-container {
     display: flex;
@@ -43,43 +30,19 @@
     gap: 6px;
 }
 
-/* ---------- Иконка (круг + ложечка) ---------- */
 .splash-icon {
     width: 96px;
     height: 96px;
     display: block;
     margin-bottom: 6px;
 }
+.splash-circle { stroke: #B08C9E; animation: drawCircle 0.9s ease 0.2s forwards; }
+@keyframes drawCircle { to { stroke-dashoffset: 0; } }
+.splash-spoon, .splash-spoon-head { stroke: #C4A88C; animation: fadeInSpoon 0.5s ease 1.1s forwards; }
+@keyframes fadeInSpoon { to { opacity: 1; } }
+.splash-leaf-icon { fill: #C4A88C; animation: leafAppear 0.6s ease 1.6s forwards; }
+@keyframes leafAppear { to { opacity: 1; transform: scale(1); } }
 
-.splash-circle {
-    stroke: #7D5874;
-    animation: drawCircle 0.9s ease 0.2s forwards;
-}
-
-@keyframes drawCircle {
-    to { stroke-dashoffset: 0; }
-}
-
-.splash-spoon,
-.splash-spoon-head {
-    stroke: #C982A4;
-    animation: fadeInSpoon 0.5s ease 1.1s forwards;
-}
-
-@keyframes fadeInSpoon {
-    to { opacity: 1; }
-}
-
-.splash-leaf-icon {
-    fill: #AFC0B0;
-    animation: leafAppear 0.6s ease 1.6s forwards;
-}
-
-@keyframes leafAppear {
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* ---------- Логотип KENORA ---------- */
 .splash-logo {
     display: flex;
     justify-content: center;
@@ -91,51 +54,27 @@
     color: #403B39;
     margin-top: 2px;
 }
+.splash-letter { opacity: 0; transform: translateY(8px); animation: letterFade 0.4s ease forwards; }
+@keyframes letterFade { to { opacity: 1; transform: translateY(0); } }
 
-.splash-letter {
-    opacity: 0;
-    transform: translateY(8px);
-    animation: letterFade 0.4s ease forwards;
-}
-
-@keyframes letterFade {
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ---------- Подзаголовок ---------- */
 .splash-subtitle {
     font-family: 'Inter', sans-serif;
     font-weight: 400;
     font-size: 16px;
     letter-spacing: 1.5px;
-    color: #C89A59;
+    color: #C4A88C;
     text-transform: lowercase;
     opacity: 0;
     transform: translateY(6px);
     animation: fadeUp 0.4s ease 1.6s forwards;
 }
 
-/* ---------- Декоративный листик (sage) ---------- */
-.splash-leaf-deco {
-    width: 22px;
-    height: 22px;
-    background: #AFC0B0;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg) scale(0);
-    margin: 10px auto 16px;
-    opacity: 0;
-    animation: leafGrow 0.5s ease 2.0s forwards;
-}
+.splash-leaf-deco { display: none; }
 
-@keyframes leafGrow {
-    to { opacity: 1; transform: rotate(-45deg) scale(1); }
-}
-
-/* ---------- Кнопка "Начать" ---------- */
 .splash-btn {
-    background: #C982A4;
+    background: #B08C9E;
     border: none;
-    border-radius: 24px;
+    border-radius: 30px;
     padding: 16px 48px;
     font-family: 'Inter', sans-serif;
     font-weight: 500;
@@ -143,7 +82,7 @@
     color: #FFFDFC;
     cursor: pointer;
     transition: all 0.25s ease;
-    box-shadow: 0 4px 16px rgba(201, 130, 164, 0.15);
+    box-shadow: 0 4px 16px rgba(176, 140, 158, 0.15);
     touch-action: manipulation;
     width: 100%;
     max-width: 280px;
@@ -152,75 +91,22 @@
     transform: translateY(8px);
     animation: fadeUp 0.5s ease 2.4s forwards;
 }
+.splash-btn:hover { background: #A07A8E; }
+.splash-btn:active { transform: scale(0.97); }
 
-.splash-btn:hover {
-    background: #B87896;
-    box-shadow: 0 6px 20px rgba(201, 130, 164, 0.2);
-}
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-.splash-btn:active {
-    transform: scale(0.97);
-}
+/* Тёмная тема */
+body.theme-dark #splash-screen { background: #1E1E1E; }
+body.theme-dark .splash-logo { color: #E8E0D8; }
+body.theme-dark .splash-subtitle { color: #C4A88C; }
+body.theme-dark .splash-btn { background: #A07A8E; }
+body.theme-dark .splash-btn:hover { background: #8A6A7E; }
+body.theme-dark .splash-circle { stroke: #B08C9E; }
+body.theme-dark .splash-spoon, .splash-spoon-head { stroke: #C4A88C; }
+body.theme-dark .splash-leaf-icon { fill: #C4A88C; }
 
-@keyframes fadeUp {
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ===== АДАПТАЦИЯ ПОД ТЁМНУЮ ТЕМУ ===== */
-body.theme-dark #splash-screen {
-    background: #1E1E1E;
-}
-body.theme-dark .splash-logo {
-    color: #E8E0D8;
-}
-body.theme-dark .splash-subtitle {
-    color: #B8986A;
-}
-body.theme-dark .splash-leaf-deco {
-    background: #8AA88A;
-}
-body.theme-dark .splash-btn {
-    background: #9A6A8A;
-}
-body.theme-dark .splash-circle {
-    stroke: #A88A9E;
-}
-body.theme-dark .splash-spoon,
-body.theme-dark .splash-spoon-head {
-    stroke: #9A6A8A;
-}
-body.theme-dark .splash-leaf-icon {
-    fill: #8AA88A;
-}
-
-/* ===== АДАПТАЦИЯ ПОД ДЕТСКУЮ ТЕМУ ===== */
-body.theme-kids #splash-screen {
-    background: #F7F1EA;
-}
-body.theme-kids .splash-logo {
-    color: #403B39;
-}
-body.theme-kids .splash-subtitle {
-    color: #C89A59;
-}
-body.theme-kids .splash-leaf-deco {
-    background: #AFC0B0;
-}
-body.theme-kids .splash-btn {
-    background: #C982A4;
-}
-body.theme-kids .splash-circle {
-    stroke: #7D5874;
-}
-body.theme-kids .splash-spoon,
-body.theme-kids .splash-spoon-head {
-    stroke: #C982A4;
-}
-body.theme-kids .splash-leaf-icon {
-    fill: #AFC0B0;
-}
-
-/* ===== БЕЗОПАСНЫЕ ЗОНЫ ДЛЯ IPHONE ===== */
+/* Безопасные зоны для iPhone */
 @supports (padding: max(0px)) {
     #splash-screen {
         padding-left: max(24px, env(safe-area-inset-left));
@@ -229,25 +115,13 @@ body.theme-kids .splash-leaf-icon {
         padding-bottom: max(24px, env(safe-area-inset-bottom));
     }
 }
-
-/* ===== УЧЁТ ПРЕДПОЧТЕНИЙ ПОНИЖЕННОЙ АНИМАЦИИ ===== */
+/* Отключение анимации при предпочтении reduced motion */
 @media (prefers-reduced-motion: reduce) {
-    .splash-circle {
-        animation: none;
-        stroke-dashoffset: 0;
-    }
-    .splash-spoon,
-    .splash-spoon-head,
-    .splash-leaf-icon,
-    .splash-letter,
-    .splash-subtitle,
-    .splash-leaf-deco,
-    .splash-btn {
+    .splash-circle { animation: none; stroke-dashoffset: 0; }
+    .splash-spoon, .splash-spoon-head, .splash-leaf-icon,
+    .splash-letter, .splash-subtitle, .splash-btn {
         animation: none;
         opacity: 1;
         transform: none;
-    }
-    .splash-leaf-deco {
-        transform: rotate(-45deg) scale(1);
     }
 }
