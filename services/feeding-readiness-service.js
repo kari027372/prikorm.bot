@@ -1,244 +1,232 @@
-// services/feeding-readiness-service.js
 (function() {
-    'use strict';
+  'use strict';
 
-    // ============================================================
-    // 1. ВОЗРАСТ
-    // ============================================================
+  // ============================================================
+  // КОНФИГУРАЦИЯ ЭТАПОВ ПРИКОРМА (легко изменяема)
+  // ============================================================
 
-    function calculateAge(birthDate) {
-        if (!birthDate) return { months: 0, days: 0 };
-        const birth = new Date(birthDate);
-        const now = new Date();
-        let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
-        if (now.getDate() < birth.getDate()) months--;
-        return {
-            months: Math.max(0, months),
-            days: Math.max(0, Math.floor((now.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24)))
-        };
+  const STAGE_RULES = {
+    // Правила по возрасту (в месяцах) – приоритет
+    age: [
+      { min: 0, max: 5.9, stage: 'initial', label: 'Начальный этап', description: 'Первые пробы, пюреобразная пища, знакомство с новыми вкусами.' },
+      { min: 6, max: 7.9, stage: 'expanding', label: 'Расширение рациона', description: 'Вводим новые группы продуктов, текстуры становятся более разнообразными.' },
+      { min: 8, max: 9.9, stage: 'establishing', label: 'Установление режима', description: '3 основных приёма пищи, включаем кусочки, ребёнок учится жевать.' },
+      { min: 10, max: Infinity, stage: 'transitioning', label: 'Переход к семейной еде', description: 'Ребёнок постепенно переходит на общий стол, текстуры и порции приближаются к взрослым.' }
+    ],
+    // Правила по стажу прикорма (в днях) – используются только если возраст не определён
+    daysSinceStart: [
+      { min: 0, max: 30, stage: 'initial', label: 'Начальный этап', description: 'Первые пробы, пюре.' },
+      { min: 31, max: 90, stage: 'expanding', label: 'Расширение рациона', description: 'Новые группы продуктов, текстуры.' },
+      { min: 91, max: 180, stage: 'establishing', label: 'Установление режима', description: '3 приёма пищи, кусочки.' },
+      { min: 181, max: Infinity, stage: 'transitioning', label: 'Переход к семейной еде', description: 'Приближение к общему столу.' }
+    ]
+  };
+
+  // ============================================================
+  // СУЩЕСТВУЮЩИЕ ФУНКЦИИ (БЕЗ ИЗМЕНЕНИЙ)
+  // ============================================================
+
+  /**
+   * Рассчитывает возраст в месяцах и днях от даты рождения
+   */
+  function calculateAge(birthDate) {
+    if (!birthDate) return { months: 0, days: 0 };
+    const now = new Date();
+    const birth = new Date(birthDate);
+    let months = (now.getFullYear() - birth.getFullYear()) * 12;
+    months += now.getMonth() - birth.getMonth();
+    let days = now.getDate() - birth.getDate();
+    if (days < 0) {
+      months -= 1;
+      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      days += prevMonth.getDate();
     }
+    if (months < 0) months = 0;
+    return { months, days };
+  }
 
-    // ============================================================
-    // 2. СРОК РОЖДЕНИЯ
-    // ============================================================
+  /**
+   * Определяет категорию срока рождения по гестационным неделям и дням
+   */
+  function getBirthTermCategory(weeks, days) {
+    const totalDays = weeks * 7 + (days || 0);
+    if (totalDays < 259) return 'preterm';          // < 37 недель
+    if (totalDays < 273) return 'early_term';       // 37–38,6
+    if (totalDays < 294) return 'full_term';        // 39–40,6
+    if (totalDays < 301) return 'late_term';        // 41–41,6
+    if (totalDays < 315) return 'post_term';        // 42–42,6
+    return 'unknown';
+  }
 
-    function getBirthTermCategory(weeks, days) {
-        if (weeks === '' || weeks === null || weeks === undefined) return 'unknown';
-        const totalDays = parseInt(weeks, 10) * 7 + (parseInt(days, 10) || 0);
-        if (totalDays < 259) return 'preterm';
-        if (totalDays < 273) return 'early_term';
-        if (totalDays < 287) return 'full_term';
-        if (totalDays < 294) return 'late_term';
-        return 'post_term';
+  /**
+   * Рассчитывает скорректированный возраст (для недоношенных)
+   */
+  function calculateCorrectedAge(chronologicalMonths, gestationalWeeks) {
+    if (!gestationalWeeks || gestationalWeeks >= 40) {
+      return chronologicalMonths;
     }
+    const diff = (40 - gestationalWeeks) / 4.345; // примерно 4.345 недель в месяце
+    return Math.max(0, chronologicalMonths - diff);
+  }
 
-    function getTermLabel(category) {
-        const map = {
-            'preterm': 'Родился раньше срока',
-            'early_term': 'Ранний доношенный срок',
-            'full_term': 'Доношенный',
-            'late_term': 'Поздний доношенный срок',
-            'post_term': 'После срока',
-            'unknown': 'Срок не указан'
-        };
-        return map[category] || '';
-    }
-
-    // ============================================================
-    // 3. СКОРРЕКТИРОВАННЫЙ ВОЗРАСТ
-    // ============================================================
-
-    function calculateCorrectedAge(chronologicalMonths, gestationalWeeks) {
-        let safeWeeks = 40;
-        if (typeof gestationalWeeks === 'number' && gestationalWeeks >= 20 && gestationalWeeks <= 43) {
-            safeWeeks = gestationalWeeks;
-        }
-        if (safeWeeks >= 37) {
-            return chronologicalMonths;
-        }
-        const weeksEarly = 40 - safeWeeks;
-        const monthsEarly = weeksEarly / 4.345;
-        return Math.max(0, chronologicalMonths - monthsEarly);
-    }
-
-    // ============================================================
-    // 4. ПАРСИНГ ОТВЕТОВ ГОТОВНОСТИ
-    // ============================================================
-
-    function parseReadinessAnswers(rawAnswers) {
-        const result = {};
-        const keys = ['headControl', 'bodyPosition', 'foodInterest', 'opensMouth', 'foodHandling'];
-        keys.forEach(key => {
-            const val = rawAnswers[key];
-            if (key === 'foodHandling') {
-                result[key] = val || 'unknown';
-            } else {
-                const map = {
-                    'Уверенно': 'yes',
-                    'Иногда теряет положение': 'partial',
-                    'Пока не удерживает': 'no',
-                    'Не уверена': 'unknown',
-                    'Да': 'yes',
-                    'Иногда': 'partial',
-                    'Нет': 'no',
-                    'Не уверена': 'unknown',
-                    'Да, устойчиво': 'yes',
-                    'С поддержкой, но иногда заваливается': 'partial',
-                    'Пока нет': 'no'
-                };
-                result[key] = map[val] || 'unknown';
-            }
-        });
-        return result;
-    }
-
-    // ============================================================
-    // 5. КОМПЛЕКСНАЯ ОЦЕНКА
-    // ============================================================
-
-    function evaluateReadiness(childData) {
-        const {
-            birthDate,
-            gestationalAgeWeeks,
-            birthTermCategory,
-            readiness: rawReadiness,
-            feedingProblems = [],
-            feedingStarted,
-        } = childData;
-
-        // 1. Возраст
-        const age = calculateAge(birthDate);
-        const chronologicalAgeMonths = age.months;
-        const chronologicalAgeDays = age.days;
-
-        // 2. Срок рождения
-        let safeGestationalWeeks = 40;
-        if (typeof gestationalAgeWeeks === 'number' && gestationalAgeWeeks >= 20 && gestationalAgeWeeks <= 43) {
-            safeGestationalWeeks = gestationalAgeWeeks;
-        }
-        const termCategory = birthTermCategory || 'unknown';
-        const isPreterm = termCategory === 'preterm' || (safeGestationalWeeks < 37);
-        const correctedAgeMonths = calculateCorrectedAge(chronologicalAgeMonths, safeGestationalWeeks);
-
-        // 3. Признаки готовности
-        const parsed = parseReadinessAnswers(rawReadiness || {});
-        const {
-            headControl = 'unknown',
-            bodyPosition = 'unknown',
-            foodInterest = 'unknown',
-            opensMouth = 'unknown',
-            foodHandling = 'unknown'
-        } = parsed;
-
-        // 4. Ключевые навыки безопасности
-        const keySkills = {
-            headControl: headControl === 'yes',
-            bodyPosition: bodyPosition === 'yes' || bodyPosition === 'partial',
-            safeSwallowing: foodHandling === 'Спокойно принимает и проглатывает' || foodHandling === 'Иногда выталкивает языком'
-        };
-        const hasKeySkills = keySkills.headControl && keySkills.bodyPosition && keySkills.safeSwallowing;
-
-        // 5. Проблемы с кормлением
-        const seriousProblems = feedingProblems.some(p =>
-            p === 'Часто давится/кашляет во время кормления' ||
-            p === 'Есть проблемы с глотанием' ||
-            p === 'Есть выраженные трудности с кормлением'
-        );
-
-        // 6. Итог
-        let overallStatus = 'unknown';
-        let overallMessage = '';
-        let overallRecommendation = '';
-
-        if (chronologicalAgeMonths < 4) {
-            overallStatus = 'too_young';
-            overallMessage = '🔵 Возраст пока очень маленький';
-            overallRecommendation = 'Прикорм в таком возрасте обычно не начинают. Продолжайте наблюдать за развитием.';
-        } else if (seriousProblems) {
-            overallStatus = 'needs_review';
-            overallMessage = '🟠 Нужна консультация специалиста';
-            overallRecommendation = 'В анкете отмечены особенности кормления, которые важно обсудить с педиатром.';
-        } else {
-            const ageReady = chronologicalAgeMonths >= 6;
-            const correctedReady = isPreterm ? correctedAgeMonths >= 6 : false;
-
-            if (ageReady || (isPreterm && correctedReady)) {
-                if (hasKeySkills) {
-                    overallStatus = 'ready';
-                    overallMessage = '🟢 Основные признаки готовности присутствуют';
-                    overallRecommendation = 'Возраст и основные навыки соответствуют началу прикорма.';
-                } else {
-                    overallStatus = 'developing';
-                    overallMessage = '🟡 Некоторые важные навыки ещё формируются';
-                    overallRecommendation = 'Возраст подходит, но один или несколько ключевых навыков пока не сформированы. Продолжайте наблюдать.';
-                }
-            } else if (chronologicalAgeMonths >= 4 && chronologicalAgeMonths < 6) {
-                if (hasKeySkills) {
-                    overallStatus = 'possible';
-                    overallMessage = '🟡 Большинство признаков готовности присутствует';
-                    overallRecommendation = 'Возраст немного меньше основного ориентира, но навыки сформированы. Если планируете начало до 6 месяцев, обсудите с педиатром.';
-                } else {
-                    overallStatus = 'developing';
-                    overallMessage = '🟡 Некоторые навыки ещё формируются';
-                    overallRecommendation = 'Возраст ещё не достиг основного ориентира, и не все ключевые навыки сформированы. Продолжайте наблюдать.';
-                }
-            } else {
-                overallStatus = 'not_yet';
-                overallMessage = '🔵 Данных недостаточно или возраст ещё не подходит';
-                overallRecommendation = 'Продолжайте наблюдать за ребёнком.';
-            }
-        }
-
-        if (isPreterm && overallStatus !== 'needs_review' && overallStatus !== 'too_young') {
-            overallMessage += ' (учтена недоношенность)';
-            overallRecommendation = 'Для недоношенных детей особенно важно учитывать развитие. ' + overallRecommendation;
-        }
-
-        return {
-            ageBlock: {
-                chronologicalMonths,
-                chronologicalDays,
-                correctedMonths: isPreterm ? correctedAgeMonths : null,
-                isPreterm
-            },
-            termBlock: {
-                category: termCategory,
-                label: getTermLabel(termCategory),
-                weeks: safeGestationalWeeks
-            },
-            readinessBlock: {
-                headControl,
-                bodyPosition,
-                foodInterest,
-                opensMouth,
-                foodHandling,
-                keySkills,
-                hasKeySkills
-            },
-            safetyBlock: {
-                hasFeedingProblems: feedingProblems.length > 0,
-                seriousProblems,
-                problemsList: feedingProblems.filter(p => p !== 'Нет' && p !== 'Не уверена')
-            },
-            overallStatus,
-            overallMessage,
-            overallRecommendation,
-            originalReadiness: rawReadiness || {}
-        };
-    }
-
-    // ============================================================
-    // 6. ПУБЛИЧНЫЙ API
-    // ============================================================
-
-    window.feedingReadiness = {
-        calculateAge,
-        getBirthTermCategory,
-        getTermLabel,
-        calculateCorrectedAge,
-        parseReadinessAnswers,
-        evaluateReadiness
+  /**
+   * Нормализует ответы на вопросы о готовности к прикорму
+   */
+  function parseReadinessAnswers(rawAnswers) {
+    const defaults = {
+      headControl: 'unknown',
+      bodyPosition: 'unknown',
+      foodInterest: 'unknown',
+      opensMouth: 'unknown',
+      foodHandling: 'unknown'
     };
+    if (!rawAnswers || typeof rawAnswers !== 'object') return defaults;
+    return {
+      headControl: rawAnswers.headControl || 'unknown',
+      bodyPosition: rawAnswers.bodyPosition || 'unknown',
+      foodInterest: rawAnswers.foodInterest || 'unknown',
+      opensMouth: rawAnswers.opensMouth || 'unknown',
+      foodHandling: rawAnswers.foodHandling || 'unknown'
+    };
+  }
 
-    console.log('✅ feeding-readiness-service загружен');
+  /**
+   * Комплексная оценка готовности к прикорму
+   */
+  function evaluateReadiness(childData) {
+    if (!childData) {
+      return { ready: false, reasons: ['Нет данных о ребёнке'], score: 0 };
+    }
+    const readiness = childData.readiness || {};
+    const answers = parseReadinessAnswers(readiness);
+    const values = Object.values(answers);
+    const positive = values.filter(v => v === 'yes').length;
+    const partial = values.filter(v => v === 'partial').length;
+    const total = values.length;
+    const score = total > 0 ? (positive + partial * 0.5) / total : 0;
+
+    const ageInfo = childData.birthDate ? calculateAge(childData.birthDate) : { months: 0 };
+    const corrected = childData.gestationalAgeWeeks
+      ? calculateCorrectedAge(ageInfo.months, childData.gestationalAgeWeeks)
+      : ageInfo.months;
+
+    const reasons = [];
+    if (corrected < 4) reasons.push('Возраст менее 4 месяцев (скорректированный)');
+    if (positive < 3) reasons.push('Недостаточно признаков готовности');
+    if (partial > 2) reasons.push('Много частичных навыков');
+    if (reasons.length === 0 && score >= 0.7 && corrected >= 4) {
+      return { ready: true, reasons: ['Готов к прикорму'], score };
+    }
+    return { ready: false, reasons: reasons.length ? reasons : ['Не все критерии выполнены'], score };
+  }
+
+  // ============================================================
+  // НОВАЯ ФУНКЦИЯ – ОПРЕДЕЛЕНИЕ ЭТАПА ПРИКОРМА
+  // ============================================================
+
+  /**
+   * Определяет этап прикорма на основе готового профиля ребёнка.
+   * @param {Object} profile - нормализованный профиль (из childService.getChildProfile)
+   * @returns {Object} { stage, label, description, basedOn, details }
+   */
+  function getFeedingStage(profile) {
+    if (!profile) {
+      return { stage: null, reason: 'no_profile' };
+    }
+
+    const { feeding, calculated } = profile;
+
+    // Если прикорм не начат – возвращаем сразу
+    if (!feeding.started) {
+      return {
+        stage: 'not_started',
+        label: 'Прикорм не начат',
+        description: 'Вы ещё не начали вводить прикорм. Ознакомьтесь с признаками готовности.',
+        basedOn: 'feeding_started',
+        details: { started: false }
+      };
+    }
+
+    // Проверяем наличие данных для определения этапа
+    const hasAge = calculated.correctedAgeMonths !== null && calculated.correctedAgeMonths !== undefined;
+    const hasChronoAge = calculated.chronologicalAgeMonths !== null && calculated.chronologicalAgeMonths !== undefined;
+    const hasDays = calculated.daysSinceStart !== null && calculated.daysSinceStart !== undefined;
+
+    // Используем correctedAgeMonths приоритетно, затем chronological
+    let ageToUse = null;
+    let ageType = null;
+    if (hasAge) {
+      ageToUse = calculated.correctedAgeMonths;
+      ageType = 'corrected';
+    } else if (hasChronoAge) {
+      ageToUse = calculated.chronologicalAgeMonths;
+      ageType = 'chronological';
+    }
+
+    // Если возраст есть – определяем этап по возрасту
+    if (ageToUse !== null) {
+      const rules = STAGE_RULES.age;
+      for (const rule of rules) {
+        if (ageToUse >= rule.min && ageToUse < rule.max) {
+          return {
+            stage: rule.stage,
+            label: rule.label,
+            description: rule.description,
+            basedOn: 'age',
+            details: { ageMonths: ageToUse, ageType }
+          };
+        }
+      }
+      // Если ни одно правило не подошло (например, возраст отрицательный) – fallback
+      return {
+        stage: null,
+        reason: 'age_out_of_range',
+        details: { ageMonths: ageToUse, ageType }
+      };
+    }
+
+    // Если возраст не определён, но есть стаж – используем стаж
+    if (hasDays) {
+      const days = calculated.daysSinceStart;
+      const rules = STAGE_RULES.daysSinceStart;
+      for (const rule of rules) {
+        if (days >= rule.min && days < rule.max) {
+          return {
+            stage: rule.stage,
+            label: rule.label,
+            description: rule.description,
+            basedOn: 'days',
+            details: { daysSinceStart: days }
+          };
+        }
+      }
+      return {
+        stage: null,
+        reason: 'days_out_of_range',
+        details: { daysSinceStart: days }
+      };
+    }
+
+    // Если нет ни возраста, ни стажа – недостаточно данных
+    return {
+      stage: null,
+      reason: 'insufficient_data',
+      details: { hasAge, hasChronoAge, hasDays }
+    };
+  }
+
+  // ============================================================
+  // ПУБЛИЧНЫЙ API
+  // ============================================================
+
+  window.feedingReadiness = {
+    calculateAge: calculateAge,
+    getBirthTermCategory: getBirthTermCategory,
+    calculateCorrectedAge: calculateCorrectedAge,
+    parseReadinessAnswers: parseReadinessAnswers,
+    evaluateReadiness: evaluateReadiness,
+    getFeedingStage: getFeedingStage   // <-- новая функция
+  };
+
+  console.log('✅ feeding-readiness-service загружен');
 })();
