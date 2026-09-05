@@ -1,10 +1,14 @@
+/* ============================================================
+   SPLASH-ЭКРАН KENORA – как на референсе
+   ============================================================ */
+
 #splash-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100dvh;
-    background: #F7F1EA;
+    background: #FFF7F1;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -16,8 +20,17 @@
     visibility: hidden;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
-#splash-screen.visible { opacity: 1; visibility: visible; }
-#splash-screen.hiding { opacity: 0; visibility: hidden; pointer-events: none; }
+
+#splash-screen.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+#splash-screen.hiding {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
 
 .splash-container {
     display: flex;
@@ -27,86 +40,136 @@
     text-align: center;
     width: 100%;
     max-width: 400px;
-    gap: 6px;
+    gap: 4px;
 }
 
+/* ---------- ИКОНКА: КРУГ + ЛОЖКА ---------- */
 .splash-icon {
-    width: 96px;
-    height: 96px;
+    width: 110px;
+    height: 110px;
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
-.splash-circle { stroke: #B08C9E; animation: drawCircle 0.9s ease 0.2s forwards; }
-@keyframes drawCircle { to { stroke-dashoffset: 0; } }
-.splash-spoon, .splash-spoon-head { stroke: #C4A88C; animation: fadeInSpoon 0.5s ease 1.1s forwards; }
-@keyframes fadeInSpoon { to { opacity: 1; } }
-.splash-leaf-icon { fill: #C4A88C; animation: leafAppear 0.6s ease 1.6s forwards; }
-@keyframes leafAppear { to { opacity: 1; transform: scale(1); } }
 
+.splash-icon circle {
+    animation: drawCircle 1.0s ease 0.2s forwards;
+}
+@keyframes drawCircle {
+    to { stroke-dashoffset: 0; }
+}
+
+.splash-icon path,
+.splash-icon ellipse {
+    animation: fadeInSpoon 0.6s ease 1.2s forwards;
+}
+@keyframes fadeInSpoon {
+    to { opacity: 1; }
+}
+
+.splash-icon path:last-child {
+    animation: leafAppear 0.6s ease 1.8s forwards;
+}
+@keyframes leafAppear {
+    to { opacity: 0.6; transform: scale(1); }
+}
+
+/* ---------- ЛОГОТИП ---------- */
 .splash-logo {
     display: flex;
     justify-content: center;
     gap: 2px;
     font-family: 'Cormorant Garamond', serif;
     font-weight: 700;
-    font-size: 42px;
+    font-size: 44px;
     letter-spacing: 2px;
-    color: #403B39;
+    color: #6D6A60;
     margin-top: 2px;
 }
-.splash-letter { opacity: 0; transform: translateY(8px); animation: letterFade 0.4s ease forwards; }
-@keyframes letterFade { to { opacity: 1; transform: translateY(0); } }
 
+.splash-letter {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: letterFade 0.4s ease forwards;
+}
+@keyframes letterFade {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- ПОДЗАГОЛОВОК ---------- */
 .splash-subtitle {
     font-family: 'Inter', sans-serif;
     font-weight: 400;
     font-size: 16px;
     letter-spacing: 1.5px;
-    color: #C4A88C;
+    color: #A76B6A;
     text-transform: lowercase;
     opacity: 0;
     transform: translateY(6px);
-    animation: fadeUp 0.4s ease 1.6s forwards;
+    animation: fadeUp 0.5s ease 1.6s forwards;
 }
 
-.splash-leaf-deco { display: none; }
+@keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+}
 
+/* ---------- КНОПКА ---------- */
 .splash-btn {
-    background: #B08C9E;
+    background: #D4B8A8;
     border: none;
     border-radius: 30px;
     padding: 16px 48px;
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 18px;
-    color: #FFFDFC;
+    color: #FFF7F1;
     cursor: pointer;
     transition: all 0.25s ease;
-    box-shadow: 0 4px 16px rgba(176, 140, 158, 0.15);
+    box-shadow: 0 4px 16px rgba(164, 132, 120, 0.15);
     touch-action: manipulation;
     width: 100%;
     max-width: 280px;
     min-height: 56px;
+    margin-top: 8px;
     opacity: 0;
     transform: translateY(8px);
-    animation: fadeUp 0.5s ease 2.4s forwards;
+    animation: fadeUp 0.5s ease 2.2s forwards;
 }
-.splash-btn:hover { background: #A07A8E; }
-.splash-btn:active { transform: scale(0.97); }
 
-@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+.splash-btn:hover {
+    background: #C4A898;
+}
+.splash-btn:active {
+    transform: scale(0.97);
+}
 
-/* Тёмная тема */
-body.theme-dark #splash-screen { background: #1E1E1E; }
-body.theme-dark .splash-logo { color: #E8E0D8; }
-body.theme-dark .splash-subtitle { color: #C4A88C; }
-body.theme-dark .splash-btn { background: #A07A8E; }
-body.theme-dark .splash-btn:hover { background: #8A6A7E; }
-body.theme-dark .splash-circle { stroke: #B08C9E; }
-body.theme-dark .splash-spoon, .splash-spoon-head { stroke: #C4A88C; }
-body.theme-dark .splash-leaf-icon { fill: #C4A88C; }
+/* ===== ТЁМНАЯ ТЕМА ===== */
+body.theme-dark #splash-screen {
+    background: #1E1E1E;
+}
+body.theme-dark .splash-logo {
+    color: #C4B8B0;
+}
+body.theme-dark .splash-subtitle {
+    color: #B08C8C;
+}
+body.theme-dark .splash-btn {
+    background: #6D6A60;
+}
+body.theme-dark .splash-btn:hover {
+    background: #5A5850;
+}
+body.theme-dark .splash-icon circle {
+    stroke: #B08C8C;
+}
+body.theme-dark .splash-icon path,
+body.theme-dark .splash-icon ellipse {
+    stroke: #C4A88C;
+}
+body.theme-dark .splash-icon path:last-child {
+    fill: #C4A88C;
+}
 
-/* Безопасные зоны для iPhone */
+/* ===== БЕЗОПАСНЫЕ ЗОНЫ ДЛЯ IPHONE ===== */
 @supports (padding: max(0px)) {
     #splash-screen {
         padding-left: max(24px, env(safe-area-inset-left));
@@ -115,11 +178,18 @@ body.theme-dark .splash-leaf-icon { fill: #C4A88C; }
         padding-bottom: max(24px, env(safe-area-inset-bottom));
     }
 }
-/* Отключение анимации при предпочтении reduced motion */
+
+/* ===== ОТКЛЮЧЕНИЕ АНИМАЦИИ ===== */
 @media (prefers-reduced-motion: reduce) {
-    .splash-circle { animation: none; stroke-dashoffset: 0; }
-    .splash-spoon, .splash-spoon-head, .splash-leaf-icon,
-    .splash-letter, .splash-subtitle, .splash-btn {
+    .splash-icon circle {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+    .splash-icon path,
+    .splash-icon ellipse,
+    .splash-letter,
+    .splash-subtitle,
+    .splash-btn {
         animation: none;
         opacity: 1;
         transform: none;
