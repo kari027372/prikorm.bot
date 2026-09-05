@@ -1,16 +1,14 @@
-// screens/home.js – новый дизайн главной KENORA
+// screens/home.js – KENORA главная
 window.renderHome = function() {
     const state = window.STATE || {};
     const currentChild = window.getCurrentChild ? window.getCurrentChild() : (state.baby || {});
     const baby = currentChild || {};
 
-    // Данные для карточек
-    const introduced = state.products?.introduced || [];
     const diary = state.diary || [];
+    const introduced = state.products?.introduced || [];
     const totalIntroduced = introduced.length;
     const totalProducts = (window.PRODUCTS || []).length;
 
-    // Возраст
     let ageText = 'Возраст не указан';
     if (baby.birthDate && typeof window.formatAge === 'function') {
         ageText = window.formatAge(baby.birthDate);
@@ -23,57 +21,60 @@ window.renderHome = function() {
         ageText = months + ' мес.';
     }
 
-    // Вес (если есть)
-    const weight = baby.weight || '9.3';
+    const weight = baby.weight || '';
     const weightText = weight ? weight + ' кг' : '';
 
-    // Дневник (последние 3 записи)
-    const recentEntries = diary.slice(-3).reverse();
-    let diaryHtml = '';
-    if (recentEntries.length === 0) {
-        diaryHtml = `
-            <div class="empty-state">
-                <span class="empty-icon">📭</span>
-                <p>Нет записей</p>
+    const avatarEmoji = baby.sex === 'male' ? '👦' : baby.sex === 'female' ? '👧' : '👶';
+
+    // Последний приём пищи
+    const lastEntry = diary.length ? diary[diary.length - 1] : null;
+    let lastMealHtml = '';
+    if (lastEntry) {
+        const food = lastEntry.productName || 'Продукт';
+        const amount = lastEntry.amount ? lastEntry.amount + ' г' : '';
+        const status = 'Хорошо';
+        const time = lastEntry.time || '12:30';
+        lastMealHtml = `
+            <div class="last-meal">
+                <div class="last-meal-header">
+                    <span>🕐 Последний приём пищи</span>
+                    <span class="last-meal-time">${time}</span>
+                </div>
+                <div class="last-meal-content">
+                    <span class="last-meal-food">${food}</span>
+                    ${amount ? `<span class="last-meal-amount">${amount}</span>` : ''}
+                    <span class="last-meal-status">${status}</span>
+                </div>
             </div>
         `;
     } else {
-        diaryHtml = recentEntries.map(entry => `
-            <div class="diary-entry">
-                <span class="diary-entry-icon">${entry.emoji || '🍽️'}</span>
-                <div class="diary-entry-content">
-                    <strong>${entry.productName || 'Продукт'}</strong>
-                    <span>${entry.date || ''}</span>
-                    ${entry.amount ? `<span>${entry.amount} г</span>` : ''}
-                    ${entry.reaction ? `<span class="badge">⚠️ ${entry.reaction}</span>` : ''}
-                </div>
+        lastMealHtml = `
+            <div class="last-meal">
+                <div class="last-meal-header"><span>🕐 Нет записей</span></div>
+                <div class="last-meal-content"><span class="last-meal-food">Добавьте первый приём пищи</span></div>
             </div>
-        `).join('');
+        `;
     }
-
-    // Аватарка
-    const avatarEmoji = baby.sex === 'male' ? '👦' : baby.sex === 'female' ? '👧' : '👶';
-    const name = baby.name || 'Малыш';
 
     return `
         <div class="screen active">
-            <!-- Профиль ребёнка -->
+            <!-- Профиль -->
             <div class="baby-profile-card">
                 <div class="baby-avatar">${avatarEmoji}</div>
                 <div>
-                    <strong id="babyName">${name}</strong>
-                    <div class="muted" id="babyAge">${ageText}${weightText ? ' • ' + weightText : ''}</div>
+                    <strong>${baby.name || 'Малыш'}</strong>
+                    <div class="muted">${ageText}${weightText ? ' • ' + weightText : ''}</div>
                 </div>
                 <button class="icon-button" style="margin-left:auto;" data-action="navigate" data-screen="baby">✎</button>
             </div>
 
-            <!-- Сегодняшний продукт -->
+            <!-- Сегодняшний продукт (заглушка) -->
             <div class="today-product">
                 <span class="today-product-label">Сегодня новый продукт</span>
                 <span class="today-product-name">🌱 Цветная капуста</span>
             </div>
 
-            <!-- Статистика (4 карточки) -->
+            <!-- Статистика -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-icon">🍽️</span>
@@ -98,23 +99,10 @@ window.renderHome = function() {
             </div>
 
             <!-- Последний приём пищи -->
-            <div class="last-meal">
-                <div class="last-meal-header">
-                    <span>🕐 Последний приём пищи</span>
-                    <span class="last-meal-time">12:30</span>
-                </div>
-                <div class="last-meal-content">
-                    <span class="last-meal-food">Кабачок</span>
-                    <span class="last-meal-amount">80 г</span>
-                    <span class="last-meal-status">✅ Хорошо</span>
-                </div>
-            </div>
+            ${lastMealHtml}
 
             <!-- Кнопка "Начать" (для первого запуска) -->
             <button class="start-btn" id="start-day-btn">Начать</button>
-
-            <!-- Нижняя навигация (рендерится отдельно, но оставим для совместимости) -->
-            <div id="bottom-nav-placeholder"></div>
         </div>
     `;
 };
