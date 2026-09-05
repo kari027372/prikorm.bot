@@ -1,4 +1,4 @@
-// components/bottom-nav.js – красивые SVG-иконки
+// components/bottom-nav.js – с SVG-иконками
 window.renderBottomNav = function(active) {
     const items = [
         { 
