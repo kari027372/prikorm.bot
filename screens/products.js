@@ -1,36 +1,132 @@
-// screens/products.js — экран "Продукты"
-function renderProducts() {
-    const products = getProducts();
-    const ui = getUIState();
-    const search = (ui.productSearch || '').toLowerCase();
-    const currentCat = ui.productCategory || 'all';
-    let filtered = products;
-    if (search) filtered = filtered.filter(p => p.name && p.name.toLowerCase().includes(search));
-    const cats = ['овощ', 'фрукт', 'каша', 'мясо', 'рыба', 'яйцо', 'молочное', 'бобовые', 'орехи'];
-    if (currentCat !== 'all') filtered = filtered.filter(p => p.cat === currentCat);
+// screens/products.js
+import { PRODUCTS, CATEGORIES } from '../data/products.js';
+import { getCurrentChild } from '../services/child-service.js';
 
-    return `
-    <div class="screen">
-        <div class="page-header"><h1>Продукты</h1></div>
-        <div class="search-box">🔎 <input id="product-search" type="search" placeholder="Найти продукт..." value="${ui.productSearch || ''}"></div>
-        <div class="category-scroll">
-            <button class="category-chip ${currentCat === 'all' ? 'active' : ''}" data-action="product-category" data-category="all">Все</button>
-            ${cats.map(c => `<button class="category-chip ${currentCat === c ? 'active' : ''}" data-action="product-category" data-category="${c}">${c}</button>`).join('')}
-        </div>
-        <div class="products-grid">
-            ${filtered.length ? filtered.map(p => `
-                <div class="product-card ${isProductIntroduced(p.id) ? 'introduced' : ''}" data-action="open-product" data-product-id="${p.id}">
-                    <span class="product-emoji">${p.emoji || '🥣'}</span>
-                    <h3>${p.name}</h3>
-                    <div class="product-tags"><span>${p.min_age || 0}+ мес.</span>${p.iron ? '<span>🩸 Железо</span>' : ''}${p.allergen ? '<span>⚠️ Аллерген</span>' : ''}</div>
-                    ${isProductIntroduced(p.id) ? '<div class="introduced-label">✓ Пробовали</div>' : ''}
+// Состояние фильтров (локальное)
+let currentCategory = 'all';
+let searchQuery = '';
+
+/**
+ * Рендер экрана "Продукты"
+ */
+export function renderProducts(state) {
+  const child = getCurrentChild(state);
+  const childAgeMonths = child ? child.ageMonths : 0;
+
+  // Фильтруем продукты
+  let filtered = [...PRODUCTS];
+  
+  if (currentCategory !== 'all') {
+    filtered = filtered.filter(p => p.category === currentCategory);
+  }
+  
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase().trim();
+    filtered = filtered.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      (p.highlights && p.highlights.some(h => h.toLowerCase().includes(q))) ||
+      (p.interestingFact && p.interestingFact.toLowerCase().includes(q))
+    );
+  }
+
+  // Сортировка: сначала рекомендуемые, потом осторожные, потом избегать
+  const statusOrder = { recommended: 0, caution: 1, age_limited: 2, avoid: 3 };
+  filtered.sort((a, b) => (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0));
+
+  // Строим HTML
+  const html = `
+    <div class="screen products-screen">
+      <div class="screen-header">
+        <h2>Продукты</h2>
+        <span class="product-count">${filtered.length} из ${PRODUCTS.length}</span>
+      </div>
+
+      <!-- Поиск -->
+      <div class="products-search">
+        <input type="text" id="productSearch" placeholder="🔍 Поиск (название, польза...)" value="${searchQuery}">
+      </div>
+
+      <!-- Фильтры по категориям -->
+      <div class="products-filters">
+        <button class="filter-btn ${currentCategory === 'all' ? 'active' : ''}" data-category="all">Все</button>
+        ${CATEGORIES.map(cat => `
+          <button class="filter-btn ${currentCategory === cat.id ? 'active' : ''}" data-category="${cat.id}">
+            ${cat.icon} ${cat.label}
+          </button>
+        `).join('')}
+      </div>
+
+      <!-- Дополнительные фильтры (особенности) – можно добавить позже, пока упрощённо -->
+
+      <!-- Список продуктов -->
+      <div class="products-grid">
+        ${filtered.length === 0 ? `
+          <div class="empty-state">😕 Ничего не найдено</div>
+        ` : filtered.map(product => {
+          const ageOk = childAgeMonths >= product.introduction.fromMonths;
+          const isAllergen = product.allergen;
+          const hasIron = product.nutrients && product.nutrients.includes('iron');
+          const hasOmega = product.nutrients && product.nutrients.includes('omega3');
+          const isHighChoking = product.chokingRisk === 'high';
+          const isCommercial = product.commercialProduct;
+
+          let statusIcon = '';
+          if (product.status === 'recommended') statusIcon = '🟢';
+          else if (product.status === 'caution') statusIcon = '🟡';
+          else if (product.status === 'avoid') statusIcon = '🔴';
+          else if (product.status === 'age_limited') statusIcon = '⏳';
+
+          // Бейджи
+          let badges = '';
+          if (ageOk) badges += `<span class="badge age-ok">✅ с ${product.introduction.fromMonths} мес.</span>`;
+          else badges += `<span class="badge age-not">⏳ с ${product.introduction.fromMonths} мес.</span>`;
+          if (isAllergen) badges += `<span class="badge allergen">⚠️ Аллерген</span>`;
+          if (hasIron) badges += `<span class="badge iron">⚡ Железо</span>`;
+          if (hasOmega) badges += `<span class="badge omega">🧠 Омега-3</span>`;
+          if (isHighChoking) badges += `<span class="badge choking">🚨 Риск удушья</span>`;
+          if (isCommercial) badges += `<span class="badge commercial">🏷️ Магазинный</span>`;
+
+          // Краткий список пользы (первые 2)
+          const highlights = product.highlights ? product.highlights.slice(0, 2).map(h => `<span class="highlight">${h}</span>`).join(' ') : '';
+
+          return `
+            <div class="product-card" data-product-id="${product.id}" data-status="${product.status}">
+              <div class="product-emoji">${product.emoji}</div>
+              <div class="product-info">
+                <div class="product-name">
+                  ${product.name}
+                  <span class="status-icon">${statusIcon}</span>
                 </div>
-            `).join('') : `
-                <div class="empty-state"><div class="empty-icon">🔍</div><h3>Ничего не найдено</h3><p>Попробуйте изменить фильтр</p></div>
-            `}
-        </div>
-    </div>`;
+                <div class="product-highlights">${highlights}</div>
+                <div class="product-badges">${badges}</div>
+              </div>
+              <div class="product-arrow">›</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Дисклеймер -->
+      <div class="disclaimer">
+        ⚕️ Информация носит справочный характер. При наличии аллергии или сомнений проконсультируйтесь с врачом.
+      </div>
+    </div>
+  `;
+
+  return html;
 }
 
-// Экспорт в глобальную область
-window.renderProducts = renderProducts;
+/**
+ * Обновить фильтры (вызывается из обработчиков)
+ */
+export function setProductsFilter(category) {
+  currentCategory = category;
+}
+
+export function setProductsSearch(query) {
+  searchQuery = query;
+}
+
+export function getProductsFilter() {
+  return { category: currentCategory, search: searchQuery };
+}
