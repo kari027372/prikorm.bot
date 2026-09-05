@@ -9,22 +9,22 @@
     <meta name="mobile-web-app-capable" content="yes">
     <title>KENORA – прикорм без паники</title>
 
-    <!-- ===== ИКОНКИ И PWA ===== -->
+    <!-- ИКОНКИ И PWA -->
     <link rel="icon" href="favicon.ico" sizes="32x32">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
 
-    <!-- ===== ПОДКЛЮЧЕНИЕ ШРИФТОВ ===== -->
+    <!-- ШРИФТЫ -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- ===== CSS ===== -->
-    <link rel="stylesheet" href="styles/main.css?v=2.1.27">
-    <link rel="stylesheet" href="styles/welcome.css?v=2.1.27">
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles/main.css?v=2.1.28">
+    <link rel="stylesheet" href="styles/welcome.css?v=2.1.28">
 </head>
 <body>
-    <!-- ===== ЗАГРУЗОЧНЫЙ ЭКРАН (пока загружаются скрипты) ===== -->
+    <!-- ЗАГРУЗОЧНЫЙ ЭКРАН -->
     <div id="loading-screen">
         <div class="splash-content">
             <div class="splash-emoji">🌸</div>
@@ -35,19 +35,16 @@
         </div>
     </div>
 
-    <!-- ===== СТАРТОВЫЙ ЭКРАН (SPLASH) ===== -->
+    <!-- SPLASH-ЭКРАН -->
     <div id="splash-screen" style="display:none;">
         <div class="splash-container">
-            <!-- Иконка: круг + ложечка -->
             <svg class="splash-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle class="splash-circle" cx="50" cy="50" r="40" stroke="#7D5874" stroke-width="2.5" fill="none"
+                <circle class="splash-circle" cx="50" cy="50" r="40" stroke="#B08C9E" stroke-width="2.5" fill="none"
                     stroke-dasharray="251.2" stroke-dashoffset="251.2" />
-                <path class="splash-spoon" d="M50 30 L50 55" stroke="#C982A4" stroke-width="2.5" stroke-linecap="round" opacity="0" />
-                <ellipse class="splash-spoon-head" cx="50" cy="27" rx="8" ry="5" stroke="#C982A4" stroke-width="2.5" fill="none" opacity="0" />
-                <path class="splash-leaf-icon" d="M72 28 C76 24 82 26 80 32 C78 38 72 36 72 28Z" fill="#AFC0B0" opacity="0" />
+                <path class="splash-spoon" d="M50 30 L50 55" stroke="#C4A88C" stroke-width="2.5" stroke-linecap="round" opacity="0" />
+                <ellipse class="splash-spoon-head" cx="50" cy="27" rx="8" ry="5" stroke="#C4A88C" stroke-width="2.5" fill="none" opacity="0" />
+                <path class="splash-leaf-icon" d="M72 28 C76 24 82 26 80 32 C78 38 72 36 72 28Z" fill="#C4A88C" opacity="0" />
             </svg>
-
-            <!-- Логотип KENORA -->
             <div class="splash-logo">
                 <span class="splash-letter" style="animation-delay: 0.3s;">K</span>
                 <span class="splash-letter" style="animation-delay: 0.5s;">E</span>
@@ -56,22 +53,16 @@
                 <span class="splash-letter" style="animation-delay: 1.1s;">R</span>
                 <span class="splash-letter" style="animation-delay: 1.3s;">A</span>
             </div>
-
-            <!-- Подзаголовок -->
             <div class="splash-subtitle">прикорм без паники</div>
-
-            <!-- Декоративный листик -->
             <div class="splash-leaf-deco"></div>
-
-            <!-- Кнопка -->
             <button class="splash-btn" id="start-app-btn">Начать</button>
         </div>
     </div>
 
-    <!-- ===== ОСНОВНОЕ ПРИЛОЖЕНИЕ ===== -->
+    <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
     <div id="app" style="display:none;"></div>
 
-    <!-- ===== ПРИВЕТСТВЕННЫЙ ЭКРАН ДЛЯ ПЕРВОГО ЗАПУСКА ===== -->
+    <!-- ПРИВЕТСТВЕННЫЙ ЭКРАН ДЛЯ ПЕРВОГО ЗАПУСКА -->
     <div id="welcome-screen" style="display:none;">
         <div class="welcome-content">
             <div class="welcome-emoji">🌸</div>
@@ -82,54 +73,41 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         ПОДКЛЮЧЕНИЕ СКРИПТОВ
-         ============================================================ -->
-    <!-- Корневые файлы -->
-    <script src="config.js?v=2.1.27"></script>
-    <script src="utils.js?v=2.1.27"></script>
-
-    <!-- СЕРВИСЫ -->
-    <script src="services/storage-service.js?v=2.1.27"></script>
-    <script src="services/child-service.js?v=2.1.27"></script>
-    <script src="services/feeding-readiness-service.js?v=2.1.27"></script>
-
-    <script src="state.js?v=2.1.27"></script>
-    <script src="ui.js?v=2.1.27"></script>
-    <script src="updater.js?v=2.1.27"></script>
-    <script src="theme.js?v=2.1.27"></script>
-    <script src="handlers.js?v=2.1.27"></script>
-
-    <script src="data/products.js?v=2.1.27"></script>
-    <script src="data/recipes.js?v=2.1.27"></script>
-    <script src="data/safety.js?v=2.1.27"></script>
-    <script src="data/recommendations.js?v=2.1.27"></script>
-
-    <script src="components/header.js?v=2.1.27"></script>
-    <script src="components/bottom-nav.js?v=2.1.27"></script>
-    <script src="components/product-card.js?v=2.1.27"></script>
-    <script src="components/recipe-card.js?v=2.1.27"></script>
-    <script src="components/modal.js?v=2.1.27"></script>
-    <script src="components/toast.js?v=2.1.27"></script>
-
-    <script src="screens/rendering.js?v=2.1.27"></script>
-    <script src="screens/home.js?v=2.1.27"></script>
-    <script src="screens/products.js?v=2.1.27"></script>
-    <script src="screens/today.js?v=2.1.27"></script>
-    <script src="screens/diary.js?v=2.1.27"></script>
-    <script src="screens/recipes.js?v=2.1.27"></script>
-    <script src="screens/baby.js?v=2.1.27"></script>
-    <script src="screens/settings.js?v=2.1.27"></script>
-    <script src="screens/onboarding.js?v=2.1.27"></script>
-
-    <script src="app.js?v=2.1.27"></script>
-
+    <!-- СКРИПТЫ -->
+    <script src="config.js?v=2.1.28"></script>
+    <script src="utils.js?v=2.1.28"></script>
+    <script src="services/storage-service.js?v=2.1.28"></script>
+    <script src="services/child-service.js?v=2.1.28"></script>
+    <script src="services/feeding-readiness-service.js?v=2.1.28"></script>
+    <script src="state.js?v=2.1.28"></script>
+    <script src="ui.js?v=2.1.28"></script>
+    <script src="updater.js?v=2.1.28"></script>
+    <script src="theme.js?v=2.1.28"></script>
+    <script src="handlers.js?v=2.1.28"></script>
+    <script src="data/products.js?v=2.1.28"></script>
+    <script src="data/recipes.js?v=2.1.28"></script>
+    <script src="data/safety.js?v=2.1.28"></script>
+    <script src="data/recommendations.js?v=2.1.28"></script>
+    <script src="components/header.js?v=2.1.28"></script>
+    <script src="components/bottom-nav.js?v=2.1.28"></script>
+    <script src="components/product-card.js?v=2.1.28"></script>
+    <script src="components/recipe-card.js?v=2.1.28"></script>
+    <script src="components/modal.js?v=2.1.28"></script>
+    <script src="components/toast.js?v=2.1.28"></script>
+    <script src="screens/rendering.js?v=2.1.28"></script>
+    <script src="screens/home.js?v=2.1.28"></script>
+    <script src="screens/products.js?v=2.1.28"></script>
+    <script src="screens/today.js?v=2.1.28"></script>
+    <script src="screens/diary.js?v=2.1.28"></script>
+    <script src="screens/recipes.js?v=2.1.28"></script>
+    <script src="screens/baby.js?v=2.1.28"></script>
+    <script src="screens/settings.js?v=2.1.28"></script>
+    <script src="screens/onboarding.js?v=2.1.28"></script>
+    <script src="app.js?v=2.1.28"></script>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 
-    <!-- ============================================================
-         ЗАПУСК ПРИЛОЖЕНИЯ
-         ============================================================ -->
+    <!-- ЗАПУСК -->
     <script>
         (function() {
             function hideLoading() {
