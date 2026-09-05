@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js (исправленная модалка + searchProducts)
+   handlers.js (исправленная модалка + searchProducts + opacity)
    ============================================================ */
 
 function setupEventListeners() {
@@ -340,7 +340,7 @@ function openProductFromCard(productId) {
 }
 
 // ============================================================
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ (центрирование + правильные поля)
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ (центрирование + правильные поля + видимость)
 // ============================================================
 
 function openProductDetails(product) {
@@ -481,6 +481,7 @@ function openProductDetails(product) {
         align-items: center;
         justify-content: center;
         z-index: 1000;
+        opacity: 1;
     `;
     overlay.innerHTML = content;
     overlay.addEventListener('click', function(e) {
@@ -958,4 +959,4 @@ window.openBabyEditModal = openBabyEditModal;
 window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
-console.log('✅ handlers.js загружен (модалка исправлена, searchProducts обновлён)');
+console.log('✅ handlers.js загружен (модалка исправлена, searchProducts обновлён, opacity добавлена)');
