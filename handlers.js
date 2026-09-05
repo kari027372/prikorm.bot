@@ -24,6 +24,20 @@ function setupEventListeners() {
 }
 
 // ============================================================
+// ДОБАВЛЕНА ФУНКЦИЯ escapeHTML (исправление №2)
+// ============================================================
+
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// ============================================================
 // ОСНОВНОЙ ОБРАБОТЧИК КЛИКОВ (без дублирующего блока)
 // ============================================================
 function handleDocumentClick(event) {
@@ -300,14 +314,22 @@ function navigateHandler(screen) {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// ============================================================
+// ИСПРАВЛЕННЫЕ ФУНКЦИИ (теперь используют window.PRODUCTS)
+// ============================================================
+
 function getProductById(id) {
-    if (!id || typeof PRODUCTS === "undefined") return null;
-    return PRODUCTS.find(function(product) { return String(product.id) === String(id); }) || null;
+    if (!id || !Array.isArray(window.PRODUCTS)) return null;
+    return window.PRODUCTS.find(function(product) {
+        return String(product.id) === String(id);
+    }) || null;
 }
 
 function getProductByName(name) {
-    if (!name || typeof PRODUCTS === "undefined") return null;
-    return PRODUCTS.find(function(product) { return String(product.name).toLowerCase() === String(name).toLowerCase(); }) || null;
+    if (!name || !Array.isArray(window.PRODUCTS)) return null;
+    return window.PRODUCTS.find(function(product) {
+        return String(product.name).toLowerCase() === String(name).toLowerCase();
+    }) || null;
 }
 
 function openProductFromCard(productId) {
@@ -493,15 +515,19 @@ function saveFoodHandler() {
     showScreen("diary");
 }
 
+// ============================================================
+// ИСПРАВЛЕННАЯ renderProductPicker (использует window.PRODUCTS)
+// ============================================================
+
 function renderProductPicker(query) {
     var container = document.getElementById("picker-products");
     if (!container) return;
-    if (typeof PRODUCTS === "undefined") {
+    if (!Array.isArray(window.PRODUCTS)) {
         container.innerHTML = emptyState("🥑", "База продуктов не подключена", "Добавьте данные PRODUCTS.");
         return;
     }
     var normalized = String(query || "").trim().toLowerCase();
-    var list = PRODUCTS.filter(function(product) {
+    var list = window.PRODUCTS.filter(function(product) {
         if (!normalized) return true;
         return String(product.name || "").toLowerCase().includes(normalized);
     });
@@ -813,4 +839,4 @@ window.openBabyEditModal = openBabyEditModal;
 window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
-console.log('✅ handlers.js загружен (без дублирующего блока)');
+console.log('✅ handlers.js загружен (исправлены getProductById, escapeHTML, renderProductPicker)');
