@@ -78,8 +78,19 @@ function setupEventListeners() {
 // ОСНОВНОЙ ОБРАБОТЧИК КЛИКОВ (с поддержкой новых элементов)
 // ============================================================
 function handleDocumentClick(event) {
-    // === НОВОЕ: обработка новых элементов (навигация, карточки, фильтры, модалки) ===
+    // === ПРЯМОЙ ОБРАБОТЧИК КАРТОЧЕК ПРОДУКТОВ ===
+    var card = event.target.closest('.product-card');
+    if (card) {
+        var productId = card.dataset.productId;
+        if (productId && typeof window.showProductDetailModal === 'function') {
+            event.preventDefault();
+            event.stopPropagation();
+            window.showProductDetailModal(productId);
+            return;
+        }
+    }
 
+    // === НОВОЕ: обработка новых элементов (навигация, фильтры, модалки) ===
     // 1. Нижняя навигация
     var navItem = event.target.closest('.nav-item');
     if (navItem) {
@@ -91,18 +102,7 @@ function handleDocumentClick(event) {
         }
     }
 
-    // 2. Карточка продукта → модалка
-    var productCard = event.target.closest('.product-card');
-    if (productCard) {
-        var productId = productCard.dataset.productId;
-        if (productId && typeof window.showProductDetailModal === 'function') {
-            event.preventDefault();
-            window.showProductDetailModal(productId);
-            return;
-        }
-    }
-
-    // 3. Кнопки фильтров (категории)
+    // 2. Кнопки фильтров (категории)
     var filterBtn = event.target.closest('.filter-btn');
     if (filterBtn) {
         var category = filterBtn.dataset.category;
@@ -116,7 +116,7 @@ function handleDocumentClick(event) {
         }
     }
 
-    // 4. Закрытие модалки (кнопка или оверлей)
+    // 3. Закрытие модалки (кнопка или оверлей)
     var closeBtn = event.target.closest('.btn-close-modal');
     if (closeBtn) {
         var modal = closeBtn.closest('.modal-overlay');
@@ -132,7 +132,7 @@ function handleDocumentClick(event) {
         return;
     }
 
-    // 5. Кнопка "Назад" (если есть)
+    // 4. Кнопка "Назад" (если есть)
     var backBtn = event.target.closest('.btn-back');
     if (backBtn) {
         event.preventDefault();
@@ -144,7 +144,7 @@ function handleDocumentClick(event) {
         return;
     }
 
-    // 6. Кнопка "Создать" (заглушка)
+    // 5. Кнопка "Создать" (заглушка)
     var createBtn = event.target.closest('.btn-create');
     if (createBtn) {
         event.preventDefault();
@@ -152,7 +152,7 @@ function handleDocumentClick(event) {
         return;
     }
 
-    // 7. Переключение темы (если есть)
+    // 6. Переключение темы (если есть)
     var themeBtn = event.target.closest('.theme-toggle');
     if (themeBtn) {
         event.preventDefault();
@@ -1298,20 +1298,3 @@ window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
 console.log('✅ handlers.js загружен (с поддержкой новых элементов)');
-// ============================================================
-// ДОПОЛНИТЕЛЬНЫЙ ОБРАБОТЧИК ДЛЯ КАРТОЧЕК ПРОДУКТОВ
-// (без изменения существующей логики)
-// ============================================================
-document.addEventListener('click', function(e) {
-    var card = e.target.closest('.product-card');
-    if (card) {
-        var productId = card.dataset.productId;
-        if (productId && typeof window.showProductDetailModal === 'function') {
-            e.preventDefault();
-            e.stopPropagation(); // предотвращаем срабатывание других обработчиков (если они есть)
-            window.showProductDetailModal(productId);
-        }
-    }
-});
-
-console.log('✅ Дополнительный обработчик карточек продуктов добавлен');
