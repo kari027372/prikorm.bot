@@ -1,10 +1,10 @@
-// components/bottom-nav.js – KENORA навигация
+// components/bottom-nav.js – красивые иконки для KENORA
 window.renderBottomNav = function(active) {
     const items = [
         { id: 'home', icon: '🏠', label: 'Главная' },
         { id: 'products', icon: '🥑', label: 'Продукты' },
         { id: 'diary', icon: '📖', label: 'Дневник' },
-        { id: 'recipes', icon: '🍲', label: 'Рецепты' },
+        { id: 'recipes', icon: '👩‍🍳', label: 'Рецепты' },
         { id: 'more', icon: '⚡', label: 'Ещё' }
     ];
 
