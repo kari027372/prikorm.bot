@@ -24,19 +24,8 @@
     <link rel="stylesheet" href="styles/welcome.css?v=2.1.28">
 </head>
 <body>
-    <!-- ЗАГРУЗОЧНЫЙ ЭКРАН -->
+    <!-- ===== ЗАГРУЗОЧНЫЙ ЭКРАН (единый стиль со splash) ===== -->
     <div id="loading-screen">
-        <div class="splash-content">
-            <div class="splash-emoji">🌸</div>
-            <h1 class="splash-title">KENORA</h1>
-            <div class="splash-subtitle">прикорм без паники</div>
-            <div class="splash-loader"></div>
-            <div class="splash-text">Загрузка...</div>
-        </div>
-    </div>
-
-    <!-- СТАРТОВЫЙ ЭКРАН (SPLASH) -->
-    <div id="splash-screen" style="display:none;">
         <div class="splash-container">
             <!-- Улыбающаяся тарелка -->
             <svg class="splash-illustration" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,6 +41,35 @@
                 <ellipse cx="70" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
             </svg>
 
+            <div class="splash-logo" style="opacity:1; transform:none;">
+                <span style="opacity:1; transform:none;">K</span>
+                <span style="opacity:1; transform:none;">E</span>
+                <span style="opacity:1; transform:none;">N</span>
+                <span style="opacity:1; transform:none;">O</span>
+                <span style="opacity:1; transform:none;">R</span>
+                <span style="opacity:1; transform:none;">A</span>
+            </div>
+            <div class="splash-subtitle" style="opacity:1; transform:none;">прикорм без паники</div>
+            <div class="splash-loader" style="margin-top:20px;"></div>
+            <div class="splash-text" style="margin-top:8px; font-size:14px; color:var(--kenora-text-muted);">Загрузка...</div>
+        </div>
+    </div>
+
+    <!-- ===== СТАРТОВЫЙ ЭКРАН (SPLASH) ===== -->
+    <div id="splash-screen" style="display:none;">
+        <div class="splash-container">
+            <svg class="splash-illustration" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="60" cy="72" r="32" stroke="#F5A88C" stroke-width="3" fill="#FFF0E6"/>
+                <circle cx="60" cy="70" r="26" stroke="#F5A88C" stroke-width="2" fill="#FFE4D6"/>
+                <path d="M50 52 C50 44 56 38 60 38 C64 38 70 44 70 52" stroke="#8FBCB5" stroke-width="2.5" fill="#C4E0D8"/>
+                <circle cx="55" cy="48" r="4" fill="#8FBCB5"/>
+                <circle cx="65" cy="48" r="4" fill="#8FBCB5"/>
+                <circle cx="54" cy="56" r="3" fill="#4A3A30"/>
+                <circle cx="66" cy="56" r="3" fill="#4A3A30"/>
+                <path d="M54 62 Q60 68 66 62" stroke="#4A3A30" stroke-width="2" stroke-linecap="round"/>
+                <ellipse cx="50" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
+                <ellipse cx="70" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
+            </svg>
             <div class="splash-logo">
                 <span class="splash-letter" style="animation-delay: 0.4s;">K</span>
                 <span class="splash-letter" style="animation-delay: 0.6s;">E</span>
