@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js (исправленная модалка + searchProducts + opacity)
+   handlers.js (исправленная модалка + searchProducts + закрытие/прокрутка)
    ============================================================ */
 
 function setupEventListeners() {
@@ -340,7 +340,7 @@ function openProductFromCard(productId) {
 }
 
 // ============================================================
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ (центрирование + правильные поля + видимость)
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ МОДАЛКИ (центрирование + правильные поля + прокрутка + закрытие)
 // ============================================================
 
 function openProductDetails(product) {
@@ -432,11 +432,11 @@ function openProductDetails(product) {
 
     // Строим содержимое модалки
     var content = `
-        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:80%; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+        <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                 <span style="font-size:48px;">${product.emoji || '🍽️'}</span>
                 <h2 style="margin:0; font-size:24px;">${escapeHTML(product.name)}</h2>
-                <button type="button" onclick="this.closest('.modal-overlay').remove()" style="margin-left:auto; background:none; border:none; font-size:24px; cursor:pointer;">×</button>
+                <button type="button" class="btn-close-modal" style="margin-left:auto; background:none; border:none; font-size:24px; cursor:pointer;">×</button>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
@@ -959,4 +959,4 @@ window.openBabyEditModal = openBabyEditModal;
 window.changeDay = changeDay;
 window.openDatePicker = openDatePicker;
 
-console.log('✅ handlers.js загружен (модалка исправлена, searchProducts обновлён, opacity добавлена)');
+console.log('✅ handlers.js загружен (модалка исправлена, searchProducts обновлён, закрытие/прокрутка добавлены)');
