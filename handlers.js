@@ -2197,12 +2197,6 @@ window.changeDay =
 
 window.openDatePicker =
     openDatePicker;
-    // handlers.js – добавить в конец файла или в функцию initHandlers
-
-import { renderProducts, setProductsFilter, setProductsSearch } from '../screens/products.js';
-import { showProductDetailModal } from '../components/modal.js';
-import { PRODUCTS } from '../data/products.js';
-import { renderCurrentScreen } from '../screens/rendering.js'; // предполагаем, что есть
 
 // Обработчик клика по карточке продукта – открытие модалки
 document.addEventListener('click', (e) => {
