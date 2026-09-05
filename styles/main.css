@@ -212,7 +212,10 @@ h1, h2, h3, h4, h5, h6 {
 .start-btn:hover { background: #E8977A; transform: translateY(-2px); }
 .start-btn:active { transform: scale(0.96); }
 
-/* ===== БОТТОМ НАВИГАЦИЯ ===== */
+/* ============================================================
+   УЛУЧШЕННАЯ НИЖНЯЯ НАВИГАЦИЯ (SVG-ИКОНКИ)
+   ============================================================ */
+
 .bottom-navigation {
     position: fixed;
     bottom: 0;
@@ -223,32 +226,71 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     justify-content: space-around;
     background: var(--kenora-white);
-    padding: 10px 0 16px;
+    padding: 8px 0 14px;
     border-top: 2px solid var(--kenora-border);
     box-shadow: 0 -4px 16px rgba(74, 58, 48, 0.06);
     z-index: 100;
 }
 .bottom-navigation .nav-item {
-    background: none;
-    border: none;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--kenora-text-muted);
-    cursor: pointer;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2px;
     padding: 4px 8px;
+    background: none;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--kenora-text-muted);
+    cursor: pointer;
     transition: color 0.2s;
     flex: 1;
 }
-.bottom-navigation .nav-item span:first-child { font-size: 28px; display: block; }
-.bottom-navigation .nav-item.active { color: var(--kenora-primary); }
-.bottom-navigation .nav-item:active { transform: scale(0.95); }
+.bottom-navigation .nav-item .nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    transition: transform 0.2s;
+}
+.bottom-navigation .nav-item .nav-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+.bottom-navigation .nav-item.active .nav-icon svg {
+    stroke: var(--kenora-primary);
+    stroke-width: 2.5;
+}
+.bottom-navigation .nav-item .nav-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+.bottom-navigation .nav-item.active .nav-label {
+    color: var(--kenora-primary);
+}
+.bottom-navigation .nav-dot {
+    position: absolute;
+    top: 2px;
+    right: 50%;
+    transform: translateX(50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--kenora-primary);
+}
+.bottom-navigation .nav-item:active {
+    transform: scale(0.95);
+}
 
 /* ============================================================
-   ONBOARDING – ИСПРАВЛЕННЫЙ
+   ONBOARDING – УЛУЧШЕННЫЕ ВАРИАНТЫ ОТВЕТОВ
    ============================================================ */
 
 .onboarding {
@@ -284,14 +326,23 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     gap: 14px;
     padding: 16px 18px;
-    background: var(--kenora-card);
+    background: var(--kenora-white);
     border-radius: var(--kenora-radius-sm);
     border: 2px solid var(--kenora-border);
     transition: all 0.25s ease;
     cursor: pointer;
     font-weight: 600;
+    box-shadow: 0 2px 8px rgba(74, 58, 48, 0.04);
 }
-.radio-option:hover, .checkbox-option:hover { border-color: var(--kenora-primary); background: #FFF7F1; }
+.radio-option:hover, .checkbox-option:hover {
+    border-color: var(--kenora-primary);
+    background: #FFF7F1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 168, 140, 0.15);
+}
+.radio-option:active, .checkbox-option:active {
+    transform: scale(0.98);
+}
 .radio-option input[type="radio"],
 .checkbox-option input[type="checkbox"] {
     appearance: none;
@@ -304,7 +355,9 @@ h1, h2, h3, h4, h5, h6 {
     cursor: pointer;
     transition: all 0.2s;
 }
-.radio-option input[type="radio"] { border-radius: 50%; }
+.radio-option input[type="radio"] {
+    border-radius: 50%;
+}
 .radio-option input[type="radio"]:checked {
     border-color: var(--kenora-primary);
     background: var(--kenora-primary);
@@ -321,7 +374,9 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--kenora-white);
     border-radius: 50%;
 }
-.checkbox-option input[type="checkbox"] { border-radius: 8px; }
+.checkbox-option input[type="checkbox"] {
+    border-radius: 8px;
+}
 .checkbox-option input[type="checkbox"]:checked {
     border-color: var(--kenora-primary);
     background: var(--kenora-primary);
@@ -344,7 +399,11 @@ h1, h2, h3, h4, h5, h6 {
     cursor: pointer;
     flex: 1;
     margin: 0;
+    line-height: 1.3;
 }
+
+/* ===== ОСТАЛЬНЫЕ ЭЛЕМЕНТЫ ONBOARDING ===== */
+
 .onboarding-input {
     width: 100%;
     padding: 18px 20px;
@@ -500,82 +559,6 @@ h1, h2, h3, h4, h5, h6 {
     .radio-option label, .checkbox-option label { font-size: 16px; }
     .prev-btn, .next-btn, .finish-btn { font-size: 16px; padding: 16px; }
     .onboarding-input { font-size: 16px; padding: 16px; }
-}
-/* ============================================================
-   УЛУЧШЕННАЯ НИЖНЯЯ НАВИГАЦИЯ
-   ============================================================ */
-
-.bottom-navigation .nav-item {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 4px 8px;
-    background: none;
-    border: none;
-    font-family: 'Nunito', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--kenora-text-muted);
-    cursor: pointer;
-    transition: color 0.2s;
-    flex: 1;
-}
-
-.bottom-navigation .nav-item .nav-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    transition: transform 0.2s;
-}
-
-.bottom-navigation .nav-item .nav-icon svg {
-    width: 24px;
-    height: 24px;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-}
-
-.bottom-navigation .nav-item.active .nav-icon svg {
-    stroke: var(--kenora-primary);
-    stroke-width: 2.5;
-}
-
-.bottom-navigation .nav-item .nav-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
-
-.bottom-navigation .nav-item.active .nav-label {
-    color: var(--kenora-primary);
-}
-
-.bottom-navigation .nav-dot {
-    position: absolute;
-    top: 2px;
-    right: 50%;
-    transform: translateX(50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--kenora-primary);
-}
-
-.bottom-navigation .nav-item:active {
-    transform: scale(0.95);
-}
-
-@media (max-width: 400px) {
-    .bottom-navigation .nav-item .nav-icon svg {
-        width: 20px;
-        height: 20px;
-    }
-    .bottom-navigation .nav-item .nav-label {
-        font-size: 10px;
-    }
+    .bottom-navigation .nav-item .nav-icon svg { width: 20px; height: 20px; }
+    .bottom-navigation .nav-item .nav-label { font-size: 10px; }
 }
