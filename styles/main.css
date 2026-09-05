@@ -501,3 +501,81 @@ h1, h2, h3, h4, h5, h6 {
     .prev-btn, .next-btn, .finish-btn { font-size: 16px; padding: 16px; }
     .onboarding-input { font-size: 16px; padding: 16px; }
 }
+/* ============================================================
+   УЛУЧШЕННАЯ НИЖНЯЯ НАВИГАЦИЯ
+   ============================================================ */
+
+.bottom-navigation .nav-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    background: none;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--kenora-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    flex: 1;
+}
+
+.bottom-navigation .nav-item .nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    transition: transform 0.2s;
+}
+
+.bottom-navigation .nav-item .nav-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+.bottom-navigation .nav-item.active .nav-icon svg {
+    stroke: var(--kenora-primary);
+    stroke-width: 2.5;
+}
+
+.bottom-navigation .nav-item .nav-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.bottom-navigation .nav-item.active .nav-label {
+    color: var(--kenora-primary);
+}
+
+.bottom-navigation .nav-dot {
+    position: absolute;
+    top: 2px;
+    right: 50%;
+    transform: translateX(50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--kenora-primary);
+}
+
+.bottom-navigation .nav-item:active {
+    transform: scale(0.95);
+}
+
+@media (max-width: 400px) {
+    .bottom-navigation .nav-item .nav-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+    .bottom-navigation .nav-item .nav-label {
+        font-size: 10px;
+    }
+}
