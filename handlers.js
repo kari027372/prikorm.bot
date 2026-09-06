@@ -1,5 +1,5 @@
 /* ============================================================
-   handlers.js — финальная версия (доработанная модалка)
+   handlers.js — финальная версия (доработанная модалка + открытие карточки)
    ============================================================ */
 
 function setupEventListeners() {
@@ -41,7 +41,7 @@ function handleDocumentClick(event) {
         var modal = closeBtn.closest('.modal-overlay');
         if (modal) {
             event.preventDefault();
-            event.stopPropagation(); // НЕ передаём клик под модалку
+            event.stopPropagation();
             modal.remove();
             return;
         }
@@ -70,6 +70,9 @@ function handleDocumentClick(event) {
                 break;
             case "edit-baby":
                 openBabyEditModal();
+                break;
+            case "open-product":
+                openProductFromCard(target.dataset.productId);
                 break;
             case "add-food": {
                 var productId = target.dataset.productId;
