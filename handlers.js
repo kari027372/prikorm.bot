@@ -71,12 +71,12 @@ function handleDocumentClick(event) {
             case "edit-baby":
                 openBabyEditModal();
                 break;
-            case "add-food":
-                openAddFoodModal();
+            case "add-food": {
+                const productId = target.dataset.productId;
+                const product = productId ? getProductById(productId) : null;
+                openAddFoodModal(product);
                 break;
-            case "open-product":
-                openProductFromCard(target.dataset.productId);
-                break;
+            }
             case "choose-product":
                 if (typeof openProductPicker === "function") openProductPicker();
                 else showToast("Функция выбора продукта временно недоступна");
