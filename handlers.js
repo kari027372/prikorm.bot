@@ -554,6 +554,9 @@ function setLikedHandler(liked, clicked) {
     });
 }
 
+// ============================================================
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ saveFoodHandler (без updateState)
+// ============================================================
 function saveFoodHandler() {
     var productId = document.getElementById("food-product-id")?.value;
     var product = getProductById(productId);
@@ -594,27 +597,33 @@ function saveFoodHandler() {
         createdAt: new Date().toISOString()
     };
 
-    updateState(function(state) {
-        state.diary.push(entry);
-        if (isNew && product?.id) {
-            var exists = state.products.introduced.some(function(item) {
-                return ((typeof item === "object" ? item.id : item) === product.id);
+    // Прямое обновление STATE (без updateState)
+    if (!window.STATE) window.STATE = {};
+    if (!Array.isArray(window.STATE.diary)) window.STATE.diary = [];
+    window.STATE.diary.push(entry);
+
+    if (isNew && product?.id) {
+        if (!window.STATE.products) window.STATE.products = {};
+        if (!Array.isArray(window.STATE.products.introduced)) window.STATE.products.introduced = [];
+        var exists = window.STATE.products.introduced.some(function(item) {
+            return ((typeof item === "object" ? item.id : item) === product.id);
+        });
+        if (!exists) {
+            window.STATE.products.introduced.push({
+                id: product.id,
+                name: product.name,
+                introducedAt: entry.date
             });
-            if (!exists) {
-                state.products.introduced.push({
-                    id: product.id,
-                    name: product.name,
-                    introducedAt: entry.date
-                });
-            }
         }
-        if (CURRENT_FOOD_SOURCE === "store" && brand) {
-            var brandExists = state.brands.some(function(item) {
-                return String(item).toLowerCase() === brand.toLowerCase();
-            });
-            if (!brandExists) state.brands.push(brand);
-        }
-    });
+    }
+    if (CURRENT_FOOD_SOURCE === "store" && brand) {
+        if (!Array.isArray(window.STATE.brands)) window.STATE.brands = [];
+        var brandExists = window.STATE.brands.some(function(item) {
+            return String(item).toLowerCase() === brand.toLowerCase();
+        });
+        if (!brandExists) window.STATE.brands.push(brand);
+    }
+    if (typeof saveState === 'function') saveState();
 
     closeModal();
     CURRENT_LIKED = null;
