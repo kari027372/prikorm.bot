@@ -72,8 +72,8 @@ function handleDocumentClick(event) {
                 openBabyEditModal();
                 break;
             case "add-food": {
-                const productId = target.dataset.productId;
-                const product = productId ? getProductById(productId) : null;
+                var productId = target.dataset.productId;
+                var product = productId ? getProductById(productId) : null;
                 openAddFoodModal(product);
                 break;
             }
