@@ -13,7 +13,8 @@
         'мясо': ['meat'],
         'рыба': ['fish'],
         'молочные': ['dairy'],
-        'аллергены': ['allergens']
+        'аллергены': ['allergens'],
+        'напитки': ['beverages']
     };
 
     function getProductGroups(product) {
@@ -63,7 +64,6 @@
                 },
                 restrictions: { medical: null }
             },
-            // сохраняем старые поля для обратной совместимости
             min_age_months: 4,
             iron: false,
             desc: 'Нейтральный вкус, легко усваивается. Начинайте с 1 ч.л. пюре.'
@@ -694,6 +694,55 @@
             iron: false,
             desc: 'Экзотический, может вызвать реакцию.'
         },
+        // === ДОБАВЛЕННЫЕ ПРОДУКТЫ (Виноград, Черри) ===
+        {
+            id: 'fruit-13',
+            name: 'Виноград',
+            emoji: '🍇',
+            category: 'фрукты',
+            introduction: { fromMonths: 6 },
+            status: 'caution',
+            allergen: false,
+            allergenType: [],
+            chokingRisk: 'high',
+            nutrients: ['vitamin_c', 'antioxidants'],
+            highlights: ['Антиоксиданты', 'Витамин C'],
+            interestingFact: 'Виноград содержит ресвератрол – мощный антиоксидант.',
+            preparation: 'Разрезать вдоль или измельчить перед подачей.',
+            safeForms: ['разрезанный вдоль', 'измельчённый'],
+            unsafeForms: ['целый'],
+            commercialProduct: false,
+            labelChecks: [],
+            ageRestrictions: [],
+            medicalNote: null,
+            min_age_months: 6,
+            iron: false,
+            desc: 'Целый виноград – риск удушья. Давайте в безопасной форме.'
+        },
+        {
+            id: 'fruit-14',
+            name: 'Черри (вишня)',
+            emoji: '🍒',
+            category: 'фрукты',
+            introduction: { fromMonths: 6 },
+            status: 'caution',
+            allergen: false,
+            allergenType: [],
+            chokingRisk: 'high',
+            nutrients: ['vitamin_c', 'antioxidants'],
+            highlights: ['Антиоксиданты', 'Витамин C'],
+            interestingFact: 'Черри содержит мелатонин, который может улучшать сон.',
+            preparation: 'Удалить косточку, разрезать на 4 части.',
+            safeForms: ['без косточки, разрезанный на 4 части'],
+            unsafeForms: ['целый', 'с косточкой'],
+            commercialProduct: false,
+            labelChecks: [],
+            ageRestrictions: [],
+            medicalNote: null,
+            min_age_months: 6,
+            iron: false,
+            desc: 'Целая черри – риск удушья. Давайте в безопасной форме.'
+        },
 
         // --- КРУПЫ ---
         {
@@ -749,7 +798,7 @@
             name: 'Кукурузная крупа',
             emoji: '🌽',
             category: 'крупы',
-            introduction: { fromMonths: 5 },
+            introduction: { fromMonths: 6 },  // ИСПРАВЛЕНО: было 5 → 6
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -764,7 +813,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 5,
+            min_age_months: 6,
             iron: false,
             desc: 'Безглютеновая, но грубее риса.'
         },
@@ -1035,13 +1084,13 @@
             desc: 'Специфический вкус, не для всех.'
         },
 
-        // --- РЫБА ---
+        // --- РЫБА (исправлены возраста и добавлен mercuryRisk) ---
         {
             id: 'fish-1',
             name: 'Треска',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 }, // было 8
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1056,7 +1105,8 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            mercuryRisk: 'low', // добавлено
+            min_age_months: 6,
             iron: false,
             desc: 'Нежирная, но аллергенна. Вводите аккуратно.'
         },
@@ -1065,7 +1115,7 @@
             name: 'Минтай',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 }, // было 8
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1080,16 +1130,17 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            mercuryRisk: 'low',
+            min_age_months: 6,
             iron: false,
             desc: 'Доступная рыба, мало костей.'
         },
         {
             id: 'fish-3',
-            name: 'Сёмга',
+            name: 'Сёмга (лосось)',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 10 },
+            introduction: { fromMonths: 6 }, // было 10
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1104,16 +1155,17 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 10,
+            mercuryRisk: 'low',
+            min_age_months: 6,
             iron: false,
-            desc: 'Жирная, содержит Омега-3, но поздно.'
+            desc: 'Жирная, содержит Омега-3.'
         },
         {
             id: 'fish-4',
             name: 'Форель',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 10 },
+            introduction: { fromMonths: 6 }, // было 10
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1128,7 +1180,8 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 10,
+            mercuryRisk: 'low',
+            min_age_months: 6,
             iron: false,
             desc: 'Аналогично сёмге.'
         },
@@ -1137,7 +1190,7 @@
             name: 'Судак',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 9 },
+            introduction: { fromMonths: 6 }, // было 9
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1152,9 +1205,136 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 9,
+            mercuryRisk: 'low',
+            min_age_months: 6,
             iron: false,
             desc: 'Нежирная, но аллерген.'
+        },
+        // ДОБАВЛЕННЫЕ ВИДЫ РЫБЫ С ВЫСОКИМ СОДЕРЖАНИЕМ РТУТИ
+        {
+            id: 'fish-6',
+            name: 'Акула',
+            emoji: '🦈',
+            category: 'рыба',
+            introduction: { fromMonths: 6 },
+            status: 'avoid',
+            allergen: true,
+            allergenType: ['fish'],
+            chokingRisk: 'low',
+            nutrients: ['protein'],
+            highlights: [],
+            interestingFact: 'Акула содержит высокий уровень ртути, её следует избегать.',
+            preparation: 'Не рекомендуется.',
+            safeForms: [],
+            unsafeForms: ['Любая форма'],
+            commercialProduct: false,
+            labelChecks: [],
+            ageRestrictions: [],
+            medicalNote: 'Высокое содержание ртути — избегать',
+            mercuryRisk: 'avoid',
+            min_age_months: 6,
+            iron: false,
+            desc: 'Избегать из-за высокого содержания ртути.'
+        },
+        {
+            id: 'fish-7',
+            name: 'Меч-рыба',
+            emoji: '🐟',
+            category: 'рыба',
+            introduction: { fromMonths: 6 },
+            status: 'avoid',
+            allergen: true,
+            allergenType: ['fish'],
+            chokingRisk: 'low',
+            nutrients: ['protein'],
+            highlights: [],
+            interestingFact: 'Меч-рыба содержит высокий уровень ртути.',
+            preparation: 'Не рекомендуется.',
+            safeForms: [],
+            unsafeForms: ['Любая форма'],
+            commercialProduct: false,
+            labelChecks: [],
+            ageRestrictions: [],
+            medicalNote: 'Высокое содержание ртути — избегать',
+            mercuryRisk: 'avoid',
+            min_age_months: 6,
+            iron: false,
+            desc: 'Избегать из-за высокого содержания ртути.'
+        },
+        {
+            id: 'fish-8',
+            name: 'Королевская макрель',
+            emoji: '🐟',
+            category: 'рыба',
+            introduction: { fromMonths: 6 },
+            status: 'avoid',
+            allergen: true,
+            allergenType: ['fish'],
+            chokingRisk: 'low',
+            nutrients: ['protein'],
+            highlights: [],
+            interestingFact: 'Королевская макрель содержит высокий уровень ртути.',
+            preparation: 'Не рекомендуется.',
+            safeForms: [],
+            unsafeForms: ['Любая форма'],
+            commercialProduct: false,
+            labelChecks: [],
+            ageRestrictions: [],
+            medicalNote: 'Высокое содержание ртути — избегать',
+            mercuryRisk: 'avoid',
+            min_age_months: 6,
+            iron: false,
+            desc: 'Избегать из-за высокого содержания ртути.'
+        },
+        {
+            id: 'fish-9',
+            name: 'Марлин',
+            emoji: '🐟',
+            category: 'рыба',
+            introduction: { fromMonths: 6 },
+            status: 'avoid',
+            allergen: true,
+            allergenType: ['fish'],
+            chokingRisk: 'low',
+            nutrients: ['protein'],
+            highlights: [],
+            interestingFact: 'Марлин содержит высокий уровень ртути.',
+            preparation: 'Не рекомендуется.',
+            safeForms: [],
+            unsafeForms: ['Любая форма'],
+            commercialProduct: false,
+            labelChecks: [],
+            ageRestrictions: [],
+            medicalNote: 'Высокое содержание ртути — избегать',
+            mercuryRisk: 'avoid',
+            min_age_months: 6,
+            iron: false,
+            desc: 'Избегать из-за высокого содержания ртути.'
+        },
+        {
+            id: 'fish-10',
+            name: 'Большеглазый тунец',
+            emoji: '🐟',
+            category: 'рыба',
+            introduction: { fromMonths: 6 },
+            status: 'avoid',
+            allergen: true,
+            allergenType: ['fish'],
+            chokingRisk: 'low',
+            nutrients: ['protein'],
+            highlights: [],
+            interestingFact: 'Большеглазый тунец содержит высокий уровень ртути.',
+            preparation: 'Не рекомендуется.',
+            safeForms: [],
+            unsafeForms: ['Любая форма'],
+            commercialProduct: false,
+            labelChecks: [],
+            ageRestrictions: [],
+            medicalNote: 'Высокое содержание ртути — избегать',
+            mercuryRisk: 'avoid',
+            min_age_months: 6,
+            iron: false,
+            desc: 'Избегать из-за высокого содержания ртути.'
         },
 
         // --- МОЛОЧНЫЕ ---
@@ -1184,10 +1364,10 @@
         },
         {
             id: 'dairy-2',
-            name: 'Йогурт',
+            name: 'Йогурт натуральный без добавок',
             emoji: '🥛',
             category: 'молочные',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 }, // йогурт можно раньше, чем кефир
             status: 'caution',
             allergen: true,
             allergenType: ['milk'],
@@ -1202,7 +1382,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Без сахара, натуральный.'
         },
@@ -1278,14 +1458,39 @@
             iron: false,
             desc: 'Добавляйте 1-2 г в кашу с 6 мес.'
         },
+        // НОВЫЙ ПРОДУКТ: Коровье молоко как напиток
+        {
+            id: 'dairy-6',
+            name: 'Коровье молоко (напиток)',
+            emoji: '🥛',
+            category: 'молочные',
+            introduction: { fromMonths: 12 },
+            status: 'avoid',
+            allergen: true,
+            allergenType: ['milk'],
+            chokingRisk: 'low',
+            nutrients: ['calcium', 'protein'],
+            highlights: [],
+            interestingFact: 'Коровье молоко не рекомендуется как основной напиток до года.',
+            preparation: 'Не давать как напиток до 12 месяцев.',
+            safeForms: ['В составе блюд (например, каша) после 6 мес.'],
+            unsafeForms: ['Как основной напиток до 12 мес.'],
+            commercialProduct: false,
+            labelChecks: [],
+            ageRestrictions: [{ type: "absolute", untilMonths: 12, reason: "не рекомендуется как основной напиток" }],
+            medicalNote: 'Не рекомендуется как основной напиток до 12 месяцев.',
+            min_age_months: 12,
+            iron: false,
+            desc: 'Как напиток – только после года. В кашу можно добавлять с 6 мес.'
+        },
 
-        // --- АЛЛЕРГЕНЫ ---
+        // --- АЛЛЕРГЕНЫ (исправлены возраста и добавлены safeForms/unsafeForms) ---
         {
             id: 'allerg-1',
-            name: 'Яйцо',
+            name: 'Яйцо куриное',
             emoji: '🥚',
             category: 'аллергены',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 }, // было 8
             status: 'caution',
             allergen: true,
             allergenType: ['egg'],
@@ -1314,7 +1519,7 @@
                 },
                 restrictions: { medical: null }
             },
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Белок – сильный аллерген. Начинайте с желтка.'
         },
@@ -1325,7 +1530,7 @@
             category: 'аллергены',
             introduction: { fromMonths: 12 },
             status: 'avoid',
-            allergen: true,
+            allergen: false,
             allergenType: [],
             chokingRisk: 'low',
             nutrients: ['sugar', 'antioxidants'],
@@ -1336,33 +1541,19 @@
             unsafeForms: ['До 12 мес.'],
             commercialProduct: false,
             labelChecks: [],
-            ageRestrictions: ['до 12 месяцев – строгий запрет'],
+            ageRestrictions: [{ type: "absolute", untilMonths: 12, reason: "риск ботулизма" }],
             medicalNote: 'Риск младенческого ботулизма.',
-            rules: {
-                age: { minMonths: 12, maxMonths: null },
-                serving: {
-                    allowed: ['После 12 мес. в малых количествах'],
-                    blocked: ['До 12 мес.']
-                },
-                allergy: { isAllergen: false, types: [], crossReactivity: [] },
-                safety: {
-                    chokingRisk: 'low',
-                    requiresSupervision: false,
-                    preparationNotes: 'Не давать до 12 месяцев.'
-                },
-                restrictions: { medical: 'Риск младенческого ботулизма' }
-            },
             min_age_months: 12,
             iron: false,
             desc: 'Опасно до года (ботулизм).'
         },
         {
             id: 'allerg-3',
-            name: 'Орехи',
+            name: 'Орехи (обобщённо)',
             emoji: '🥜',
             category: 'аллергены',
-            introduction: { fromMonths: 12 },
-            status: 'avoid',
+            introduction: { fromMonths: 6 }, // было 12
+            status: 'caution',
             allergen: true,
             allergenType: ['nuts'],
             chokingRisk: 'high',
@@ -1370,13 +1561,13 @@
             highlights: ['Здоровые жиры', 'Белок'],
             interestingFact: 'Орехи – сильный аллерген и опасность удушья.',
             preparation: 'Не давать целые орехи. Измельчать и добавлять в кашу или пасту.',
-            safeForms: ['Молотые орехи в каше', 'Ореховая паста (тонким слоем)'],
-            unsafeForms: ['Целые орехи (риск удушья)'],
+            safeForms: ['измельчённые', 'гладкая ореховая паста без сахара'],
+            unsafeForms: ['цельный', 'крупный кусок'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 12,
+            min_age_months: 6,
             iron: false,
             desc: 'Сильный аллерген, кусочки опасны.'
         },
@@ -1385,8 +1576,8 @@
             name: 'Арахис',
             emoji: '🥜',
             category: 'аллергены',
-            introduction: { fromMonths: 12 },
-            status: 'avoid',
+            introduction: { fromMonths: 6 }, // было 12
+            status: 'caution',
             allergen: true,
             allergenType: ['peanut'],
             chokingRisk: 'high',
@@ -1394,13 +1585,13 @@
             highlights: ['Белок', 'Здоровые жиры'],
             interestingFact: 'Арахис – бобовое, а не орех, но один из самых сильных аллергенов.',
             preparation: 'Давать в виде арахисовой пасты (тонкий слой) или порошка.',
-            safeForms: ['Арахисовая паста тонким слоем на хлебе', 'Измельчённый арахис в каше'],
-            unsafeForms: ['Целые орехи (риск удушья)', 'Густая паста ложкой'],
+            safeForms: ['измельчённый', 'гладкая арахисовая паста без сахара'],
+            unsafeForms: ['цельный'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 12,
+            min_age_months: 6,
             iron: false,
             desc: 'Один из самых частых аллергенов.'
         },
@@ -1409,8 +1600,8 @@
             name: 'Соя',
             emoji: '🫘',
             category: 'аллергены',
-            introduction: { fromMonths: 12 },
-            status: 'avoid',
+            introduction: { fromMonths: 6 }, // было 12
+            status: 'caution',
             allergen: true,
             allergenType: ['soy'],
             chokingRisk: 'low',
@@ -1424,17 +1615,17 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 12,
+            min_age_months: 6,
             iron: false,
             desc: 'Встречается в соевом соусе и тофу.'
         },
         {
             id: 'allerg-6',
-            name: 'Кунжут',
-            emoji: '🫘',
+            name: 'Кунжут (тахини)',
+            emoji: '🌿',
             category: 'аллергены',
-            introduction: { fromMonths: 12 },
-            status: 'avoid',
+            introduction: { fromMonths: 6 }, // было 12
+            status: 'caution',
             allergen: true,
             allergenType: ['sesame'],
             chokingRisk: 'low',
@@ -1448,13 +1639,13 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 12,
+            min_age_months: 6,
             iron: false,
             desc: 'Аллерген, но в малых дозах.'
         },
         {
             id: 'allerg-7',
-            name: 'Морепродукты',
+            name: 'Морепродукты (креветки, мидии)',
             emoji: '🦐',
             category: 'аллергены',
             introduction: { fromMonths: 12 },
@@ -1475,10 +1666,36 @@
             min_age_months: 12,
             iron: false,
             desc: 'Креветки, мидии – только после года.'
+        },
+
+        // --- НАПИТКИ (новая категория) ---
+        {
+            id: 'beverage-1',
+            name: 'Сок яблочный (осветлённый)',
+            emoji: '🧃',
+            category: 'напитки',
+            introduction: { fromMonths: 12 },
+            status: 'avoid',
+            allergen: false,
+            allergenType: [],
+            chokingRisk: 'low',
+            nutrients: ['sugar', 'vitamin_c'],
+            highlights: [],
+            interestingFact: 'Сок не рекомендуется детям до года из-за высокого содержания сахара и отсутствия клетчатки.',
+            preparation: 'Не давать до 12 месяцев.',
+            safeForms: ['После 12 мес. в ограниченном количестве'],
+            unsafeForms: ['До 12 мес.'],
+            commercialProduct: false,
+            labelChecks: ['addedSugar'],
+            ageRestrictions: [{ type: "absolute", untilMonths: 12, reason: "избыток сахара, вытесняет грудное молоко/смесь" }],
+            medicalNote: 'Сок не рекомендуется до года.',
+            min_age_months: 12,
+            iron: false,
+            desc: 'Содержит добавленный сахар, не рекомендуется до года.'
         }
     ];
 
-    // ========== КАТЕГОРИИ ==========
+    // ========== КАТЕГОРИИ (добавлена категория "напитки") ==========
     window.CATEGORIES = [
         { id: 'овощи', label: 'Овощи', icon: '🥬' },
         { id: 'фрукты', label: 'Фрукты/ягоды', icon: '🍎' },
@@ -1486,7 +1703,8 @@
         { id: 'мясо', label: 'Мясо', icon: '🥩' },
         { id: 'рыба', label: 'Рыба/морепродукты', icon: '🐟' },
         { id: 'молочные', label: 'Молочные', icon: '🥛' },
-        { id: 'аллергены', label: 'Аллергены', icon: '⚠️' }
+        { id: 'аллергены', label: 'Аллергены', icon: '⚠️' },
+        { id: 'напитки', label: 'Напитки', icon: '🧃' }
     ];
 
     // ============================================================
