@@ -1,6 +1,6 @@
 /* ============================================================
    screens/products.js — новый UX, совместимый с non-module архитектурой
-   Исправления: Product State, Safety Engine, childService, категории, emoji
+   Исправления: статусы, возраст, рекомендации, фильтры, единый источник
    ============================================================ */
 
 (function() {
@@ -66,7 +66,24 @@
         return categoryEmojiMap[product.category] || '🍽';
     }
 
-    // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (без модулей) =====
+    // ===== НОРМАЛИЗАЦИЯ ВОЗРАСТА ПРОДУКТА =====
+    function getProductMinAgeMonths(product) {
+        if (product.introduction && product.introduction.fromMonths) {
+            return parseInt(product.introduction.fromMonths, 10) || 0;
+        }
+        if (product.min_age_months) {
+            return parseInt(product.min_age_months, 10) || 0;
+        }
+        if (product.min_age) {
+            return parseInt(product.min_age, 10) || 0;
+        }
+        if (product.ageMinMonths) {
+            return parseInt(product.ageMinMonths, 10) || 0;
+        }
+        return 0;
+    }
+
+    // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
     function getCurrentChildId() {
         return window.STATE ? window.STATE.currentChildId : null;
@@ -130,7 +147,7 @@
         return { status: 'allow', reasons: [] };
     }
 
-    // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ ПОЛУЧЕНИЯ СТАТУСА =====
+    // ===== ПОЛУЧЕНИЕ СТАТУСА ПРОДУКТА (единый источник) =====
     function getProductStatusForChild(productId, childId) {
         if (
             window.productStateService &&
@@ -157,7 +174,7 @@
         return 'notIntroduced';
     }
 
-    // ===== РЕНДЕРИНГ КАРТОЧКИ ПРОДУКТА (НОВЫЙ ДИЗАЙН) =====
+    // ===== РЕНДЕРИНГ КАРТОЧКИ ПРОДУКТА (с поддержкой всех статусов) =====
     function renderProductCard(product) {
         var childId = getCurrentChildId();
         if (!childId) {
@@ -167,18 +184,52 @@
         var status = getProductStatusForChild(product.id, childId);
         var safety = safeEvaluate(product, childId);
 
-        var statusText = '○ Ещё не введён';
-        var statusClass = 'status-not-introduced';
-        if (status === 'introduced') {
-            statusText = '✅ Введён';
-            statusClass = 'status-introduced';
-        } else if (status === 'parentExcluded') {
-            statusText = '❌ Не хочу';
-            statusClass = 'status-excluded';
+        var statusText = '';
+        var statusClass = '';
+        var actionButton = '';
+        var showIntroButton = false;
+
+        // Определяем статус и кнопку
+        switch (status) {
+            case 'notIntroduced':
+                statusText = '○ Ещё не введён';
+                statusClass = 'status-not-introduced';
+                showIntroButton = true;
+                break;
+            case 'planned':
+                statusText = '🗓 Запланирован';
+                statusClass = 'status-planned';
+                showIntroButton = true; // planned → introduced допустим
+                break;
+            case 'introduced':
+                statusText = '✅ Введён';
+                statusClass = 'status-introduced';
+                showIntroButton = false;
+                break;
+            case 'suspectedReaction':
+                statusText = '⚠️ Была реакция';
+                statusClass = 'status-suspected';
+                showIntroButton = false;
+                break;
+            case 'confirmedAllergy':
+                statusText = '🚫 Аллергия';
+                statusClass = 'status-allergy';
+                showIntroButton = false;
+                break;
+            case 'parentExcluded':
+                statusText = '❌ Не хочу вводить';
+                statusClass = 'status-excluded';
+                showIntroButton = false;
+                break;
+            default:
+                statusText = '○ Ещё не введён';
+                statusClass = 'status-not-introduced';
+                showIntroButton = true;
         }
 
         var emoji = getProductEmoji(product);
-        var ageLabel = product.ageMinMonths ? product.ageMinMonths + '+ мес' : '';
+        var age = getProductMinAgeMonths(product);
+        var ageLabel = age ? age + '+ мес' : '';
 
         var warningBadge = '';
         if (safety.status === 'caution') {
@@ -189,8 +240,7 @@
             warningBadge = '<span class="badge badge-review">ℹ️ ' + reasonsReview + '</span>';
         }
 
-        var actionButton = '';
-        if (status === 'notIntroduced') {
+        if (showIntroButton) {
             actionButton = '<button class="btn-primary" data-action="add-product-intro" data-product-id="' + product.id + '">＋ Ввести продукт</button>';
         } else {
             actionButton = '<span class="status-label ' + statusClass + '">' + statusText + '</span>';
@@ -225,29 +275,35 @@
         return found ? found.label : catId.charAt(0).toUpperCase() + catId.slice(1);
     }
 
-    // ===== БЛОК «РЕКОМЕНДОВАНО СЕЙЧАС» =====
+    // ===== БЛОК «РЕКОМЕНДОВАНО СЕЙЧАС» (исправлен) =====
     function renderRecommendedProducts() {
         var childId = getCurrentChildId();
         if (!childId) return '<p class="text-secondary">Выберите ребёнка</p>';
 
-        var products = PRODUCTS || [];
         var age = getChildAgeMonths(childId);
+        var products = PRODUCTS || [];
+
         var recommended = products
-            .map(function(p) {
-                return { product: p, safety: safeEvaluate(p, childId) };
-            })
-            .filter(function(item) {
-                return item.safety.status === 'allow' || item.safety.status === 'caution';
+            .filter(function(p) {
+                var status = getProductStatusForChild(p.id, childId);
+                // Только notIntroduced
+                if (status !== 'notIntroduced') return false;
+                // Возраст продукта <= возраст ребёнка
+                if (getProductMinAgeMonths(p) > age) return false;
+                // Safety: allow или caution
+                var safety = safeEvaluate(p, childId);
+                return safety.status === 'allow' || safety.status === 'caution';
             })
             .sort(function(a, b) {
-                if (a.safety.status === 'allow' && b.safety.status !== 'allow') return -1;
-                if (a.safety.status !== 'allow' && b.safety.status === 'allow') return 1;
-                var diffA = Math.abs((a.product.ageMinMonths || 0) - age);
-                var diffB = Math.abs((b.product.ageMinMonths || 0) - age);
-                return diffA - diffB;
+                var ageA = getProductMinAgeMonths(a);
+                var ageB = getProductMinAgeMonths(b);
+                var diffA = Math.abs(ageA - age);
+                var diffB = Math.abs(ageB - age);
+                if (diffA !== diffB) return diffA - diffB;
+                return a.name.localeCompare(b.name);
             })
             .slice(0, 6)
-            .map(function(item) { return renderProductCard(item.product); })
+            .map(function(p) { return renderProductCard(p); })
             .join('');
 
         if (!recommended) {
@@ -281,8 +337,17 @@
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
         var query = window.CURRENT_PRODUCT_SEARCH || '';
 
+        // Фильтр по статусу
         if (statusFilter === 'current') {
+            // "Сейчас" – подходящие, не введённые, не исключённые, без реакции/аллергии
             filtered = filtered.filter(function(p) {
+                var status = getProductStatusForChild(p.id, childId);
+                if (status === 'introduced' || status === 'parentExcluded' ||
+                    status === 'suspectedReaction' || status === 'confirmedAllergy') {
+                    return false;
+                }
+                var productAge = getProductMinAgeMonths(p);
+                if (productAge > getChildAgeMonths(childId)) return false;
                 var safety = safeEvaluate(p, childId);
                 return safety.status === 'allow' || safety.status === 'caution';
             });
@@ -290,23 +355,26 @@
             filtered = filtered.filter(function(p) {
                 return getProductStatusForChild(p.id, childId) === 'introduced';
             });
-        }
+        } // 'all' – без фильтра по статусу
 
+        // Фильтр по категории
         if (categoryFilter) {
             filtered = filtered.filter(function(p) {
                 return p.category === categoryFilter;
             });
         }
 
+        // Фильтр по возрасту (рекомендательный) – productAge >= ageLimit
         if (ageFilter) {
             var ageLimit = parseInt(ageFilter, 10);
             if (!isNaN(ageLimit)) {
                 filtered = filtered.filter(function(p) {
-                    return (p.ageMinMonths || 0) >= ageLimit;
+                    return getProductMinAgeMonths(p) >= ageLimit;
                 });
             }
         }
 
+        // Поиск
         if (query.trim()) {
             var q = query.trim().toLowerCase();
             filtered = filtered.filter(function(p) {
@@ -329,6 +397,7 @@
             container.innerHTML = filtered.map(renderProductCard).join('');
         }
 
+        // Счётчик введённых (только introduced)
         var countEl = document.getElementById('products-introduced-count');
         if (countEl) {
             var childId = getCurrentChildId();
@@ -341,6 +410,7 @@
             countEl.textContent = introducedCount;
         }
 
+        // Обновляем блок "Рекомендовано сейчас"
         var recContainer = document.getElementById('recommended-products');
         if (recContainer) {
             recContainer.innerHTML = renderRecommendedProducts();
@@ -455,7 +525,8 @@
         html += '    </div>';
         html += '  </section>';
 
-        html += '  <button class="floating-add" data-action="add-food">➕ <span>Добавить</span></button>';
+        // Исправленная кнопка "Добавить" – ведёт в дневник
+        html += '  <button class="floating-add" data-action="add-diary">➕ <span>Добавить в дневник</span></button>';
         html += '</div>';
 
         return html;
@@ -477,10 +548,8 @@
     window.updateProductsList = updateProductsList;
     window.renderProducts = renderProducts;
 
-    // ===== УДАЛЕНЫ document.addEventListener (дублирование с handlers.js) =====
-    // Все обработчики событий теперь централизованно управляются из handlers.js
-
-    // ===== ПЕРЕХВАТ СОБЫТИЯ ИЗМЕНЕНИЯ СОСТОЯНИЯ =====
+    // ===== ОБРАБОТЧИК СОБЫТИЯ ИЗМЕНЕНИЯ СОСТОЯНИЯ =====
+    // (позволяет обновлять список при изменении статуса через productStateService)
     window.addEventListener('prikorm:statechange', function() {
         var screen = document.getElementById('screen-products');
         if (screen) {
