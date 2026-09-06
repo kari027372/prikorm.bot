@@ -1,12 +1,14 @@
 /* ============================================================
-   screens/products.js — новый UX раздела «Продукты»
+   screens/products.js — новый UX раздела «Продукты» (без модулей)
    ============================================================ */
 
-import { getCurrentChild, getChildAgeMonths } from '../services/child-service.js';
-import { getProductState } from '../services/product-state.js';
-import safetyEngine from '../services/safety-engine.js';
-import { PRODUCTS } from '../data/products.js';
-import STATE from '../state.js';
+// ===== ПОЛУЧАЕМ ЗАВИСИМОСТИ ИЗ ГЛОБАЛЬНЫХ ПЕРЕМЕННЫХ =====
+// (предполагается, что эти объекты уже загружены через другие скрипты)
+// getCurrentChild, getChildAgeMonths — из child-service.js (глобальные)
+// getProductState — из product-state.js (глобальная)
+// safetyEngine — глобальный объект
+// PRODUCTS — глобальный массив
+// STATE — глобальный объект
 
 // ===== ЛОКАЛЬНЫЕ ПЕРЕМЕННЫЕ ФИЛЬТРОВ =====
 let currentStatusFilter = 'all';      // 'all' | 'current' | 'introduced'
@@ -80,16 +82,19 @@ function renderProductCard(product, childId) {
         actionButton = `<span class="status-label ${statusClass}">${statusText}</span>`;
     }
 
+    // Используем глобальную escapeHTML (должна быть определена в utils.js или другом месте)
+    const escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); };
+
     return `
         <div class="card product-card" data-action="select-product" data-product-id="${product.id}">
             <div class="product-card-header">
                 <span class="product-emoji">${emoji}</span>
-                <h3 class="product-name">${escapeHTML(product.name)}</h3>
+                <h3 class="product-name">${escape(product.name)}</h3>
                 ${warningBadge}
             </div>
             <div class="product-card-body">
                 <div class="product-meta">
-                    <span class="product-category">${escapeHTML(product.category)}</span>
+                    <span class="product-category">${escape(product.category)}</span>
                     ${ageLabel ? `<span class="product-age">${ageLabel}</span>` : ''}
                 </div>
                 <div class="product-actions">
@@ -126,11 +131,12 @@ function renderRecommendedProducts(childId) {
 // ===== СЕТКА КАТЕГОРИЙ =====
 function renderCategoryGrid() {
     const categories = Object.keys(categoryEmojiMap);
+    const escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); };
     return categories
         .map(cat => `
             <div class="category-chip" data-action="filter-products" data-category="${cat}">
                 <span class="category-emoji">${categoryEmojiMap[cat]}</span>
-                <span class="category-name">${escapeHTML(cat)}</span>
+                <span class="category-name">${escape(cat)}</span>
             </div>
         `)
         .join('');
@@ -203,7 +209,7 @@ function updateChipsActiveState() {
 }
 
 // ===== ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРИНГА =====
-export function renderProductsScreen() {
+function renderProductsScreen() {
     const childId = STATE.currentChildId;
     const introducedCount = childId ? (PRODUCTS || []).filter(p => getProductState(childId, p.id) === 'introduced').length : 0;
 
