@@ -227,6 +227,23 @@ function handleDocumentClick(event) {
                     closeModal();
                 }
                 break;
+
+            // ===== НОВЫЙ ОБРАБОТЧИК ДЛЯ ФИЛЬТРОВ =====
+            case "filter-products": {
+                const filter = target.dataset.filter || 'all';
+                STATE.productsFilter = filter;
+                if (target.dataset.category !== undefined) {
+                    STATE.productsCategoryFilter = target.dataset.category || null;
+                }
+                if (target.dataset.age !== undefined) {
+                    STATE.productsAgeFilter = target.dataset.age || null;
+                }
+                if (typeof updateProductsList === 'function') {
+                    updateProductsList();
+                }
+                break;
+            }
+
             default:
                 break;
         }
