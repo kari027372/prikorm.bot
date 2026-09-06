@@ -1,6 +1,6 @@
 /* ============================================================
    safety.js
-   Безопасность прикорма (синхронизирован с актуальными данными продуктов)
+   Безопасность прикорма (синхронизирован с моделью безопасности)
    ============================================================ */
 
 /* ============================================================
@@ -79,7 +79,7 @@ const SAFETY_RULES = {
 };
 
 /* ============================================================
-   БАЗОВЫЕ ПРОДУКТЫ С ОСОБЫМ РИСКОМ (расширенный список)
+   БАЗОВЫЕ ПРОДУКТЫ С ОСОБЫМ РИСКОМ
    ============================================================ */
 
 const HIGH_CHOKING_RISK = [
@@ -158,12 +158,10 @@ function getProductAllergens(product) {
     if (!product) return [];
     const allergens = [];
 
-    // Данные самой базы
     if (product.allergen === true) {
         if (Array.isArray(product.allergens) && product.allergens.length) {
             allergens.push(...product.allergens);
         } else {
-            // Используем allergenType, если есть
             if (Array.isArray(product.allergenType) && product.allergenType.length) {
                 allergens.push(...product.allergenType);
             } else {
@@ -171,13 +169,11 @@ function getProductAllergens(product) {
             }
         }
     } else {
-        // Если allergen=false, но allergenType заполнен – всё равно считаем аллергеном
         if (Array.isArray(product.allergenType) && product.allergenType.length) {
             allergens.push(...product.allergenType);
         }
     }
 
-    // Проверяем по названию
     const name = String(product.name || "").toLowerCase();
     COMMON_ALLERGENS.forEach(allergen => {
         if (name.includes(allergen) && !allergens.includes(allergen)) {
@@ -187,10 +183,6 @@ function getProductAllergens(product) {
 
     return [...new Set(allergens)];
 }
-
-/* ============================================================
-   ПРОВЕРКА НА АЛЛЕРГЕН
-   ============================================================ */
 
 function isAllergenProduct(product) {
     return getProductAllergens(product).length > 0;
@@ -215,7 +207,6 @@ function getChokingRisk(product) {
     let safeForms = [];
     let unsafeForms = [];
 
-    // 1. Проверяем product.rules.safety.chokingRisk
     if (product.rules?.safety?.chokingRisk) {
         const val = product.rules.safety.chokingRisk;
         if (val === 'high') riskLevel = 'high';
@@ -223,19 +214,16 @@ function getChokingRisk(product) {
         else if (val === 'low') riskLevel = 'low';
     }
 
-    // 2. product.chokingRisk
     if (!riskLevel && product.chokingRisk) {
         if (product.chokingRisk === 'high') riskLevel = 'high';
         else if (product.chokingRisk === 'medium') riskLevel = 'medium';
         else if (product.chokingRisk === 'low') riskLevel = 'low';
     }
 
-    // 3. Старое поле product.choking (boolean)
     if (!riskLevel && product.choking === true) {
         riskLevel = 'high';
     }
 
-    // 4. Поиск в FORM_DEPENDENT_PRODUCTS
     const name = String(product.name || "").toLowerCase();
     if (!riskLevel) {
         for (const key of Object.keys(FORM_DEPENDENT_PRODUCTS)) {
@@ -250,7 +238,6 @@ function getChokingRisk(product) {
         }
     }
 
-    // 5. Поиск в HIGH_CHOKING_RISK (если ещё не определён)
     if (!riskLevel) {
         if (HIGH_CHOKING_RISK.some(item => name.includes(item))) {
             riskLevel = 'high';
@@ -258,12 +245,10 @@ function getChokingRisk(product) {
         }
     }
 
-    // Если риск не определён, считаем low
     if (!riskLevel) {
         riskLevel = 'low';
     }
 
-    // Если у продукта есть свои safeForms/unsafeForms, они имеют приоритет над найденными из FORM_DEPENDENT_PRODUCTS
     if (Array.isArray(product.safeForms) && product.safeForms.length) {
         safeForms = product.safeForms.slice();
     }
@@ -271,7 +256,6 @@ function getChokingRisk(product) {
         unsafeForms = product.unsafeForms.slice();
     }
 
-    // Определяем уровень
     let level = SAFETY_LEVELS.SAFE;
     if (riskLevel === 'high') level = SAFETY_LEVELS.HIGH;
     else if (riskLevel === 'medium') level = SAFETY_LEVELS.ATTENTION;
@@ -285,48 +269,53 @@ function getChokingRisk(product) {
 }
 
 /* ============================================================
-   ПРОВЕРКА ФОРМЫ ПОДАЧИ (УЛУЧШЕННАЯ)
+   ПРОВЕРКА ФОРМЫ ПОДАЧИ (ИСПРАВЛЕНА)
    ============================================================ */
 
 function checkServingSafety(product, servingForm, preparation) {
     const choking = getChokingRisk(product);
-    const warnings = [];
+    const formWarnings = [];
+    const allWarnings = [];
 
-    // Проверяем, есть ли unsafeForms
+    // Проверяем unsafeForms
     if (choking.unsafeForms && choking.unsafeForms.length && servingForm) {
         const formLower = servingForm.toLowerCase();
         const isUnsafe = choking.unsafeForms.some(f => formLower.includes(f.toLowerCase()));
         if (isUnsafe) {
-            warnings.push("Эта форма продукта небезопасна (риск удушья).");
+            formWarnings.push("Эта форма продукта небезопасна (риск удушья).");
         }
     }
 
-    // Если есть safeForms и форма не указана, но не в unsafe – не предупреждаем, если форма неизвестна, но не запрещена
-    if (choking.level === SAFETY_LEVELS.HIGH && warnings.length === 0 && servingForm) {
+    // Если форма не в unsafe, но риск высокий и нет safeForms – даём общее предупреждение
+    if (choking.level === SAFETY_LEVELS.HIGH && formWarnings.length === 0 && servingForm) {
         if (choking.safeForms && choking.safeForms.length) {
             const isSafe = choking.safeForms.some(f => servingForm.toLowerCase().includes(f.toLowerCase()));
             if (!isSafe) {
-                warnings.push("Рекомендуется использовать безопасную форму подачи.");
+                // Если форма не в safe, но и не в unsafe, и риск высокий – предупреждение
+                formWarnings.push("Рекомендуется использовать безопасную форму подачи.");
             }
         } else {
-            // Если safeForms не указаны, но риск высокий – даём общее предупреждение
-            warnings.push("Продукт требует правильной подготовки для безопасного употребления.");
+            formWarnings.push("Продукт требует правильной подготовки для безопасного употребления.");
         }
-    }
-
-    // Аллерген – информационное предупреждение
-    if (product && isAllergenProduct(product)) {
-        warnings.push("Это потенциальный аллерген. Наблюдайте за ребёнком после употребления.");
     }
 
     // Сырая форма
     if (preparation === "raw" && product && product.choking === true) {
-        warnings.push("Для этого продукта сырая форма может быть неподходящей.");
+        formWarnings.push("Для этого продукта сырая форма может быть неподходящей.");
     }
 
+    // Аллерген – только информационное предупреждение, не влияет на безопасность формы
+    if (product && isAllergenProduct(product)) {
+        allWarnings.push("Это потенциальный аллерген. Наблюдайте за ребёнком после употребления.");
+    }
+
+    // Объединяем предупреждения
+    const all = [...formWarnings, ...allWarnings];
+    const uniqueWarnings = [...new Set(all.filter(Boolean))];
+
     return {
-        safe: warnings.length === 0,
-        warnings: [...new Set(warnings.filter(Boolean))],
+        safe: formWarnings.length === 0,  // только форма определяет safe
+        warnings: uniqueWarnings,
         choking: choking,
         servingForm: servingForm || null,
         preparation: preparation || null
@@ -334,7 +323,7 @@ function checkServingSafety(product, servingForm, preparation) {
 }
 
 /* ============================================================
-   ПОЛНАЯ ПРОВЕРКА ПРОДУКТА
+   ПОЛНАЯ ПРОВЕРКА ПРОДУКТА (ИСПРАВЛЕНА)
    ============================================================ */
 
 function analyzeProductSafety(product, options = {}) {
@@ -353,24 +342,36 @@ function analyzeProductSafety(product, options = {}) {
     const choking = getChokingRisk(product);
     const serving = checkServingSafety(product, options.servingForm, options.preparation);
 
+    // Собираем все предупреждения
     const warnings = [...serving.warnings];
 
-    // Мёд
+    // Специальные предупреждения для мёда и молока
     const productName = String(product.name || "").toLowerCase();
     if (productName.includes("мёд") || productName.includes("мед")) {
         warnings.push(SAFETY_RULES.honey.warning);
     }
-
-    // Коровье молоко
     if (productName.includes("коровье молоко")) {
         warnings.push(SAFETY_RULES.cowMilk.warning);
     }
 
+    // Определяем уровень
     let level = SAFETY_LEVELS.SAFE;
-    if (choking.level === SAFETY_LEVELS.HIGH) {
+
+    // 1. Если передана форма и она небезопасна → DANGER
+    if (options.servingForm && !serving.safe) {
+        level = SAFETY_LEVELS.DANGER;
+    }
+    // 2. Иначе если высокий риск удушья → HIGH (информационное предупреждение)
+    else if (choking.level === SAFETY_LEVELS.HIGH) {
         level = SAFETY_LEVELS.HIGH;
-    } else if (allergens.length > 0 && level === SAFETY_LEVELS.SAFE) {
+    }
+    // 3. Иначе если есть аллергены → ATTENTION (информационное)
+    else if (allergens.length > 0) {
         level = SAFETY_LEVELS.ATTENTION;
+    }
+    // 4. Иначе SAFE
+    else {
+        level = SAFETY_LEVELS.SAFE;
     }
 
     return {
