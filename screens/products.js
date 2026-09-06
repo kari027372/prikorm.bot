@@ -199,7 +199,7 @@
             case 'planned':
                 statusText = '🗓 Запланирован';
                 statusClass = 'status-planned';
-                showIntroButton = true; // planned → introduced допустим
+                showIntroButton = true;
                 break;
             case 'introduced':
                 statusText = '✅ Введён';
@@ -286,11 +286,8 @@
         var recommended = products
             .filter(function(p) {
                 var status = getProductStatusForChild(p.id, childId);
-                // Только notIntroduced
                 if (status !== 'notIntroduced') return false;
-                // Возраст продукта <= возраст ребёнка
                 if (getProductMinAgeMonths(p) > age) return false;
-                // Safety: allow или caution
                 var safety = safeEvaluate(p, childId);
                 return safety.status === 'allow' || safety.status === 'caution';
             })
@@ -337,9 +334,7 @@
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
         var query = window.CURRENT_PRODUCT_SEARCH || '';
 
-        // Фильтр по статусу
         if (statusFilter === 'current') {
-            // "Сейчас" – подходящие, не введённые, не исключённые, без реакции/аллергии
             filtered = filtered.filter(function(p) {
                 var status = getProductStatusForChild(p.id, childId);
                 if (status === 'introduced' || status === 'parentExcluded' ||
@@ -355,16 +350,14 @@
             filtered = filtered.filter(function(p) {
                 return getProductStatusForChild(p.id, childId) === 'introduced';
             });
-        } // 'all' – без фильтра по статусу
+        }
 
-        // Фильтр по категории
         if (categoryFilter) {
             filtered = filtered.filter(function(p) {
                 return p.category === categoryFilter;
             });
         }
 
-        // Фильтр по возрасту (рекомендательный) – productAge >= ageLimit
         if (ageFilter) {
             var ageLimit = parseInt(ageFilter, 10);
             if (!isNaN(ageLimit)) {
@@ -374,7 +367,6 @@
             }
         }
 
-        // Поиск
         if (query.trim()) {
             var q = query.trim().toLowerCase();
             filtered = filtered.filter(function(p) {
@@ -397,7 +389,6 @@
             container.innerHTML = filtered.map(renderProductCard).join('');
         }
 
-        // Счётчик введённых (только introduced)
         var countEl = document.getElementById('products-introduced-count');
         if (countEl) {
             var childId = getCurrentChildId();
@@ -410,7 +401,6 @@
             countEl.textContent = introducedCount;
         }
 
-        // Обновляем блок "Рекомендовано сейчас"
         var recContainer = document.getElementById('recommended-products');
         if (recContainer) {
             recContainer.innerHTML = renderRecommendedProducts();
@@ -525,7 +515,6 @@
         html += '    </div>';
         html += '  </section>';
 
-        // Исправленная кнопка "Добавить" – ведёт в дневник
         html += '  <button class="floating-add" data-action="add-diary">➕ <span>Добавить в дневник</span></button>';
         html += '</div>';
 
@@ -548,14 +537,8 @@
     window.updateProductsList = updateProductsList;
     window.renderProducts = renderProducts;
 
-    // ===== ОБРАБОТЧИК СОБЫТИЯ ИЗМЕНЕНИЯ СОСТОЯНИЯ =====
-    // (позволяет обновлять список при изменении статуса через productStateService)
-    window.addEventListener('prikorm:statechange', function() {
-        var screen = document.getElementById('screen-products');
-        if (screen) {
-            updateProductsList();
-        }
-    });
+    // ===== УДАЛЁН ЛОКАЛЬНЫЙ prikorm:statechange (используется глобальный в handlers.js) =====
+    // window.addEventListener('prikorm:statechange', ...) удалён
 
     console.log('✅ products.js загружен (исправленный, non-module)');
 })();
