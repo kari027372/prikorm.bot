@@ -75,7 +75,6 @@ function buildApp() {
     UI.screens = {
         home: createHomeScreen(),
         today: createTodayScreen(),
-        products: createProductsScreen(),
         diary: createDiaryScreen(),
         recipes: createRecipesScreen(),
         baby: createBabyScreen()
@@ -112,7 +111,7 @@ function createHeader({ title = "", subtitle = "", back = false, action = "", ac
 }
 
 /* ============================================================
-   ЭКРАНЫ (без изменений)
+   ЭКРАНЫ (без изменений, кроме удалённого Products)
    ============================================================ */
 
 function createHomeScreen() {
@@ -201,68 +200,8 @@ function createTodayScreen() {
     return section;
 }
 
-function createProductsScreen() {
-    const section = document.createElement("section");
-    section.id = "screen-products";
-    section.className = "screen";
-    section.innerHTML = `
-        ${createHeader({ title: "Продукты", subtitle: "Знакомство с едой" })}
-        <div class="screen-body">
-            <div class="products-header">
-                <h1 class="h1">Продукты</h1>
-                <div class="introduced-counter" data-action="filter-products" data-filter="introduced">
-                    ✅ Введено: <span id="products-introduced-count">0</span>
-                </div>
-            </div>
-            <div class="search-box">
-                <span>${icon("search")}</span>
-                <input id="product-search" type="search" placeholder="Найти продукт..." autocomplete="off" />
-                <button type="button" class="clear-search" data-action="clear-search">${icon("close")}</button>
-            </div>
-            <section class="recommended-section">
-                <h2 class="h2">✨ Рекомендовано сейчас</h2>
-                <div id="recommended-products" class="recommended-grid"></div>
-            </section>
-            <section class="categories-section">
-                <h2 class="h2">Категории</h2>
-                <div id="category-grid" class="categories-grid"></div>
-            </section>
-            <section class="filters-section">
-                <div class="filter-group">
-                    <span class="filter-label">Статус:</span>
-                    <div class="chips-group" id="status-filters">
-                        <span class="chip active" data-action="filter-products" data-filter="all">Все</span>
-                        <span class="chip" data-action="filter-products" data-filter="current">✨ Сейчас</span>
-                        <span class="chip" data-action="filter-products" data-filter="introduced">✅ Введены</span>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <span class="filter-label">Категория:</span>
-                    <div class="chips-group" id="category-filters">
-                        <span class="chip active" data-action="filter-products" data-category="">Все</span>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <span class="filter-label">Возраст:</span>
-                    <div class="chips-group" id="age-filters">
-                        <span class="chip active" data-action="filter-products" data-age="">Все</span>
-                        <span class="chip" data-action="filter-products" data-age="6">6+</span>
-                        <span class="chip" data-action="filter-products" data-age="7">7+</span>
-                        <span class="chip" data-action="filter-products" data-age="8">8+</span>
-                        <span class="chip" data-action="filter-products" data-age="9">9+</span>
-                        <span class="chip" data-action="filter-products" data-age="10">10+</span>
-                    </div>
-                </div>
-            </section>
-            <section class="products-list-section">
-                <h2 class="h2">Все продукты</h2>
-                <div id="products-list" class="products-list">${loadingState()}</div>
-            </section>
-            <button type="button" class="floating-add" data-action="add-food">${icon("plus")}<span>Добавить</span></button>
-        </div>
-    `;
-    return section;
-}
+// ===== ЭКРАН ПРОДУКТОВ ПОЛНОСТЬЮ УДАЛЁН (используется screens/products.js) =====
+// function createProductsScreen() { ... } удалена
 
 function createDiaryScreen() {
     const section = document.createElement("section");
@@ -408,10 +347,8 @@ function getCategoryGroups() {
 function evaluateProductSafetySafe(product, childId) {
     const child = STATE.children.find(c => c.id === childId);
     if (!child) return { decision: 'allow', reason: '' };
-    // Если есть функция в safetyEngine
     if (window.safetyEngine && typeof window.safetyEngine.evaluateProductSafety === 'function') {
         try {
-            // Передаём профиль (ребёнка), продукт и null для servingForm
             const result = window.safetyEngine.evaluateProductSafety(child, product, null);
             return result || { decision: 'allow', reason: '' };
         } catch (e) {
@@ -419,15 +356,14 @@ function evaluateProductSafetySafe(product, childId) {
             return { decision: 'allow', reason: '' };
         }
     }
-    // fallback
     return { decision: 'allow', reason: '' };
 }
 
 // Новая карточка продукта
 function renderProductCard(product, childId) {
     const safety = evaluateProductSafetySafe(product, childId);
-    const introduced = typeof isProductIntroduced === 'function' 
-        ? isProductIntroduced(childId, product.id) 
+    const introduced = typeof isProductIntroduced === 'function'
+        ? isProductIntroduced(childId, product.id)
         : false;
     const excluded = isProductExcluded(childId, product.id);
 
@@ -538,7 +474,7 @@ function updateProductsList() {
             return safety.decision === 'allow' || safety.decision === 'caution';
         });
     } else if (STATE.productsFilter === 'introduced') {
-        filtered = filtered.filter(p => 
+        filtered = filtered.filter(p =>
             typeof isProductIntroduced === 'function' && isProductIntroduced(childId, p.id)
         );
     }
@@ -575,7 +511,7 @@ function updateProductsList() {
     // Счётчик введённых
     const countEl = document.getElementById('products-introduced-count');
     if (countEl) {
-        const introducedCount = products.filter(p => 
+        const introducedCount = products.filter(p =>
             typeof isProductIntroduced === 'function' && isProductIntroduced(childId, p.id)
         ).length;
         countEl.textContent = introducedCount;
