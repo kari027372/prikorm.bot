@@ -3,7 +3,7 @@
     'use strict';
 
     // ============================================================
-    // НОРМАЛИЗАЦИЯ ГРУПП ПРОДУКТОВ (ТОЛЬКО FOOD GROUPS)
+    // НОРМАЛИЗАЦИЯ ГРУПП ПРОДУКТОВ
     // ============================================================
 
     const CATEGORY_TO_GROUPS = {
@@ -27,7 +27,7 @@
         return groups ? groups.slice() : ['other'];
     }
 
-    // ========== БАЗА ПРОДУКТОВ (58 записей, ages обновлены) ==========
+    // ========== БАЗА ПРОДУКТОВ (67 записей) ==========
     window.PRODUCTS = [
         // --- ОВОЩИ ---
         {
@@ -102,8 +102,8 @@
             allergen: false,
             allergenType: [],
             chokingRisk: 'low',
-            nutrients: ['vitamin_c', 'iron', 'fiber'],
-            highlights: ['Источник железа', 'Клетчатка'],
+            nutrients: ['vitamin_c', 'fiber'],
+            highlights: ['Богата витамином C', 'Клетчатка'],
             interestingFact: 'Брокколи содержит больше витамина C, чем апельсин.',
             preparation: 'Отварить на пару до мягкости, размять или дать соцветия.',
             safeForms: ['Пюре', 'Размятые соцветия', 'Целые мягкие соцветия (с 8 мес.)'],
@@ -113,8 +113,8 @@
             ageRestrictions: [],
             medicalNote: null,
             min_age_months: 4.5,
-            iron: true,
-            desc: 'Источник железа и клетчатки. Хорошо сочетается с картофелем.'
+            iron: false,
+            desc: 'Содержит витамин C и клетчатку.'
         },
         {
             id: 'veg-4',
@@ -128,7 +128,7 @@
             chokingRisk: 'low',
             nutrients: ['carbohydrates', 'potassium'],
             highlights: ['Даёт сытость', 'Хорошо сочетается с овощами'],
-            interestingFact: 'Картофель в мундире сохраняет больше витаминов.',
+            interestingFact: 'Картофель – крахмалистый овощ, дающий сытость.',
             preparation: 'Отварить или запечь, размять до пюре.',
             safeForms: ['Пюре без соли', 'Запечённые дольки (с 8 мес.)'],
             unsafeForms: ['Сырой картофель', 'Жареный картофель'],
@@ -138,7 +138,7 @@
             medicalNote: null,
             min_age_months: 4.5,
             iron: false,
-            desc: 'Крахмалистый, даёт сытость. Вводите после кабачка.'
+            desc: 'Жареный картофель не подходит для прикорма, используйте отварной или запечённый.'
         },
         {
             id: 'veg-5',
@@ -151,7 +151,7 @@
             allergenType: [],
             chokingRisk: 'low',
             nutrients: ['beta_carotene', 'vitamin_a'],
-            highlights: ['Бета-каротин для зрения', 'Клетчатка'],
+            highlights: ['Бета-каротин', 'Клетчатка'],
             interestingFact: 'Морковь лучше усваивается с каплей масла.',
             preparation: 'Отварить или запечь, пюре или мягкие кусочки.',
             safeForms: ['Пюре', 'Варёные брусочки (с 8 мес.)'],
@@ -162,7 +162,7 @@
             medicalNote: null,
             min_age_months: 4.5,
             iron: false,
-            desc: 'Сладковатая, содержит бета-каротин. Можно с каплей масла.'
+            desc: 'Небольшое количество масла можно добавить в овощное пюре.'
         },
         {
             id: 'veg-6',
@@ -176,7 +176,7 @@
             chokingRisk: 'low',
             nutrients: ['beta_carotene', 'fiber'],
             highlights: ['Яркий цвет', 'Мягкая текстура'],
-            interestingFact: 'Тыква – одна из самых полезных овощей для первого прикорма.',
+            interestingFact: 'Тыква получает оранжевый цвет благодаря каротиноидам.',
             preparation: 'Запечь или отварить, пюре.',
             safeForms: ['Пюре'],
             unsafeForms: ['Сырая'],
@@ -186,21 +186,21 @@
             medicalNote: null,
             min_age_months: 4.5,
             iron: false,
-            desc: 'Яркий цвет, мягкая текстура. Хорошо для первого прикорма.'
+            desc: 'Благодаря каротиноидам тыква приобретает оранжевый цвет и мягкую текстуру.'
         },
         {
             id: 'veg-7',
             name: 'Свёкла',
-            emoji: '🫃',
+            emoji: '🍠', // исправлено
             category: 'овощи',
             introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: false,
             allergenType: [],
             chokingRisk: 'low',
-            nutrients: ['iron', 'folate'],
-            highlights: ['Богата железом', 'Фолиевая кислота'],
-            interestingFact: 'Свёкла может окрашивать мочу и кал – это нормально.',
+            nutrients: ['folate', 'fiber'],
+            highlights: ['Содержит фолаты', 'Природный цвет'],
+            interestingFact: 'Свёкла содержит природные пигменты, которые могут окрашивать мочу и кал.',
             preparation: 'Отварить до мягкости, пюре.',
             safeForms: ['Пюре'],
             unsafeForms: ['Сырая'],
@@ -209,8 +209,8 @@
             ageRestrictions: [],
             medicalNote: null,
             min_age_months: 6,
-            iron: true,
-            desc: 'Богата железом, но может слабить. Вводите с 6 мес.'
+            iron: false,
+            desc: 'Содержит фолаты и придаёт блюдам яркий цвет. Может окрашивать мочу и кал – это нормально.'
         },
         {
             id: 'veg-8',
@@ -223,18 +223,18 @@
             allergenType: [],
             chokingRisk: 'low',
             nutrients: ['vitamin_c', 'fiber'],
-            highlights: ['Придаёт вкус блюдам', 'Антиоксиданты'],
-            interestingFact: 'Лук содержит кверцетин – мощный антиоксидант.',
+            highlights: ['Придаёт вкус блюдам'],
+            interestingFact: 'При варке лук становится мягче и приобретает сладковатый вкус.',
             preparation: 'Варить или тушить до мягкости, использовать в пюре или супах.',
             safeForms: ['Варёный, тушёный'],
-            unsafeForms: ['Сырой лук (раздражает ЖКТ)'],
+            unsafeForms: ['Сырой лук (резкий вкус)'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'В варёном виде – для вкуса. Не давайте сырым.'
+            desc: 'В варёном виде – для вкуса. Сырой лук имеет резкий вкус, лучше использовать в приготовленных блюдах.'
         },
         {
             id: 'veg-9',
@@ -246,19 +246,19 @@
             allergen: false,
             allergenType: [],
             chokingRisk: 'low',
-            nutrients: ['vitamin_c', 'allicin'],
-            highlights: ['Антибактериальные свойства'],
-            interestingFact: 'Чеснок использовался как лекарство тысячи лет.',
+            nutrients: ['vitamin_c'],
+            highlights: ['Выраженный вкус'],
+            interestingFact: 'Чеснок придаёт блюдам яркий аромат даже в небольшом количестве.',
             preparation: 'Добавлять в небольшом количестве в процессе приготовления.',
             safeForms: ['Варёный/тушёный в блюдах'],
-            unsafeForms: ['Сырой чеснок (сильный вкус, раздражение)'],
+            unsafeForms: ['Сырой чеснок (сильный вкус)'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Острый, только в малых дозах в блюдах.'
+            desc: 'Имеет выраженный вкус, добавляйте в малых количествах в процессе приготовления.'
         },
         {
             id: 'veg-10',
@@ -271,8 +271,8 @@
             allergenType: [],
             chokingRisk: 'low',
             nutrients: ['fiber', 'potassium'],
-            highlights: ['Мякоть нежная', 'Клетчатка'],
-            interestingFact: 'Баклажан содержит соланин, который в больших количествах может быть токсичен.',
+            highlights: ['Мякоть нежная'],
+            interestingFact: 'При приготовлении баклажан становится мягким и нежным.',
             preparation: 'Запечь или отварить, пюре.',
             safeForms: ['Пюре', 'Мягкие кусочки'],
             unsafeForms: ['Сырой баклажан'],
@@ -282,7 +282,7 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Мякоть нежная, но может вызывать газообразование.'
+            desc: 'Хорошо запекать или тушить до мягкости.'
         },
         {
             id: 'veg-11',
@@ -296,17 +296,17 @@
             chokingRisk: 'low',
             nutrients: ['vitamin_c', 'antioxidants'],
             highlights: ['Яркий вкус', 'Витамин C'],
-            interestingFact: 'Болгарский перец содержит больше витамина C, чем лимон.',
+            interestingFact: 'Сладкий перец — источник витамина C и яркого цвета.',
             preparation: 'Запечь или потушить, очистить от кожуры, пюре.',
             safeForms: ['Пюре', 'Мягкие кусочки'],
-            unsafeForms: ['Сырой перец (трудно переваривается)'],
+            unsafeForms: ['Сырой перец (плотная текстура)'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Яркий вкус, но может раздражать ЖКТ.'
+            desc: 'Сырой перец имеет плотную текстуру, лучше запекать или тушить до мягкости.'
         },
         {
             id: 'veg-12',
@@ -366,8 +366,8 @@
             allergen: false,
             allergenType: [],
             chokingRisk: 'medium',
-            nutrients: ['protein', 'iron', 'fiber'],
-            highlights: ['Белок', 'Железо', 'Клетчатка'],
+            nutrients: ['protein', 'fiber'],
+            highlights: ['Белок', 'Клетчатка'],
             interestingFact: 'Горошек – источник растительного белка.',
             preparation: 'Отварить и размять вилкой.',
             safeForms: ['Пюре', 'Размятые горошины'],
@@ -377,8 +377,8 @@
             ageRestrictions: [],
             medicalNote: null,
             min_age_months: 6,
-            iron: true,
-            desc: 'Богат белком и железом. В пюре или размятый.'
+            iron: false,
+            desc: 'Содержит белок и клетчатку. Давайте в пюре или размятом виде.'
         },
         {
             id: 'veg-15',
@@ -395,7 +395,7 @@
             interestingFact: 'Шпинат содержит оксалаты, которые могут снижать усвоение кальция.',
             preparation: 'Бланшировать или тушить, пюре.',
             safeForms: ['Пюре'],
-            unsafeForms: ['Сырой шпинат (трудно переваривается)'],
+            unsafeForms: ['Сырой шпинат'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
@@ -418,7 +418,7 @@
             chokingRisk: 'low',
             nutrients: ['vitamin_c', 'fiber'],
             highlights: ['Классика прикорма', 'Клетчатка'],
-            interestingFact: 'В яблоке больше всего питательных веществ в кожуре.',
+            interestingFact: 'В яблоке много питательных веществ в кожуре.',
             preparation: 'Запечь или отварить, пюре. С 8 мес. – тонкие дольки.',
             safeForms: ['Пюре', 'Запечённые дольки (с 8 мес.)'],
             unsafeForms: ['Целое яблоко (риск удушья)', 'Сырое твёрдое яблоко'],
@@ -517,7 +517,7 @@
             interestingFact: 'Персики часто вызывают перекрёстную аллергию с пыльцой берёзы.',
             preparation: 'Очистить от кожуры, отварить или запечь, пюре.',
             safeForms: ['Пюре', 'Мягкие кусочки'],
-            unsafeForms: ['Сырой с кожурой (аллерген)'],
+            unsafeForms: ['Сырой с кожурой'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
@@ -619,7 +619,7 @@
             ageRestrictions: [],
             medicalNote: null,
             min_age_months: 6,
-            iron: true,
+            iron: false,
             desc: 'Ягода, богатая антиоксидантами.'
         },
         {
@@ -694,7 +694,7 @@
             iron: false,
             desc: 'Экзотический, может вызвать реакцию.'
         },
-        // === ДОБАВЛЕННЫЕ ПРОДУКТЫ (Виноград, Черри) – ages уже 6, оставляем ===
+        // --- Виноград и Черри ---
         {
             id: 'fruit-13',
             name: 'Виноград',
@@ -1108,7 +1108,7 @@
             mercuryRisk: 'low',
             min_age_months: 6,
             iron: false,
-            desc: 'Нежирная, но аллергенна. Вводите аккуратно.'
+            desc: 'Потенциальный аллерген. Тщательно удалите кости, полностью приготовьте.'
         },
         {
             id: 'fish-2',
@@ -1133,7 +1133,7 @@
             mercuryRisk: 'low',
             min_age_months: 6,
             iron: false,
-            desc: 'Доступная рыба, мало костей.'
+            desc: 'Потенциальный аллерген. Тщательно удалите кости, полностью приготовьте.'
         },
         {
             id: 'fish-3',
@@ -1210,7 +1210,7 @@
             iron: false,
             desc: 'Нежирная, но аллерген.'
         },
-        // ДОБАВЛЕННЫЕ ВИДЫ РЫБЫ С ВЫСОКИМ СОДЕРЖАНИЕМ РТУТИ (оставлены как avoid)
+        // Рыба с высоким содержанием ртути
         {
             id: 'fish-6',
             name: 'Акула',
@@ -1458,7 +1458,7 @@
             iron: false,
             desc: 'Добавляйте 1-2 г в кашу с 6 мес.'
         },
-        // НОВЫЙ ПРОДУКТ: Коровье молоко как напиток (возраст 12, но это отдельный продукт)
+        // Коровье молоко как напиток
         {
             id: 'dairy-6',
             name: 'Коровье молоко (напиток)',
@@ -1521,7 +1521,7 @@
             },
             min_age_months: 6,
             iron: false,
-            desc: 'Полностью приготовленное яйцо можно вводить с начала прикорма.'
+            desc: 'Яйцо — распространённый аллерген. Вводите небольшое количество хорошо приготовленного яйца (вкрутую, омлет) и наблюдайте за реакцией.'
         },
         {
             id: 'allerg-2',
@@ -1553,7 +1553,7 @@
             emoji: '🥜',
             category: 'аллергены',
             introduction: { fromMonths: 6 },
-            status: 'caution', // было avoid
+            status: 'caution',
             allergen: true,
             allergenType: ['nuts'],
             chokingRisk: 'high',
@@ -1569,7 +1569,7 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Потенциальный аллерген. Давайте в безопасной измельчённой форме.'
+            desc: 'Потенциальный аллерген. Цельные орехи и крупные куски опасны из-за риска удушья. Используйте гладкую ореховую пасту или мелко измельчённые орехи.'
         },
         {
             id: 'allerg-4',
@@ -1577,7 +1577,7 @@
             emoji: '🥜',
             category: 'аллергены',
             introduction: { fromMonths: 6 },
-            status: 'caution', // было avoid
+            status: 'caution',
             allergen: true,
             allergenType: ['peanut'],
             chokingRisk: 'high',
@@ -1593,7 +1593,7 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Потенциальный аллерген. Давайте в безопасной измельчённой форме.'
+            desc: 'Потенциальный аллерген. Цельный арахис опасен из-за риска удушья. Используйте гладкую арахисовую пасту (тонкий слой) или мелко измельчённый арахис.'
         },
         {
             id: 'allerg-5',
@@ -1649,7 +1649,7 @@
             emoji: '🦐',
             category: 'аллергены',
             introduction: { fromMonths: 6 },
-            status: 'caution', // было avoid
+            status: 'caution',
             allergen: true,
             allergenType: ['shellfish'],
             chokingRisk: 'medium',
