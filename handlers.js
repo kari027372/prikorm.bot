@@ -328,7 +328,24 @@ function handleDocumentClick(event) {
                             new Date().toISOString().slice(0, 10)
                         );
                         showToast("✅ Продукт отмечен как введённый", "success");
-                        // Обновление произойдёт через prikorm:statechange
+
+                        // ===== НОВАЯ ПРАВКА: ОБНОВЛЕНИЕ ОТКРЫТОЙ МОДАЛКИ =====
+                        // Если открыта модалка энциклопедии для этого же продукта, обновляем её
+                        var modalOverlay = document.querySelector('.modal-overlay');
+                        if (modalOverlay) {
+                            // Проверяем, что это модалка именно этого продукта (по data-product-id)
+                            var productCard = modalOverlay.querySelector('[data-product-id]');
+                            if (productCard && productCard.dataset.productId === String(productId)) {
+                                // Удаляем старую модалку
+                                modalOverlay.remove();
+                                // Пересоздаём модалку с обновлённым статусом
+                                if (product) {
+                                    openProductDetails(product);
+                                }
+                            }
+                        }
+                        // ===== КОНЕЦ ПРАВКИ =====
+
                     } catch (e) {
                         console.error("Ошибка при введении продукта:", e);
                         showToast("Не удалось отметить продукт как введённый", "error");
@@ -382,7 +399,7 @@ function handleDocumentClick(event) {
                     menuItems.push({ label: 'Закрыть', action: 'close-modal' });
                 }
 
-                // Создаём модалку через #modal-root
+                // Создаем модалку через #modal-root
                 var modalRoot = document.getElementById('modal-root');
                 if (!modalRoot) return;
 
