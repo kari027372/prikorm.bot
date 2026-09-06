@@ -10,8 +10,8 @@ import STATE from '../state.js';
 
 // ===== ЛОКАЛЬНЫЕ ПЕРЕМЕННЫЕ ФИЛЬТРОВ =====
 let currentStatusFilter = 'all';      // 'all' | 'current' | 'introduced'
-let currentCategoryFilter = null;     // название категории или null
-let currentAgeFilter = null;          // число месяцев или null
+let currentCategoryFilter = null;
+let currentAgeFilter = null;
 let currentSearchQuery = '';
 
 // ===== КАРТА КАТЕГОРИЙ → EMOJI (FALLBACK) =====
@@ -26,7 +26,7 @@ const categoryEmojiMap = {
     'Другое': '🍽'
 };
 
-const invalidEmojis = ['🤰😂']; // известные некорректные
+const invalidEmojis = ['🤰😂'];
 
 function getProductEmoji(product) {
     if (product.emoji && !invalidEmojis.includes(product.emoji)) {
@@ -35,27 +35,23 @@ function getProductEmoji(product) {
     return categoryEmojiMap[product.category] || '🍽';
 }
 
-// ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-function getCurrentProfile() {
-    const child = getCurrentChild();
-    if (!child) return null;
-    return {
-        id: child.id,
-        ageMonths: getChildAgeMonths(child.id),
-        // другие поля, если нужны для safetyEngine
-    };
+// ===== БЕЗОПАСНАЯ ОБЁРТКА ДЛЯ SAFETY ENGINE =====
+function safeEvaluate(product, childId) {
+    const child = STATE.children.find(c => c.id === childId);
+    if (!child) return { decision: 'allow', reason: '' };
+    try {
+        const result = safetyEngine.evaluateProductSafety(child, product, null);
+        return result || { decision: 'allow', reason: '' };
+    } catch (e) {
+        console.warn('⚠️ Safety Engine error for', product.name, e);
+        return { decision: 'allow', reason: '' };
+    }
 }
 
-function getProductStatus(childId, productId) {
-    const state = getProductState(childId, productId);
-    return state; // 'notIntroduced' | 'introduced' | 'parentExcluded' | ...
-}
-
-// ===== РЕНДЕРИНГ КАРТОЧКИ ПРОДУКТА =====
+// ===== РЕНДЕРИНГ КАРТОЧКИ =====
 function renderProductCard(product, childId) {
-    const status = getProductStatus(childId, product.id);
-    const profile = getCurrentProfile();
-    const safety = safetyEngine.evaluateProductSafety(profile, product, null);
+    const status = getProductState(childId, product.id);
+    const safety = safeEvaluate(product, childId);
 
     let statusText = '○ Ещё не введён';
     let statusClass = 'status-not-introduced';
@@ -107,10 +103,9 @@ function renderProductCard(product, childId) {
 
 // ===== БЛОК «РЕКОМЕНДОВАНО СЕЙЧАС» =====
 function renderRecommendedProducts(childId) {
-    const profile = getCurrentProfile();
     const products = PRODUCTS || [];
     const recommended = products
-        .map(p => ({ product: p, safety: safetyEngine.evaluateProductSafety(profile, p, null) }))
+        .map(p => ({ product: p, safety: safeEvaluate(p, childId) }))
         .filter(({ safety }) => safety.decision === 'allow' || safety.decision === 'caution')
         .sort((a, b) => {
             if (a.safety.decision === 'allow' && b.safety.decision !== 'allow') return -1;
@@ -141,47 +136,35 @@ function renderCategoryGrid() {
         .join('');
 }
 
-// ===== ОСНОВНАЯ ФУНКЦИЯ ОБНОВЛЕНИЯ СПИСКА =====
+// ===== ОБНОВЛЕНИЕ СПИСКА =====
 function updateProductsList() {
-    const childId = getCurrentChild()?.id;
-    if (!childId) {
-        console.warn('Нет активного ребёнка');
-        return;
-    }
-
+    const childId = STATE.currentChildId;
+    if (!childId) return;
     let products = PRODUCTS || [];
-    const age = getChildAgeMonths(childId);
 
-    // Фильтр по статусу
     if (currentStatusFilter === 'current') {
         products = products.filter(p => {
-            const safety = safetyEngine.evaluateProductSafety(getCurrentProfile(), p, null);
+            const safety = safeEvaluate(p, childId);
             return safety.decision === 'allow' || safety.decision === 'caution';
         });
     } else if (currentStatusFilter === 'introduced') {
-        products = products.filter(p => getProductStatus(childId, p.id) === 'introduced');
+        products = products.filter(p => getProductState(childId, p.id) === 'introduced');
     }
 
-    // Фильтр по категории
     if (currentCategoryFilter) {
         products = products.filter(p => p.category === currentCategoryFilter);
     }
-
-    // Фильтр по возрасту (рекомендательный)
     if (currentAgeFilter) {
         const ageLimit = parseInt(currentAgeFilter, 10);
         if (!isNaN(ageLimit)) {
             products = products.filter(p => (p.ageMinMonths || 0) >= ageLimit);
         }
     }
-
-    // Поиск
     if (currentSearchQuery) {
         const q = currentSearchQuery.toLowerCase();
         products = products.filter(p => p.name.toLowerCase().includes(q));
     }
 
-    // Рендерим список
     const container = document.getElementById('products-list');
     if (container) {
         if (products.length === 0) {
@@ -191,28 +174,23 @@ function updateProductsList() {
         }
     }
 
-    // Обновляем счётчик введённых
     const countEl = document.getElementById('products-introduced-count');
     if (countEl) {
-        const introducedCount = (PRODUCTS || []).filter(p => getProductStatus(childId, p.id) === 'introduced').length;
+        const introducedCount = (PRODUCTS || []).filter(p => getProductState(childId, p.id) === 'introduced').length;
         countEl.textContent = introducedCount;
     }
 
-    // Обновляем блок «Рекомендовано сейчас»
     const recContainer = document.getElementById('recommended-products');
     if (recContainer) {
         recContainer.innerHTML = renderRecommendedProducts(childId);
     }
 
-    // Обновляем активные чипсы
     updateChipsActiveState();
 }
 
-// ===== ОБНОВЛЕНИЕ АКТИВНЫХ ЧИПСОВ =====
 function updateChipsActiveState() {
     document.querySelectorAll('#status-filters .chip').forEach(chip => {
-        const filter = chip.dataset.filter;
-        chip.classList.toggle('active', filter === currentStatusFilter);
+        chip.classList.toggle('active', chip.dataset.filter === currentStatusFilter);
     });
     document.querySelectorAll('#category-filters .chip').forEach(chip => {
         const cat = chip.dataset.category || '';
@@ -224,12 +202,11 @@ function updateChipsActiveState() {
     });
 }
 
-// ===== ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРИНГА ЭКРАНА =====
+// ===== ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРИНГА =====
 export function renderProductsScreen() {
-    const childId = getCurrentChild()?.id;
-    const introducedCount = childId ? (PRODUCTS || []).filter(p => getProductStatus(childId, p.id) === 'introduced').length : 0;
+    const childId = STATE.currentChildId;
+    const introducedCount = childId ? (PRODUCTS || []).filter(p => getProductState(childId, p.id) === 'introduced').length : 0;
 
-    // Синхронизируем фильтры из STATE при первом рендере
     if (STATE.productsCategoryFilter !== undefined) {
         currentCategoryFilter = STATE.productsCategoryFilter;
     }
@@ -237,8 +214,16 @@ export function renderProductsScreen() {
         currentAgeFilter = STATE.productsAgeFilter;
     }
 
+    let recommendedHtml = '';
+    try {
+        recommendedHtml = childId ? renderRecommendedProducts(childId) : '';
+    } catch (e) {
+        console.error('Ошибка в renderRecommendedProducts:', e);
+        recommendedHtml = `<p class="text-secondary">Не удалось загрузить рекомендации.</p>`;
+    }
+
     return `
-        <div class="products-screen">
+        <div class="products-screen" id="screen-products">
             <div class="products-header">
                 <h1 class="h1">Продукты</h1>
                 <div class="introduced-counter" data-action="filter-products" data-filter="introduced">
@@ -247,15 +232,15 @@ export function renderProductsScreen() {
             </div>
 
             <div class="search-box">
-                <span>${icon('search')}</span>
+                <span>🔍</span>
                 <input id="product-search" type="search" placeholder="Найти продукт..." autocomplete="off" data-action="search-products" />
-                <button type="button" class="clear-search" data-action="clear-search">${icon('close')}</button>
+                <button type="button" class="clear-search" data-action="clear-search">✕</button>
             </div>
 
             <section class="recommended-section">
                 <h2 class="h2">✨ Рекомендовано сейчас</h2>
                 <div id="recommended-products" class="recommended-grid">
-                    ${childId ? renderRecommendedProducts(childId) : ''}
+                    ${recommendedHtml}
                 </div>
             </section>
 
@@ -301,29 +286,33 @@ export function renderProductsScreen() {
                 </div>
             </section>
 
-            <button type="button" class="floating-add" data-action="add-food">${icon('plus')}<span>Добавить</span></button>
+            <button type="button" class="floating-add" data-action="add-food">➕ <span>Добавить</span></button>
         </div>
     `;
 }
 
-// ===== ЭКСПОРТ ФУНКЦИИ ДЛЯ ОБНОВЛЕНИЯ ФИЛЬТРОВ ИЗ HANDLERS =====
-export function setProductsFilters({ filter, category, age }) {
-    if (filter !== undefined) {
-        currentStatusFilter = filter || 'all';
-    }
-    if (category !== undefined) {
-        currentCategoryFilter = category || null;
-    }
-    if (age !== undefined) {
-        currentAgeFilter = age || null;
-    }
-    // Сохраняем в STATE для сохранения между экранами
+// ===== ГЛОБАЛЬНОЕ ПРИСВОЕНИЕ ДЛЯ РЕНДЕРИНГА =====
+window.renderProducts = renderProductsScreen;
+window.updateProductsList = updateProductsList;
+window.setProductsFilters = function({ filter, category, age }) {
+    if (filter !== undefined) currentStatusFilter = filter || 'all';
+    if (category !== undefined) currentCategoryFilter = category || null;
+    if (age !== undefined) currentAgeFilter = age || null;
     STATE.productsCategoryFilter = currentCategoryFilter;
     STATE.productsAgeFilter = currentAgeFilter;
-    // Перерисовываем список
     updateProductsList();
-}
-
-// ===== ГЛОБАЛЬНОЕ ПРИСВОЕНИЕ ДЛЯ ИСПОЛЬЗОВАНИЯ ИЗ HANDLERS =====
-window.updateProductsList = updateProductsList;
-window.setProductsFilters = setProductsFilters;
+};
+window.searchProducts = function(value) {
+    currentSearchQuery = value || '';
+    updateProductsList();
+};
+window.clearProductSearch = function() {
+    const input = document.getElementById('product-search');
+    if (input) input.value = '';
+    currentSearchQuery = '';
+    updateProductsList();
+};
+window.changeProductCategory = function(category) {
+    currentCategoryFilter = category || null;
+    updateProductsList();
+};
