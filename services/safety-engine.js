@@ -67,17 +67,39 @@
     }
 
     // ----------------------------------------------------------
-    // 2. Проверка возраста (используем corrected только для preterm)
+    // 2. НОВАЯ ПРОВЕРКА: ageRestrictions (абсолютные возрастные ограничения)
     // ----------------------------------------------------------
-    let ageMonths = null;
+    let childAge = null;
     const birthTerm = development.birthTerm || 'unknown';
-
     if (birthTerm === 'preterm' && calculated.correctedAgeMonths !== null && calculated.correctedAgeMonths !== undefined) {
-      ageMonths = calculated.correctedAgeMonths;
+      childAge = calculated.correctedAgeMonths;
     } else if (calculated.chronologicalAgeMonths !== null && calculated.chronologicalAgeMonths !== undefined) {
-      ageMonths = calculated.chronologicalAgeMonths;
+      childAge = calculated.chronologicalAgeMonths;
     }
 
+    if (childAge !== null && product.ageRestrictions && Array.isArray(product.ageRestrictions)) {
+      for (const restriction of product.ageRestrictions) {
+        if (restriction.type === 'absolute' && childAge < restriction.untilMonths) {
+          statuses.push('block');
+          reasons.push(restriction.reason || 'Возрастное ограничение');
+          details.age = { status: 'blocked_by_age', untilMonths: restriction.untilMonths, reason: restriction.reason };
+          // Не прерываем, продолжаем сбор других причин
+        }
+      }
+    }
+
+    // ----------------------------------------------------------
+    // 3. НОВАЯ ПРОВЕРКА: mercuryRisk для рыбы
+    // ----------------------------------------------------------
+    if (product.mercuryRisk === 'avoid') {
+      statuses.push('block');
+      reasons.push('Высокое содержание ртути — избегать');
+      details.safety = { mercuryRisk: 'avoid' };
+    }
+
+    // ----------------------------------------------------------
+    // 4. Проверка возраста (из product.rules или introduction) – существующая логика
+    // ----------------------------------------------------------
     let minAge = null;
 
     if (product.rules?.age?.minMonths !== undefined && product.rules?.age?.minMonths !== null) {
@@ -86,17 +108,24 @@
       minAge = product.introduction.fromMonths;
     }
 
-    if (ageMonths !== null && minAge !== null) {
-      if (ageMonths < minAge) {
-        statuses.push('block');
-        reasons.push(`Возраст ${Math.round(ageMonths)} мес. меньше рекомендуемого минимума (${minAge} мес.)`);
-        details.age = { status: 'too_early', minMonths: minAge, actualMonths: ageMonths };
+    if (childAge !== null && minAge !== null) {
+      if (childAge < minAge) {
+        // Если уже есть block от ageRestrictions, не добавляем дублирующий block, но добавляем причину
+        if (!statuses.includes('block') || statuses.some(s => s === 'block' && reasons.some(r => r.includes('Возраст')))) {
+          // Если уже есть block, просто добавляем причину
+          statuses.push('block');
+          reasons.push(`Возраст ${Math.round(childAge)} мес. меньше рекомендуемого минимума (${minAge} мес.)`);
+        } else {
+          // Если block уже есть от других причин, добавляем только причину
+          reasons.push(`Возраст ${Math.round(childAge)} мес. меньше рекомендуемого минимума (${minAge} мес.)`);
+        }
+        details.age = { status: 'too_early', minMonths: minAge, actualMonths: childAge };
       } else {
-        details.age = { status: 'appropriate', minMonths: minAge, actualMonths: ageMonths };
+        details.age = { status: 'appropriate', minMonths: minAge, actualMonths: childAge };
       }
     } else {
-      // Если возраст не определён – не блокируем, но добавляем предупреждение
       if (minAge !== null) {
+        // Если возраст не определён, но есть minAge – добавляем review
         statuses.push('review');
         reasons.push('Возраст ребёнка не определён, рекомендуется уточнить дату рождения');
         details.age = { status: 'unknown', minMonths: minAge };
@@ -106,22 +135,19 @@
     }
 
     // ----------------------------------------------------------
-    // 3. Проверка аллергии (разделяем информационное и блокирующее)
+    // 5. Проверка аллергии (существующая логика)
     // ----------------------------------------------------------
     let isAllergen = false;
     let allergenTypes = [];
 
-    // Сначала пытаемся взять из rules
     if (product.rules?.allergy) {
       isAllergen = product.rules.allergy.isAllergen === true;
       allergenTypes = product.rules.allergy.types || [];
     } else {
-      // fallback на старые поля
       isAllergen = product.allergen === true;
       if (Array.isArray(product.allergenType)) {
         allergenTypes = product.allergenType;
       } else {
-        // если нет ни того, ни другого, используем getProductAllergens
         const allergensFromOld = window.getProductAllergens ? window.getProductAllergens(product) : [];
         if (allergensFromOld.length > 0) {
           isAllergen = true;
@@ -141,7 +167,6 @@
         reasons.push(`У ребёнка отмечена аллергия на этот продукт (${allergenTypes.join(', ')})`);
         details.allergy = { status: 'blocked', types: allergenTypes, childAllergies };
       } else {
-        // продукт аллергенен, но у ребёнка нет такой аллергии – только информационное предупреждение
         reasons.push(`Продукт является потенциальным аллергеном (${allergenTypes.join(', ')})`);
         // НЕ добавляем статус 'caution' – только информационное предупреждение
         details.allergy = { status: 'informational', types: allergenTypes, childAllergies };
@@ -151,7 +176,7 @@
     }
 
     // ----------------------------------------------------------
-    // 4. Проверка формы подачи (если передана)
+    // 6. Проверка формы подачи (если передана) – существующая логика
     // ----------------------------------------------------------
     if (servingForm) {
       let allowedForms = [];
@@ -165,7 +190,6 @@
       }
 
       if (usingRules) {
-        // Проверяем явные правила
         const isBlocked = blockedForms.some(f => f.toLowerCase() === servingForm.toLowerCase());
         const isAllowed = allowedForms.some(f => f.toLowerCase() === servingForm.toLowerCase());
 
@@ -176,22 +200,16 @@
         } else if (isAllowed) {
           details.serving = { allowed: true, form: servingForm };
         } else {
-          // Форма не указана ни в allowed, ни в blocked – не считаем запретом
           details.serving = { allowed: null, form: servingForm, note: 'Форма не указана в правилах' };
         }
       } else {
-        // fallback через checkServingSafety (используем старую логику)
         const servingCheck = window.checkServingSafety ? window.checkServingSafety(product, servingForm, null) : null;
         if (servingCheck) {
-          // checkServingSafety возвращает { safe: boolean, warnings: [] }
           if (servingCheck.safe) {
             details.serving = { allowed: true, form: servingForm };
           } else {
-            // Если не safe – добавляем предупреждение, но не блокируем автоматически
             reasons.push(...servingCheck.warnings);
             details.serving = { allowed: false, form: servingForm, warnings: servingCheck.warnings };
-            // Но не добавляем статус block, только caution? По логике, если форма не рекомендована, но не запрещена явно, лучше caution.
-            // Однако в задании сказано: "отсутствие формы в allowed НЕ должно автоматически означать запрет". Поэтому, если servingCheck говорит не safe, мы добавляем caution.
             statuses.push('caution');
             reasons.push(`Форма подачи "${servingForm}" требует осторожности`);
           }
@@ -200,7 +218,7 @@
     }
 
     // ----------------------------------------------------------
-    // 5. Риск удушья (только информационное предупреждение)
+    // 7. Риск удушья (существующая логика)
     // ----------------------------------------------------------
     let chokingRisk = 'low';
     let chokingWarning = null;
@@ -221,8 +239,7 @@
     if (chokingRisk === 'high') {
       reasons.push('Продукт имеет высокий риск удушья, необходима правильная форма подачи и наблюдение');
       details.safety = { chokingRisk: 'high', requiresSupervision: true };
-      // Добавляем caution (не block)
-      statuses.push('caution');
+      statuses.push('caution'); // не block, только caution
     } else if (chokingRisk === 'medium') {
       reasons.push('Продукт требует внимания при подаче');
       details.safety = { chokingRisk: 'medium', requiresSupervision: true };
@@ -236,7 +253,7 @@
     }
 
     // ----------------------------------------------------------
-    // 6. Медицинская заметка (информационная, не блокирует)
+    // 8. Медицинская заметка (информационная)
     // ----------------------------------------------------------
     let medicalNote = null;
     if (product.rules?.restrictions?.medical) {
@@ -247,11 +264,34 @@
 
     if (medicalNote) {
       reasons.push(`Медицинское замечание: ${medicalNote}`);
-      // не влияет на статус, только на requiresWarning
     }
 
     // ----------------------------------------------------------
-    // 7. Определение итогового статуса
+    // 9. НОВАЯ ПРОВЕРКА: labelChecks (добавленный сахар/соль) – только review
+    // ----------------------------------------------------------
+    if (product.labelChecks && Array.isArray(product.labelChecks)) {
+      const warnings = [];
+      if (product.labelChecks.indexOf('addedSugar') !== -1) {
+        warnings.push('Содержит добавленный сахар');
+      }
+      if (product.labelChecks.indexOf('addedSalt') !== -1) {
+        warnings.push('Содержит добавленную соль');
+      }
+      // Можно добавить другие проверки
+      if (warnings.length > 0) {
+        // Добавляем причины
+        warnings.forEach(w => reasons.push(w));
+        // Добавляем статус review, только если нет блока
+        if (!statuses.includes('block')) {
+          statuses.push('review');
+        }
+        details.safety = details.safety || {};
+        details.safety.labelChecks = warnings;
+      }
+    }
+
+    // ----------------------------------------------------------
+    // 10. Определение итогового статуса
     // ----------------------------------------------------------
     if (statuses.length === 0) {
       statuses.push('allow');
@@ -265,7 +305,11 @@
       r.includes('удушья') ||
       r.includes('медицинское') ||
       r.includes('осторожность') ||
-      r.includes('не определён')
+      r.includes('не определён') ||
+      r.includes('сахар') ||
+      r.includes('соль') ||
+      r.includes('ртути') ||
+      r.includes('Возраст')
     );
 
     // Определяем canRecommend по таблице
@@ -280,7 +324,7 @@
       status: finalStatus,
       reasons: reasons,
       recommendation: {
-        canShow: true, // показываем всегда, кроме случая отсутствия данных
+        canShow: true,
         canRecommend: canRecommend,
         requiresWarning: requiresWarning
       },
