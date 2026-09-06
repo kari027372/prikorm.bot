@@ -29,7 +29,6 @@
         CATEGORIES = defaultCats.filter(function(c) {
             return catMap[c.id] || c.id === 'другое';
         });
-        // Если какие-то категории из PRODUCTS отсутствуют, добавим их
         var existingIds = CATEGORIES.map(function(c) { return c.id; });
         Object.keys(catMap).forEach(function(id) {
             if (existingIds.indexOf(id) === -1) {
@@ -40,12 +39,10 @@
     }
 
     // ===== КАРТА КАТЕГОРИЙ → EMOJI (FALLBACK) =====
-    // Используется для продуктов без emoji
     var categoryEmojiMap = {};
     CATEGORIES.forEach(function(cat) {
         categoryEmojiMap[cat.id] = cat.icon || '📂';
     });
-    // Дополнительно для известных
     var fallbackMap = {
         'овощи': '🥦',
         'фрукты': '🍎',
@@ -60,7 +57,6 @@
         if (!categoryEmojiMap[key]) categoryEmojiMap[key] = fallbackMap[key];
     });
 
-    // Проблемные emoji (исправлено)
     var invalidEmojis = ['🫃'];
 
     function getProductEmoji(product) {
@@ -72,12 +68,10 @@
 
     // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (без модулей) =====
 
-    // Получить ID текущего ребёнка
     function getCurrentChildId() {
         return window.STATE ? window.STATE.currentChildId : null;
     }
 
-    // Получить профиль ребёнка через childService
     function getChildProfile(childId) {
         if (window.childService && typeof window.childService.getChildProfile === 'function') {
             try {
@@ -86,20 +80,17 @@
                 console.warn('⚠️ childService.getChildProfile error:', e);
             }
         }
-        // Fallback: создать профиль из STATE
         if (window.STATE && window.STATE.children) {
             var child = window.STATE.children.find(function(c) { return c.id === childId; });
             if (child) {
-                // Скопируем нужные поля
                 var profile = {
                     id: child.id,
                     name: child.name,
                     birthDate: child.birthDate,
                     sex: child.sex,
                     feedingType: child.feedingType,
-                    ageMonths: getChildAgeMonths(childId) // вычисляем, если нет
+                    ageMonths: getChildAgeMonths(childId)
                 };
-                // Если есть allergies, etc.
                 if (child.allergies) profile.allergies = child.allergies;
                 if (child.readiness) profile.readiness = child.readiness;
                 return profile;
@@ -108,7 +99,6 @@
         return null;
     }
 
-    // Вычислить возраст в месяцах (fallback, если childService не даёт)
     function getChildAgeMonths(childId) {
         if (!window.STATE || !window.STATE.children) return 0;
         var child = window.STATE.children.find(function(c) { return c.id === childId; });
@@ -121,16 +111,13 @@
         return Math.max(0, months);
     }
 
-    // Безопасная обёртка для evaluateProductSafety
     function safeEvaluate(product, childId) {
         var profile = getChildProfile(childId);
         if (!profile) return { status: 'allow', reasons: [] };
         try {
             if (window.safetyEngine && typeof window.safetyEngine.evaluateProductSafety === 'function') {
                 var result = window.safetyEngine.evaluateProductSafety(profile, product, null);
-                // result должен иметь поле status
                 if (result && typeof result === 'object') {
-                    // Если нет поля status, но есть decision (старый формат) – преобразуем
                     if (result.status === undefined && result.decision !== undefined) {
                         result.status = result.decision;
                     }
@@ -143,30 +130,29 @@
         return { status: 'allow', reasons: [] };
     }
 
-    // Получить статус продукта для текущего ребёнка (через Product State)
+    // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ ПОЛУЧЕНИЯ СТАТУСА =====
     function getProductStatusForChild(productId, childId) {
-        if (window.getProductState && typeof window.getProductState === 'function') {
+        if (
+            window.productStateService &&
+            typeof window.productStateService.getProductState === 'function'
+        ) {
             try {
-                var state = window.getProductState(childId, productId);
-                // state может быть объектом с полем status, или строкой, или null
+                var state = window.productStateService.getProductState(
+                    childId,
+                    productId
+                );
                 if (state && typeof state === 'object') {
                     return state.status || 'notIntroduced';
-                } else if (typeof state === 'string') {
-                    return state; // если вдруг возвращает строку
-                } else {
-                    return 'notIntroduced';
                 }
-            } catch (e) {
-                console.warn('⚠️ getProductState error:', e);
+                if (typeof state === 'string') {
+                    return state;
+                }
+            } catch (error) {
+                console.warn(
+                    '[Products] Не удалось получить состояние продукта:',
+                    error
+                );
             }
-        }
-        // Fallback – использовать старый глобальный introduced (не per-child)
-        if (window.STATE && window.STATE.products && window.STATE.products.introduced) {
-            var introduced = window.STATE.products.introduced || [];
-            var found = introduced.some(function(item) {
-                return item.id === productId || item === productId;
-            });
-            return found ? 'introduced' : 'notIntroduced';
         }
         return 'notIntroduced';
     }
@@ -195,7 +181,6 @@
         var ageLabel = product.ageMinMonths ? product.ageMinMonths + '+ мес' : '';
 
         var warningBadge = '';
-        // Используем safety.status и safety.reasons
         if (safety.status === 'caution') {
             var reasons = safety.reasons && safety.reasons.length ? safety.reasons.join(', ') : 'С осторожностью';
             warningBadge = '<span class="badge badge-caution">⚠️ ' + reasons + '</span>';
@@ -211,7 +196,6 @@
             actionButton = '<span class="status-label ' + statusClass + '">' + statusText + '</span>';
         }
 
-        // escapeHTML – глобальная функция (из ui.js или utils)
         var escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         };
@@ -235,7 +219,6 @@
         '</div>';
     }
 
-    // Вспомогательная функция для получения отображаемого названия категории
     function getCategoryLabel(catId) {
         if (!catId) return 'Продукт';
         var found = CATEGORIES.find(function(c) { return c.id === catId; });
@@ -254,7 +237,6 @@
                 return { product: p, safety: safeEvaluate(p, childId) };
             })
             .filter(function(item) {
-                // Используем safety.status
                 return item.safety.status === 'allow' || item.safety.status === 'caution';
             })
             .sort(function(a, b) {
@@ -299,7 +281,6 @@
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
         var query = window.CURRENT_PRODUCT_SEARCH || '';
 
-        // Фильтр по статусу
         if (statusFilter === 'current') {
             filtered = filtered.filter(function(p) {
                 var safety = safeEvaluate(p, childId);
@@ -311,14 +292,12 @@
             });
         }
 
-        // Фильтр по категории (используем category id)
         if (categoryFilter) {
             filtered = filtered.filter(function(p) {
                 return p.category === categoryFilter;
             });
         }
 
-        // Фильтр по возрасту (рекомендательный)
         if (ageFilter) {
             var ageLimit = parseInt(ageFilter, 10);
             if (!isNaN(ageLimit)) {
@@ -328,7 +307,6 @@
             }
         }
 
-        // Поиск
         if (query.trim()) {
             var q = query.trim().toLowerCase();
             filtered = filtered.filter(function(p) {
@@ -351,7 +329,6 @@
             container.innerHTML = filtered.map(renderProductCard).join('');
         }
 
-        // Обновляем счётчик "Введено"
         var countEl = document.getElementById('products-introduced-count');
         if (countEl) {
             var childId = getCurrentChildId();
@@ -364,13 +341,11 @@
             countEl.textContent = introducedCount;
         }
 
-        // Обновляем блок "Рекомендовано сейчас"
         var recContainer = document.getElementById('recommended-products');
         if (recContainer) {
             recContainer.innerHTML = renderRecommendedProducts();
         }
 
-        // Обновляем активные чипсы фильтров
         updateChipsActiveState();
     }
 
@@ -403,7 +378,6 @@
             }).length;
         }
 
-        // Читаем фильтры из STATE для подсветки чипсов
         var statusFilter = (window.STATE && window.STATE.productsFilter) || 'all';
         var categoryFilter = (window.STATE && window.STATE.productsCategoryFilter) || null;
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
@@ -450,7 +424,6 @@
         html += '      <span class="filter-label">Категория:</span>';
         html += '      <div class="chips-group" id="category-filters">';
         html += '        <span class="chip' + (categoryFilter === null ? ' active' : '') + '" data-action="filter-products" data-category="">Все</span>';
-        // Добавляем категории из CATEGORIES
         CATEGORIES.forEach(function(cat) {
             var active = (categoryFilter === cat.id) ? ' active' : '';
             html += '        <span class="chip' + active + '" data-action="filter-products" data-category="' + cat.id + '">' + cat.label + '</span>';
@@ -489,8 +462,6 @@
     }
 
     // ===== ФУНКЦИИ ДЛЯ ОБНОВЛЕНИЯ ФИЛЬТРОВ И ПОИСКА =====
-
-    // Установка фильтра категории (для обратной совместимости)
     window.setProductsFilter = function(category) {
         if (window.STATE) {
             window.STATE.productsCategoryFilter = category || null;
@@ -498,62 +469,16 @@
         updateProductsList();
     };
 
-    // Установка поискового запроса
     window.setProductsSearch = function(query) {
         window.CURRENT_PRODUCT_SEARCH = query || '';
         updateProductsList();
     };
 
-    // Обновление списка (глобально)
     window.updateProductsList = updateProductsList;
-
-    // ===== ГЛОБАЛЬНОЕ ПРИСВОЕНИЕ ДЛЯ РЕНДЕРИНГА =====
     window.renderProducts = renderProducts;
 
-    // ===== ОБРАБОТЧИКИ КЛИКОВ ДЛЯ ПОИСКА И ОЧИСТКИ =====
-    document.addEventListener('click', function(e) {
-        var target = e.target.closest('[data-action="search-products"]');
-        if (target && target.tagName === 'INPUT') {
-            // поиск обрабатывается через input event
-            return;
-        }
-        var clearBtn = e.target.closest('[data-action="clear-search"]');
-        if (clearBtn) {
-            var input = document.getElementById('product-search');
-            if (input) {
-                input.value = '';
-                window.setProductsSearch('');
-            }
-            e.preventDefault();
-            return;
-        }
-        // Обработка кликов по чипсам фильтров (если handlers.js не обработает)
-        var chip = e.target.closest('[data-action="filter-products"]');
-        if (chip) {
-            var filter = chip.dataset.filter;
-            var category = chip.dataset.category;
-            var age = chip.dataset.age;
-            if (filter !== undefined) {
-                if (window.STATE) window.STATE.productsFilter = filter;
-            }
-            if (category !== undefined) {
-                if (window.STATE) window.STATE.productsCategoryFilter = category || null;
-            }
-            if (age !== undefined) {
-                if (window.STATE) window.STATE.productsAgeFilter = age || null;
-            }
-            updateProductsList();
-            e.preventDefault();
-            return;
-        }
-    });
-
-    // Обработка ввода поиска
-    document.addEventListener('input', function(e) {
-        if (e.target.id === 'product-search') {
-            window.setProductsSearch(e.target.value);
-        }
-    });
+    // ===== УДАЛЕНЫ document.addEventListener (дублирование с handlers.js) =====
+    // Все обработчики событий теперь централизованно управляются из handlers.js
 
     // ===== ПЕРЕХВАТ СОБЫТИЯ ИЗМЕНЕНИЯ СОСТОЯНИЯ =====
     window.addEventListener('prikorm:statechange', function() {
