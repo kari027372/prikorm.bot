@@ -27,7 +27,7 @@
         return groups ? groups.slice() : ['other'];
     }
 
-    // ========== БАЗА ПРОДУКТОВ ==========
+    // ========== БАЗА ПРОДУКТОВ (58 записей, ages обновлены) ==========
     window.PRODUCTS = [
         // --- ОВОЩИ ---
         {
@@ -35,7 +35,7 @@
             name: 'Кабачок',
             emoji: '🥒',
             category: 'овощи',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -51,7 +51,7 @@
             ageRestrictions: [],
             medicalNote: null,
             rules: {
-                age: { minMonths: 4, maxMonths: null },
+                age: { minMonths: 4.5, maxMonths: null },
                 serving: {
                     allowed: ['Пюре', 'Мягкие кусочки (с 8 мес.)'],
                     blocked: ['Сырой кабачок']
@@ -64,7 +64,7 @@
                 },
                 restrictions: { medical: null }
             },
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Нейтральный вкус, легко усваивается. Начинайте с 1 ч.л. пюре.'
         },
@@ -73,7 +73,7 @@
             name: 'Цветная капуста',
             emoji: '🥦',
             category: 'овощи',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -88,7 +88,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Богата витамином C. Можно давать как монопюре.'
         },
@@ -97,7 +97,7 @@
             name: 'Брокколи',
             emoji: '🥦',
             category: 'овощи',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -112,7 +112,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: true,
             desc: 'Источник железа и клетчатки. Хорошо сочетается с картофелем.'
         },
@@ -121,7 +121,7 @@
             name: 'Картофель',
             emoji: '🥔',
             category: 'овощи',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -136,7 +136,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Крахмалистый, даёт сытость. Вводите после кабачка.'
         },
@@ -145,7 +145,7 @@
             name: 'Морковь',
             emoji: '🥕',
             category: 'овощи',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -160,7 +160,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Сладковатая, содержит бета-каротин. Можно с каплей масла.'
         },
@@ -169,7 +169,7 @@
             name: 'Тыква',
             emoji: '🎃',
             category: 'овощи',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -184,13 +184,13 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Яркий цвет, мягкая текстура. Хорошо для первого прикорма.'
         },
         {
             id: 'veg-7',
-            name: 'Свекла',
+            name: 'Свёкла',
             emoji: '🫃',
             category: 'овощи',
             introduction: { fromMonths: 6 },
@@ -241,7 +241,7 @@
             name: 'Чеснок',
             emoji: '🧄',
             category: 'овощи',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: false,
             allergenType: [],
@@ -256,7 +256,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Острый, только в малых дозах в блюдах.'
         },
@@ -289,7 +289,7 @@
             name: 'Перец сладкий',
             emoji: '🫑',
             category: 'овощи',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: false,
             allergenType: [],
@@ -304,7 +304,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Яркий вкус, но может раздражать ЖКТ.'
         },
@@ -313,7 +313,7 @@
             name: 'Помидор',
             emoji: '🍅',
             category: 'овощи',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['tomato'],
@@ -328,7 +328,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Кисловатый, возможна аллергия. Вводите осторожно.'
         },
@@ -337,7 +337,7 @@
             name: 'Огурец',
             emoji: '🥒',
             category: 'овощи',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -352,7 +352,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Освежает, но много воды. Давайте кусочками с 8 мес.'
         },
@@ -385,7 +385,7 @@
             name: 'Шпинат',
             emoji: '🌿',
             category: 'овощи',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: false,
             allergenType: [],
@@ -400,7 +400,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: true,
             desc: 'Много железа, но содержит щавелевую кислоту – не часто.'
         },
@@ -411,7 +411,7 @@
             name: 'Яблоко',
             emoji: '🍏',
             category: 'фрукты',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -426,7 +426,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Классика. Запекайте или давайте пюре.'
         },
@@ -435,7 +435,7 @@
             name: 'Груша',
             emoji: '🍐',
             category: 'фрукты',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -450,7 +450,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Сладкая, мягкая. Реже вызывает аллергию.'
         },
@@ -459,7 +459,7 @@
             name: 'Банан',
             emoji: '🍌',
             category: 'фрукты',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -474,7 +474,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Энергичный, содержит калий. Разомните вилкой.'
         },
@@ -483,7 +483,7 @@
             name: 'Авокадо',
             emoji: '🥑',
             category: 'фрукты',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -498,7 +498,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Полезные жиры. Консистенция как масло.'
         },
@@ -507,7 +507,7 @@
             name: 'Персик',
             emoji: '🍑',
             category: 'фрукты',
-            introduction: { fromMonths: 5 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['peach'],
@@ -522,7 +522,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 5,
+            min_age_months: 6,
             iron: false,
             desc: 'Сочный, но может вызвать аллергию.'
         },
@@ -531,7 +531,7 @@
             name: 'Нектарин',
             emoji: '🍑',
             category: 'фрукты',
-            introduction: { fromMonths: 5 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['peach'],
@@ -546,7 +546,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 5,
+            min_age_months: 6,
             iron: false,
             desc: 'Аналогично персику.'
         },
@@ -627,7 +627,7 @@
             name: 'Малина',
             emoji: '🫐',
             category: 'фрукты',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['raspberry'],
@@ -642,16 +642,16 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
-            desc: 'Аллергенна, вводите поздно.'
+            desc: 'Может быть аллергеном, вводите с осторожностью.'
         },
         {
             id: 'fruit-11',
             name: 'Клубника',
             emoji: '🍓',
             category: 'фрукты',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['strawberry'],
@@ -666,16 +666,16 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
-            desc: 'Сильный аллерген, отложите до года.'
+            desc: 'Может быть аллергеном, вводите с осторожностью.'
         },
         {
             id: 'fruit-12',
             name: 'Киви',
             emoji: '🥝',
             category: 'фрукты',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['kiwi'],
@@ -690,11 +690,11 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Экзотический, может вызвать реакцию.'
         },
-        // === ДОБАВЛЕННЫЕ ПРОДУКТЫ (Виноград, Черри) ===
+        // === ДОБАВЛЕННЫЕ ПРОДУКТЫ (Виноград, Черри) – ages уже 6, оставляем ===
         {
             id: 'fruit-13',
             name: 'Виноград',
@@ -750,7 +750,7 @@
             name: 'Рис',
             emoji: '🍚',
             category: 'крупы',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -765,7 +765,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: false,
             desc: 'Гипоаллергенная каша. Начинайте с рисовой.'
         },
@@ -774,7 +774,7 @@
             name: 'Гречка',
             emoji: '🍚',
             category: 'крупы',
-            introduction: { fromMonths: 4 },
+            introduction: { fromMonths: 4.5 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -789,7 +789,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 4,
+            min_age_months: 4.5,
             iron: true,
             desc: 'Богата железом, безглютеновая.'
         },
@@ -798,7 +798,7 @@
             name: 'Кукурузная крупа',
             emoji: '🌽',
             category: 'крупы',
-            introduction: { fromMonths: 6 },  // ИСПРАВЛЕНО: было 5 → 6
+            introduction: { fromMonths: 6 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -870,7 +870,7 @@
             name: 'Ячневая крупа',
             emoji: '🌾',
             category: 'крупы',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['gluten'],
@@ -885,7 +885,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Содержит глютен.'
         },
@@ -894,7 +894,7 @@
             name: 'Полба',
             emoji: '🌾',
             category: 'крупы',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['gluten'],
@@ -909,7 +909,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Древняя пшеница, тоже глютен.'
         },
@@ -992,7 +992,7 @@
             name: 'Говядина',
             emoji: '🐮',
             category: 'мясо',
-            introduction: { fromMonths: 7 },
+            introduction: { fromMonths: 6 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -1007,7 +1007,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 7,
+            min_age_months: 6,
             iron: true,
             desc: 'Красное мясо, богато железом.'
         },
@@ -1016,7 +1016,7 @@
             name: 'Телятина',
             emoji: '🐮',
             category: 'мясо',
-            introduction: { fromMonths: 7 },
+            introduction: { fromMonths: 6 },
             status: 'recommended',
             allergen: false,
             allergenType: [],
@@ -1031,7 +1031,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 7,
+            min_age_months: 6,
             iron: true,
             desc: 'Нежнее говядины.'
         },
@@ -1040,7 +1040,7 @@
             name: 'Свинина',
             emoji: '🐷',
             category: 'мясо',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: false,
             allergenType: [],
@@ -1055,7 +1055,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: true,
             desc: 'Жирнее, но давать можно постные части.'
         },
@@ -1064,7 +1064,7 @@
             name: 'Баранина',
             emoji: '🐑',
             category: 'мясо',
-            introduction: { fromMonths: 9 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: false,
             allergenType: [],
@@ -1079,18 +1079,18 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 9,
+            min_age_months: 6,
             iron: true,
             desc: 'Специфический вкус, не для всех.'
         },
 
-        // --- РЫБА (исправлены возраста и добавлен mercuryRisk) ---
+        // --- РЫБА ---
         {
             id: 'fish-1',
             name: 'Треска',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 6 }, // было 8
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1105,7 +1105,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            mercuryRisk: 'low', // добавлено
+            mercuryRisk: 'low',
             min_age_months: 6,
             iron: false,
             desc: 'Нежирная, но аллергенна. Вводите аккуратно.'
@@ -1115,7 +1115,7 @@
             name: 'Минтай',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 6 }, // было 8
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1140,7 +1140,7 @@
             name: 'Сёмга (лосось)',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 6 }, // было 10
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1165,7 +1165,7 @@
             name: 'Форель',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 6 }, // было 10
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1190,7 +1190,7 @@
             name: 'Судак',
             emoji: '🐟',
             category: 'рыба',
-            introduction: { fromMonths: 6 }, // было 9
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['fish'],
@@ -1210,7 +1210,7 @@
             iron: false,
             desc: 'Нежирная, но аллерген.'
         },
-        // ДОБАВЛЕННЫЕ ВИДЫ РЫБЫ С ВЫСОКИМ СОДЕРЖАНИЕМ РТУТИ
+        // ДОБАВЛЕННЫЕ ВИДЫ РЫБЫ С ВЫСОКИМ СОДЕРЖАНИЕМ РТУТИ (оставлены как avoid)
         {
             id: 'fish-6',
             name: 'Акула',
@@ -1343,7 +1343,7 @@
             name: 'Кефир',
             emoji: '🥛',
             category: 'молочные',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['milk'],
@@ -1358,16 +1358,16 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
-            desc: 'Кисломолочный, помогает пищеварению. Начинайте с 8 мес.'
+            desc: 'Кисломолочный, помогает пищеварению. Начинайте с 6 мес.'
         },
         {
             id: 'dairy-2',
             name: 'Йогурт натуральный без добавок',
             emoji: '🥛',
             category: 'молочные',
-            introduction: { fromMonths: 6 }, // йогурт можно раньше, чем кефир
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['milk'],
@@ -1391,7 +1391,7 @@
             name: 'Творог',
             emoji: '🧀',
             category: 'молочные',
-            introduction: { fromMonths: 8 },
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['milk'],
@@ -1406,7 +1406,7 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 8,
+            min_age_months: 6,
             iron: false,
             desc: 'Источник кальция. Вводите после кефира.'
         },
@@ -1415,8 +1415,8 @@
             name: 'Сыр твёрдый',
             emoji: '🧀',
             category: 'молочные',
-            introduction: { fromMonths: 12 },
-            status: 'age_limited',
+            introduction: { fromMonths: 6 },
+            status: 'caution',
             allergen: true,
             allergenType: ['milk'],
             chokingRisk: 'medium',
@@ -1430,9 +1430,9 @@
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 12,
+            min_age_months: 6,
             iron: false,
-            desc: 'Солёный, только с года.'
+            desc: 'Солёный, давайте в безопасной форме.'
         },
         {
             id: 'dairy-5',
@@ -1458,7 +1458,7 @@
             iron: false,
             desc: 'Добавляйте 1-2 г в кашу с 6 мес.'
         },
-        // НОВЫЙ ПРОДУКТ: Коровье молоко как напиток
+        // НОВЫЙ ПРОДУКТ: Коровье молоко как напиток (возраст 12, но это отдельный продукт)
         {
             id: 'dairy-6',
             name: 'Коровье молоко (напиток)',
@@ -1484,13 +1484,13 @@
             desc: 'Как напиток – только после года. В кашу можно добавлять с 6 мес.'
         },
 
-        // --- АЛЛЕРГЕНЫ (исправлены возраста и добавлены safeForms/unsafeForms) ---
+        // --- АЛЛЕРГЕНЫ ---
         {
             id: 'allerg-1',
             name: 'Яйцо куриное',
             emoji: '🥚',
             category: 'аллергены',
-            introduction: { fromMonths: 6 }, // было 8
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['egg'],
@@ -1521,7 +1521,7 @@
             },
             min_age_months: 6,
             iron: false,
-            desc: 'Белок – сильный аллерген. Начинайте с желтка.'
+            desc: 'Полностью приготовленное яйцо можно вводить с начала прикорма.'
         },
         {
             id: 'allerg-2',
@@ -1552,8 +1552,8 @@
             name: 'Орехи (обобщённо)',
             emoji: '🥜',
             category: 'аллергены',
-            introduction: { fromMonths: 6 }, // было 12
-            status: 'caution',
+            introduction: { fromMonths: 6 },
+            status: 'caution', // было avoid
             allergen: true,
             allergenType: ['nuts'],
             chokingRisk: 'high',
@@ -1569,15 +1569,15 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Сильный аллерген, кусочки опасны.'
+            desc: 'Потенциальный аллерген. Давайте в безопасной измельчённой форме.'
         },
         {
             id: 'allerg-4',
             name: 'Арахис',
             emoji: '🥜',
             category: 'аллергены',
-            introduction: { fromMonths: 6 }, // было 12
-            status: 'caution',
+            introduction: { fromMonths: 6 },
+            status: 'caution', // было avoid
             allergen: true,
             allergenType: ['peanut'],
             chokingRisk: 'high',
@@ -1593,14 +1593,14 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Один из самых частых аллергенов.'
+            desc: 'Потенциальный аллерген. Давайте в безопасной измельчённой форме.'
         },
         {
             id: 'allerg-5',
             name: 'Соя',
             emoji: '🫘',
             category: 'аллергены',
-            introduction: { fromMonths: 6 }, // было 12
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['soy'],
@@ -1617,14 +1617,14 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Встречается в соевом соусе и тофу.'
+            desc: 'Потенциальный аллерген. Вводите в безопасных формах.'
         },
         {
             id: 'allerg-6',
             name: 'Кунжут (тахини)',
             emoji: '🌿',
             category: 'аллергены',
-            introduction: { fromMonths: 6 }, // было 12
+            introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: true,
             allergenType: ['sesame'],
@@ -1641,15 +1641,15 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Аллерген, но в малых дозах.'
+            desc: 'Потенциальный аллерген. Давайте в безопасной форме (тахини).'
         },
         {
             id: 'allerg-7',
             name: 'Морепродукты (креветки, мидии)',
             emoji: '🦐',
             category: 'аллергены',
-            introduction: { fromMonths: 12 },
-            status: 'avoid',
+            introduction: { fromMonths: 6 },
+            status: 'caution', // было avoid
             allergen: true,
             allergenType: ['shellfish'],
             chokingRisk: 'medium',
@@ -1657,18 +1657,18 @@
             highlights: ['Белок', 'Цинк'],
             interestingFact: 'Креветки – популярные морепродукты, но сильный аллерген.',
             preparation: 'Не рекомендуется до года из-за аллергенности и риска удушья.',
-            safeForms: [],
+            safeForms: ['Хорошо приготовленные, мелко измельчённые'],
             unsafeForms: ['Цельные креветки'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
-            min_age_months: 12,
+            min_age_months: 6,
             iron: false,
-            desc: 'Креветки, мидии – только после года.'
+            desc: 'Потенциальный аллерген. Давайте только хорошо приготовленные, в безопасной текстуре.'
         },
 
-        // --- НАПИТКИ (новая категория) ---
+        // --- НАПИТКИ ---
         {
             id: 'beverage-1',
             name: 'Сок яблочный (осветлённый)',
@@ -1695,7 +1695,7 @@
         }
     ];
 
-    // ========== КАТЕГОРИИ (добавлена категория "напитки") ==========
+    // ========== КАТЕГОРИИ ==========
     window.CATEGORIES = [
         { id: 'овощи', label: 'Овощи', icon: '🥬' },
         { id: 'фрукты', label: 'Фрукты/ягоды', icon: '🍎' },
