@@ -34,7 +34,6 @@ function escapeHTML(str) {
 }
 
 function handleDocumentClick(event) {
-
     // === ЗАКРЫТИЕ МОДАЛКИ (обрабатываем до data-action) ===
     var closeBtn = event.target.closest('.btn-close-modal');
     if (closeBtn) {
@@ -490,7 +489,7 @@ function handleDocumentClick(event) {
 
                 // Закрытие по крестику (закрыть модалку) и по кнопке "Отмена"
                 sheet.querySelector('[data-action="close-modal"]')?.addEventListener('click', closeMenu);
-                // Обработка Escape – будет автоматически закрывать через общий closeModal, но мы добавим локальный listener
+                // Обработка Escape
                 var keyHandler = function(e) {
                     if (e.key === 'Escape') {
                         closeMenu();
@@ -604,6 +603,46 @@ function getProductByName(name) {
     }) || null;
 }
 
+// ===== ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ПРОФИЛЯ РЕБЁНКА (дублируется из products.js) =====
+function getChildProfile(childId) {
+    if (window.childService && typeof window.childService.getChildProfile === 'function') {
+        try {
+            return window.childService.getChildProfile(childId);
+        } catch (e) {
+            console.warn('⚠️ childService.getChildProfile error:', e);
+        }
+    }
+    if (window.STATE && window.STATE.children) {
+        var child = window.STATE.children.find(function(c) { return c.id === childId; });
+        if (child) {
+            var profile = {
+                id: child.id,
+                name: child.name,
+                birthDate: child.birthDate,
+                sex: child.sex,
+                feedingType: child.feedingType,
+                ageMonths: getChildAgeMonths(childId)
+            };
+            if (child.allergies) profile.allergies = child.allergies;
+            if (child.readiness) profile.readiness = child.readiness;
+            return profile;
+        }
+    }
+    return null;
+}
+
+function getChildAgeMonths(childId) {
+    if (!window.STATE || !window.STATE.children) return 0;
+    var child = window.STATE.children.find(function(c) { return c.id === childId; });
+    if (!child || !child.birthDate) return 0;
+    var birth = new Date(child.birthDate);
+    var now = new Date();
+    var months = (now.getFullYear() - birth.getFullYear()) * 12;
+    months += now.getMonth() - birth.getMonth();
+    if (now.getDate() < birth.getDate()) months--;
+    return Math.max(0, months);
+}
+
 function openProductFromCard(productId) {
     var product = getProductById(productId);
     if (!product) {
@@ -673,6 +712,12 @@ function openProductDetails(product) {
         }).join('') + '</ul>';
     }
 
+    // ===== ИСПРАВЛЕНИЕ 1: объявляем allergenHtml =====
+    var allergenHtml = '';
+    if (product.allergen && product.allergenType && product.allergenType.length) {
+        allergenHtml = '<div class="warning-block"><strong>⚠️ Аллерген</strong><p>Тип: ' + escapeHTML(product.allergenType.join(', ')) + '. Вводите с осторожностью.</p></div>';
+    }
+
     // Безопасность через Safety Engine
     var safetyHtml = '';
     if (childId) {
@@ -738,6 +783,24 @@ function openProductDetails(product) {
             '</ul></div>';
     }
 
+    // ===== ИСПРАВЛЕНИЕ 3: кнопка только для notIntroduced и planned =====
+    var showIntroButton = (status === 'notIntroduced' || status === 'planned');
+    var actionButtonHtml = '';
+    if (showIntroButton) {
+        actionButtonHtml = '<button type="button" class="primary-button" data-action="add-product-intro" data-product-id="' + escapeHTML(product.id) + '" style="width:100%; padding:12px; border-radius:30px; border:none; background:#F5A88C; color:white; font-size:16px; cursor:pointer;">＋ Ввести продукт</button>';
+    } else {
+        // Можно показать статус-лейбл
+        var label = '';
+        switch (status) {
+            case 'introduced': label = '✅ Уже введён'; break;
+            case 'suspectedReaction': label = '⚠️ Была реакция'; break;
+            case 'confirmedAllergy': label = '🚫 Аллергия'; break;
+            case 'parentExcluded': label = '❌ Не хочу вводить'; break;
+            default: label = 'Действие недоступно';
+        }
+        actionButtonHtml = '<div style="text-align:center; padding:12px; background:#F5F5F5; border-radius:14px; color:#888;">' + label + '</div>';
+    }
+
     // Сборка модалки
     var content = `
         <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:calc(100vh - 40px); overflow-y:auto; -webkit-overflow-scrolling:touch; box-shadow:0 4px 20px rgba(0,0,0,0.2); position:relative; margin:auto; width:100%; flex-shrink:1; min-height:0;">
@@ -772,7 +835,7 @@ function openProductDetails(product) {
             ${labelChecksHtml}
 
             <div style="margin-top:16px;">
-                <button type="button" class="primary-button" data-action="add-product-intro" data-product-id="${escapeHTML(product.id)}" style="width:100%; padding:12px; border-radius:30px; border:none; background:#F5A88C; color:white; font-size:16px; cursor:pointer;">＋ Ввести продукт</button>
+                ${actionButtonHtml}
             </div>
         </div>
     `;
