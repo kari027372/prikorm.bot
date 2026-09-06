@@ -244,6 +244,140 @@ function handleDocumentClick(event) {
                 break;
             }
 
+            // ===== НОВЫЕ ОБРАБОТЧИКИ ДЛЯ ПРОДУКТОВ =====
+            case "select-product": {
+                var productId = target.dataset.productId;
+                if (productId) {
+                    openProductFromCard(productId);
+                } else {
+                    showToast("Не удалось определить продукт", "error");
+                }
+                break;
+            }
+
+            case "choose-picker-product": {
+                var productId = target.dataset.productId;
+                if (!productId) {
+                    showToast("Не удалось определить продукт", "error");
+                    break;
+                }
+                var product = getProductById(productId);
+                if (!product) {
+                    showToast("Продукт не найден в базе", "error");
+                    break;
+                }
+                closeModal();
+                if (typeof openAddFoodModal === 'function') {
+                    openAddFoodModal(product);
+                } else {
+                    showToast("Функция добавления продукта недоступна", "error");
+                }
+                break;
+            }
+
+            case "add-product-intro": {
+                var productId = target.dataset.productId;
+                if (!productId) {
+                    showToast("Не удалось определить продукт", "error");
+                    break;
+                }
+                var childId = window.STATE && window.STATE.currentChildId;
+                if (!childId) {
+                    showToast("Сначала выберите ребёнка", "error");
+                    break;
+                }
+                if (
+                    !window.productStateService ||
+                    typeof window.productStateService.markAsIntroduced !== "function"
+                ) {
+                    showToast("Сервис продуктов пока недоступен", "error");
+                    break;
+                }
+                try {
+                    window.productStateService.markAsIntroduced(
+                        childId,
+                        productId,
+                        new Date().toISOString().slice(0, 10)
+                    );
+                    showToast("✅ Продукт отмечен как введённый", "success");
+                    if (typeof updateProductsList === "function") {
+                        updateProductsList();
+                    }
+                } catch (e) {
+                    console.error("Ошибка при введении продукта:", e);
+                    showToast("Не удалось отметить продукт как введённый", "error");
+                }
+                break;
+            }
+
+            case "show-product-menu": {
+                var productId = target.dataset.productId;
+                if (!productId) {
+                    showToast("Не удалось определить продукт", "error");
+                    break;
+                }
+                var childId = window.STATE && window.STATE.currentChildId;
+                if (!childId) {
+                    showToast("Сначала выберите ребёнка", "error");
+                    break;
+                }
+
+                // Удаляем старую модалку, если есть
+                var existingModal = document.querySelector('.modal-overlay');
+                if (existingModal) existingModal.remove();
+
+                var overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(74,58,48,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; box-sizing:border-box;';
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) {
+                        overlay.remove();
+                    }
+                });
+
+                var sheet = document.createElement('div');
+                sheet.className = 'modal-sheet';
+                sheet.style.cssText = 'background:white; border-radius:20px; padding:24px; max-width:400px; width:100%; margin:auto;';
+                sheet.innerHTML = `
+                    <h3 style="margin-top:0;">Действия с продуктом</h3>
+                    <button class="btn-secondary" style="width:100%; margin-bottom:10px; padding:12px; border-radius:14px; border:1px solid #F0DED6; background:transparent; font-size:16px; cursor:pointer;" data-action="menu-exclude">❌ Не хочу вводить</button>
+                    <button class="btn-ghost" style="width:100%; padding:12px; border-radius:14px; border:none; background:transparent; font-size:16px; cursor:pointer; color:#8A7A6A;" data-action="close-modal">Отмена</button>
+                `;
+                overlay.appendChild(sheet);
+                document.body.appendChild(overlay);
+
+                sheet.querySelector('[data-action="menu-exclude"]').addEventListener('click', function() {
+                    if (
+                        !window.productStateService ||
+                        typeof window.productStateService.setStatus !== "function"
+                    ) {
+                        showToast("Сервис продуктов пока недоступен", "error");
+                        return;
+                    }
+                    try {
+                        window.productStateService.setStatus(
+                            childId,
+                            productId,
+                            "parentExcluded"
+                        );
+                        showToast("❌ Продукт исключён", "info");
+                        if (typeof updateProductsList === "function") {
+                            updateProductsList();
+                        }
+                        overlay.remove();
+                    } catch (e) {
+                        console.error("Ошибка при исключении продукта:", e);
+                        showToast("Не удалось исключить продукт", "error");
+                    }
+                });
+
+                sheet.querySelector('[data-action="close-modal"]').addEventListener('click', function() {
+                    overlay.remove();
+                });
+
+                break;
+            }
+
             default:
                 break;
         }
@@ -681,14 +815,8 @@ function searchProductPicker(query) {
     renderProductPicker(query);
 }
 
-document.addEventListener("click", function(event) {
-    var button = event.target.closest("[data-action='select-product']");
-    if (!button) return;
-    var product = getProductById(button.dataset.productId);
-    if (!product) return;
-    closeModal();
-    openAddFoodModal(product);
-});
+// ===== СТАРЫЙ LISTENER УДАЛЁН =====
+// document.addEventListener("click", function(event) { ... }) для select-product больше нет.
 
 function openDiaryAddModal() { openAddFoodModal(); }
 function openDiaryEditModal(entryId) {
