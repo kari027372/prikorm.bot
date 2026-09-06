@@ -34,6 +34,7 @@ function escapeHTML(str) {
 }
 
 function handleDocumentClick(event) {
+
     // === ЗАКРЫТИЕ МОДАЛКИ (обрабатываем до data-action) ===
     var closeBtn = event.target.closest('.btn-close-modal');
     if (closeBtn) {
@@ -603,7 +604,7 @@ function getProductByName(name) {
     }) || null;
 }
 
-// ===== ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ПРОФИЛЯ РЕБЁНКА (дублируется из products.js) =====
+// ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ПРОФИЛЯ =====
 function getChildProfile(childId) {
     if (window.childService && typeof window.childService.getChildProfile === 'function') {
         try {
@@ -662,7 +663,6 @@ function openProductDetails(product) {
     var modalRoot = document.getElementById('modal-root');
     if (!modalRoot) return;
 
-    // Удаляем старую модалку
     modalRoot.innerHTML = '';
 
     // Получаем статус для текущего ребёнка
@@ -694,7 +694,11 @@ function openProductDetails(product) {
     // Информация о продукте
     var ageText = '—';
     if (product.introduction && product.introduction.fromMonths) {
-        ageText = 'с ' + product.introduction.fromMonths + ' мес.';
+        if (product.introduction.fromMonths === 4 || product.introduction.fromMonths === 4.5) {
+            ageText = 'С начала прикорма';
+        } else {
+            ageText = 'с ' + product.introduction.fromMonths + ' мес.';
+        }
     } else if (product.min_age_months) {
         ageText = 'с ' + product.min_age_months + ' мес.';
     } else if (product.min_age) {
@@ -712,56 +716,127 @@ function openProductDetails(product) {
         }).join('') + '</ul>';
     }
 
-    // ===== ИСПРАВЛЕНИЕ 1: объявляем allergenHtml =====
-    var allergenHtml = '';
-    if (product.allergen && product.allergenType && product.allergenType.length) {
-        allergenHtml = '<div class="warning-block"><strong>⚠️ Аллерген</strong><p>Тип: ' + escapeHTML(product.allergenType.join(', ')) + '. Вводите с осторожностью.</p></div>';
-    }
-
-    // Безопасность через Safety Engine
-    var safetyHtml = '';
+    // -------- НОВАЯ ЛОГИКА БЕЗОПАСНОСТИ --------
+    // Получаем результат Safety Engine
+    var profile = null;
     if (childId) {
-        var profile = getChildProfile(childId);
-        if (profile && window.safetyEngine) {
-            try {
-                var safetyResult = window.safetyEngine.evaluateProductSafety(profile, product, null);
-                if (safetyResult) {
-                    var statusMsg = '';
-                    if (safetyResult.status === 'allow') statusMsg = '✅ Разрешён';
-                    else if (safetyResult.status === 'caution') statusMsg = '⚠️ С осторожностью';
-                    else if (safetyResult.status === 'review') statusMsg = 'ℹ️ Требует внимания';
-                    else if (safetyResult.status === 'block' || safetyResult.status === 'not_appropriate') statusMsg = '❌ Не рекомендуется';
-                    else statusMsg = 'ℹ️ ' + (safetyResult.status || '');
-                    var reasonsText = (safetyResult.reasons && safetyResult.reasons.length) ? safetyResult.reasons.join(', ') : '';
-                    safetyHtml = '<div><strong>Безопасность:</strong> ' + statusMsg + (reasonsText ? ' (' + reasonsText + ')' : '') + '</div>';
-                }
-            } catch (e) {
-                console.warn('Safety Engine error:', e);
-            }
+        profile = getChildProfile(childId);
+    }
+    var safetyResult = null;
+    if (profile && window.safetyEngine) {
+        try {
+            safetyResult = window.safetyEngine.evaluateProductSafety(profile, product, null);
+        } catch (e) {
+            console.warn('Safety Engine error:', e);
         }
     }
 
-    // Если Safety Engine не дал данных, пробуем старую функцию (если она есть)
-    if (!safetyHtml && typeof getSafetyWarning === 'function') {
-        var safety = getSafetyWarning(product.name);
-        if (safety) {
-            safetyHtml = '<div><strong>⚠️ Безопасность:</strong> ' + escapeHTML(safety.warning || safety) + '</div>';
-        }
+    // Собираем предупреждения с приоритетом
+    var safetyBlocks = [];
+    var reasons = (safetyResult && safetyResult.reasons) ? safetyResult.reasons : [];
+    var uniqueReasons = [...new Set(reasons)];
+
+    // 1. Персональный block (аллергия ребёнка)
+    if (safetyResult && safetyResult.status === 'block' && safetyResult.details?.allergy?.status === 'blocked') {
+        var allergenTypesArray = Array.isArray(safetyResult.details.allergy.types)
+            ? safetyResult.details.allergy.types
+            : (safetyResult.details.allergy.types ? [safetyResult.details.allergy.types] : []);
+        var allergenTypesStr = allergenTypesArray.length ? allergenTypesArray.join(', ') : 'продукт';
+        safetyBlocks.push({
+            type: 'personal',
+            icon: '🚫',
+            title: 'Не рекомендуется этому ребёнку',
+            details: 'Указана аллергия на: ' + allergenTypesStr
+        });
     }
 
+    // 2. Возрастное ограничение (если ещё не добавлен блок)
+    if (safetyResult && safetyResult.status === 'block' && safetyResult.details?.age?.status === 'blocked_by_age') {
+        var ageReason = safetyResult.details.age.reason || 'продукт не подходит для текущего возраста';
+        safetyBlocks.push({
+            type: 'age',
+            icon: '🚫',
+            title: 'Пока нельзя',
+            details: 'Причина: ' + ageReason
+        });
+    } else if (safetyResult && safetyResult.status === 'block' && safetyResult.details?.age?.status === 'too_early') {
+        safetyBlocks.push({
+            type: 'age',
+            icon: '🚫',
+            title: 'Пока нельзя',
+            details: 'Причина: продукт не подходит для текущего возраста'
+        });
+    }
+
+    // 3. Другие ограничения (медицинские, ртуть, мёд, коровье молоко, labelChecks)
+    var otherWarnings = uniqueReasons.filter(function(r) {
+        // Исключаем причины, которые уже использованы в блоках personal или age
+        if (safetyBlocks.some(function(block) {
+            if (block.type === 'personal' && r.includes('аллергия')) return true;
+            if (block.type === 'age' && r.includes('Возраст')) return true;
+            return false;
+        })) return false;
+        return (
+            r.includes('ртути') ||
+            r.includes('медицинское') ||
+            r.includes('содержит добавленный сахар') ||
+            r.includes('содержит добавленную соль') ||
+            r.includes('ботулизма') ||
+            r.includes('напиток') ||
+            r.includes('мед') ||
+            r.includes('мёд') ||
+            r.includes('Мёд') ||
+            r.includes('коровье молоко')
+        );
+    });
+    if (otherWarnings.length > 0) {
+        safetyBlocks.push({
+            type: 'other',
+            icon: '⚠️',
+            title: 'Важно',
+            details: otherWarnings.join('. ')
+        });
+    }
+
+    // 4. Потенциальный аллерген (если продукт аллергенен и нет персонального блока)
+    var isAllergen = product.allergen === true || (product.allergenType && product.allergenType.length > 0);
+    var allergenTypes = [];
+    if (product.allergenType) {
+        allergenTypes = Array.isArray(product.allergenType) ? product.allergenType : [product.allergenType];
+    }
+    if (isAllergen && !safetyBlocks.some(function(block) { return block.type === 'personal'; })) {
+        var allergenLabel = allergenTypes.length > 0 ? allergenTypes.join(', ') : 'продукт';
+        safetyBlocks.push({
+            type: 'allergen',
+            icon: '🟡',
+            title: 'Потенциальный аллерген',
+            details: 'Продукт является аллергеном (' + allergenLabel + '). Вводите с осторожностью.'
+        });
+    }
+
+    // Формируем HTML для блоков безопасности
+    var safetyBlocksHtml = safetyBlocks.map(function(block) {
+        var colorClass = '';
+        if (block.type === 'personal' || block.type === 'age') colorClass = 'block-danger';
+        else if (block.type === 'other' || block.type === 'allergen') colorClass = 'block-warning';
+        return '<div class="safety-block ' + colorClass + '"><strong>' + block.icon + ' ' + block.title + '</strong><p>' + block.details + '</p></div>';
+    }).join('');
+
+    // -------- БЕЗОПАСНЫЕ И ОПАСНЫЕ ФОРМЫ (всегда показываем, если есть) --------
     var safeFormsHtml = '';
     if (product.safeForms && product.safeForms.length) {
-        safeFormsHtml = '<div><strong>✅ Безопасные формы:</strong><ul>' + product.safeForms.map(function(f) {
+        safeFormsHtml = '<div><strong>✓ Как безопасно дать</strong><ul>' + product.safeForms.map(function(f) {
+            return '<li>' + escapeHTML(f) + '</li>';
+        }).join('') + '</ul></div>';
+    }
+    var unsafeFormsHtml = '';
+    if (product.unsafeForms && product.unsafeForms.length) {
+        unsafeFormsHtml = '<div><strong>⚠️ Не давать в таком виде</strong><ul>' + product.unsafeForms.map(function(f) {
             return '<li>' + escapeHTML(f) + '</li>';
         }).join('') + '</ul></div>';
     }
 
-    var chokingHtml = '';
-    if (product.chokingRisk && product.chokingRisk !== 'none') {
-        var riskLabels = { low: 'низкий', medium: 'средний', high: 'высокий' };
-        chokingHtml = '<div><strong>🚨 Риск удушья:</strong> ' + (riskLabels[product.chokingRisk] || product.chokingRisk) + '</div>';
-    }
-
+    // Остальные блоки (интересные факты, проверки состава)
     var factHtml = '';
     if (product.interestingFact) {
         factHtml = '<div class="fact-block"><strong>💡 Интересный факт:</strong><p>' + escapeHTML(product.interestingFact) + '</p></div>';
@@ -783,13 +858,12 @@ function openProductDetails(product) {
             '</ul></div>';
     }
 
-    // ===== ИСПРАВЛЕНИЕ 3: кнопка только для notIntroduced и planned =====
+    // Кнопка введения (только для notIntroduced/planned)
     var showIntroButton = (status === 'notIntroduced' || status === 'planned');
     var actionButtonHtml = '';
     if (showIntroButton) {
         actionButtonHtml = '<button type="button" class="primary-button" data-action="add-product-intro" data-product-id="' + escapeHTML(product.id) + '" style="width:100%; padding:12px; border-radius:30px; border:none; background:#F5A88C; color:white; font-size:16px; cursor:pointer;">＋ Ввести продукт</button>';
     } else {
-        // Можно показать статус-лейбл
         var label = '';
         switch (status) {
             case 'introduced': label = '✅ Уже введён'; break;
@@ -822,16 +896,15 @@ function openProductDetails(product) {
 
             ${highlightsHtml ? `<div style="margin-bottom:12px;"><strong>🧠 Польза</strong>${highlightsHtml}</div>` : ''}
 
-            ${allergenHtml ? `<div style="margin-bottom:12px;">${allergenHtml}</div>` : ''}
+            <!-- Блоки безопасности -->
+            ${safetyBlocksHtml}
 
-            ${safetyHtml ? `<div style="margin-bottom:12px;">${safetyHtml}</div>` : ''}
+            <!-- Безопасные и опасные формы -->
+            ${safeFormsHtml}
+            ${unsafeFormsHtml}
 
-            ${safeFormsHtml ? `<div style="margin-bottom:12px;">${safeFormsHtml}</div>` : ''}
-
-            ${chokingHtml ? `<div style="margin-bottom:12px;">${chokingHtml}</div>` : ''}
-
+            <!-- Остальные блоки -->
             ${factHtml}
-
             ${labelChecksHtml}
 
             <div style="margin-top:16px;">
@@ -868,7 +941,6 @@ function openProductDetails(product) {
     });
     modalRoot.appendChild(overlay);
 
-    // Обработка Escape
     var keyHandler = function(e) {
         if (e.key === 'Escape') {
             modalRoot.innerHTML = '';
@@ -994,7 +1066,6 @@ function saveFoodHandler() {
         createdAt: new Date().toISOString()
     };
 
-    // Прямое обновление STATE (без updateState)
     if (!window.STATE) window.STATE = {};
     if (!Array.isArray(window.STATE.diary)) window.STATE.diary = [];
     window.STATE.diary.push(entry);
@@ -1044,7 +1115,6 @@ function renderProductPicker(query) {
         container.innerHTML = emptyState("🔎", "Ничего не найдено", "Попробуйте другое название.");
         return;
     }
-    // Исправление: data-action="choose-picker-product"
     container.innerHTML = list.slice(0, 100).map(function(product) {
         return (
             '<button type="button" class="picker-product" data-action="choose-picker-product" data-product-id="' +
