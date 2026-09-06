@@ -1643,6 +1643,10 @@ function openAddFoodModal(
     product = null
 ) {
 
+    // Удаляем старый overlay от карточки продукта, если он есть
+    const oldModal = document.querySelector('.modal-overlay');
+    if (oldModal) oldModal.remove();
+
     const root =
         document.getElementById(
             "modal-root"
