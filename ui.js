@@ -75,6 +75,7 @@ function buildApp() {
     UI.screens = {
         home: createHomeScreen(),
         today: createTodayScreen(),
+        // products: createProductsScreen(), // УДАЛЕН (дублирующий экран)
         diary: createDiaryScreen(),
         recipes: createRecipesScreen(),
         baby: createBabyScreen()
@@ -711,8 +712,9 @@ function renderProductPicker(query) {
         container.innerHTML = emptyState('🥑', 'Ничего не найдено', 'Попробуйте изменить запрос');
         return;
     }
+    // ИСПРАВЛЕНИЕ: заменён data-action с "select-product" на "choose-picker-product"
     container.innerHTML = filtered.map(p => `
-        <button class="picker-product" data-action="select-product" data-product-id="${p.id}" style="display:flex; align-items:center; gap:12px; width:100%; padding:12px; border:none; background:transparent; border-bottom:1px solid #eee; cursor:pointer; text-align:left;">
+        <button class="picker-product" data-action="choose-picker-product" data-product-id="${p.id}" style="display:flex; align-items:center; gap:12px; width:100%; padding:12px; border:none; background:transparent; border-bottom:1px solid #eee; cursor:pointer; text-align:left;">
             <span style="font-size:24px;">${p.emoji || '🥣'}</span>
             <div style="flex:1;"><strong>${escapeHTML(p.name)}</strong><br><span style="font-size:13px; color:#888;">${p.cat || ''}</span></div>
             <span>›</span>
@@ -720,21 +722,8 @@ function renderProductPicker(query) {
     `).join('');
 }
 
-document.addEventListener('click', function(e) {
-    const target = e.target.closest('[data-action="select-product"]');
-    if (!target) return;
-    const productId = target.dataset.productId;
-    if (!productId) return;
-    const product = (window.PRODUCTS || []).find(p => String(p.id) === String(productId));
-    if (product) {
-        closeModal();
-        if (typeof openAddFoodModal === 'function') {
-            openAddFoodModal(product);
-        } else {
-            showToast('Выбран продукт: ' + product.name, 'success');
-        }
-    }
-});
+// ===== ВНИМАНИЕ: КОНФЛИКТУЮЩИЙ LISTENER УДАЛЁН =====
+// Старый document.addEventListener для select-product полностью удалён.
 
 /* ============================================================
    ГЛОБАЛЬНЫЕ ФУНКЦИИ
