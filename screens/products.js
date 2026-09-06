@@ -1,14 +1,12 @@
 /* ============================================================
-   screens/products.js — новый UX раздела «Продукты» (без модулей)
+   screens/products.js — новый UX раздела «Продукты»
    ============================================================ */
 
-// ===== ПОЛУЧАЕМ ЗАВИСИМОСТИ ИЗ ГЛОБАЛЬНЫХ ПЕРЕМЕННЫХ =====
-// (предполагается, что эти объекты уже загружены через другие скрипты)
-// getCurrentChild, getChildAgeMonths — из child-service.js (глобальные)
-// getProductState — из product-state.js (глобальная)
-// safetyEngine — глобальный объект
-// PRODUCTS — глобальный массив
-// STATE — глобальный объект
+import { getCurrentChild, getChildAgeMonths } from '../services/child-service.js';
+import { getProductState } from '../services/product-state.js';
+import safetyEngine from '../services/safety-engine.js';
+import { PRODUCTS } from '../data/products.js';
+import STATE from '../state.js';
 
 // ===== ЛОКАЛЬНЫЕ ПЕРЕМЕННЫЕ ФИЛЬТРОВ =====
 let currentStatusFilter = 'all';      // 'all' | 'current' | 'introduced'
@@ -82,8 +80,15 @@ function renderProductCard(product, childId) {
         actionButton = `<span class="status-label ${statusClass}">${statusText}</span>`;
     }
 
-    // Используем глобальную escapeHTML (должна быть определена в utils.js или другом месте)
-    const escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); };
+    // ===== ИСПРАВЛЕННЫЙ FALLBACK ДЛЯ escapeHTML =====
+    const escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
 
     return `
         <div class="card product-card" data-action="select-product" data-product-id="${product.id}">
@@ -131,7 +136,14 @@ function renderRecommendedProducts(childId) {
 // ===== СЕТКА КАТЕГОРИЙ =====
 function renderCategoryGrid() {
     const categories = Object.keys(categoryEmojiMap);
-    const escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); };
+    const escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
     return categories
         .map(cat => `
             <div class="category-chip" data-action="filter-products" data-category="${cat}">
@@ -209,7 +221,7 @@ function updateChipsActiveState() {
 }
 
 // ===== ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРИНГА =====
-function renderProductsScreen() {
+export function renderProductsScreen() {
     const childId = STATE.currentChildId;
     const introducedCount = childId ? (PRODUCTS || []).filter(p => getProductState(childId, p.id) === 'introduced').length : 0;
 
