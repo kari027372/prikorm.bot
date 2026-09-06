@@ -286,26 +286,55 @@ function handleDocumentClick(event) {
                     showToast("Сначала выберите ребёнка", "error");
                     break;
                 }
+                // Получаем текущий статус
+                var currentStatus = 'notIntroduced';
                 if (
-                    !window.productStateService ||
-                    typeof window.productStateService.markAsIntroduced !== "function"
+                    window.productStateService &&
+                    typeof window.productStateService.getProductState === 'function'
                 ) {
-                    showToast("Сервис продуктов пока недоступен", "error");
+                    try {
+                        var state = window.productStateService.getProductState(childId, productId);
+                        if (state && typeof state === 'object') {
+                            currentStatus = state.status || 'notIntroduced';
+                        }
+                    } catch (e) {
+                        console.warn('Не удалось получить статус продукта:', e);
+                    }
+                }
+                // Разрешены только notIntroduced и planned
+                if (currentStatus !== 'notIntroduced' && currentStatus !== 'planned') {
+                    showToast("Этот продукт уже введён или недоступен для введения", "info");
                     break;
                 }
-                try {
-                    window.productStateService.markAsIntroduced(
-                        childId,
-                        productId,
-                        new Date().toISOString().slice(0, 10)
-                    );
-                    showToast("✅ Продукт отмечен как введённый", "success");
-                    if (typeof updateProductsList === "function") {
-                        updateProductsList();
+                // Проверяем Safety Engine – если он блокирует, не даём ввести
+                var profile = getChildProfile(childId);
+                var product = getProductById(productId);
+                if (profile && product && window.safetyEngine) {
+                    var safety = window.safetyEngine.evaluateProductSafety(profile, product, null);
+                    if (safety && (safety.status === 'block' || safety.status === 'not_appropriate')) {
+                        showToast("Этот продукт не подходит для введения сейчас (Safety Engine)", "error");
+                        break;
                     }
-                } catch (e) {
-                    console.error("Ошибка при введении продукта:", e);
-                    showToast("Не удалось отметить продукт как введённый", "error");
+                }
+                // Выполняем введение
+                if (
+                    window.productStateService &&
+                    typeof window.productStateService.markAsIntroduced === 'function'
+                ) {
+                    try {
+                        window.productStateService.markAsIntroduced(
+                            childId,
+                            productId,
+                            new Date().toISOString().slice(0, 10)
+                        );
+                        showToast("✅ Продукт отмечен как введённый", "success");
+                        // Обновление произойдёт через prikorm:statechange
+                    } catch (e) {
+                        console.error("Ошибка при введении продукта:", e);
+                        showToast("Не удалось отметить продукт как введённый", "error");
+                    }
+                } else {
+                    showToast("Сервис продуктов пока недоступен", "error");
                 }
                 break;
             }
@@ -322,58 +351,153 @@ function handleDocumentClick(event) {
                     break;
                 }
 
-                // Удаляем старую модалку, если есть
-                var existingModal = document.querySelector('.modal-overlay');
-                if (existingModal) existingModal.remove();
+                // Получаем статус
+                var status = 'notIntroduced';
+                if (
+                    window.productStateService &&
+                    typeof window.productStateService.getProductState === 'function'
+                ) {
+                    try {
+                        var state = window.productStateService.getProductState(childId, productId);
+                        if (state && typeof state === 'object') {
+                            status = state.status || 'notIntroduced';
+                        }
+                    } catch (e) {
+                        console.warn('Не удалось получить статус продукта:', e);
+                    }
+                }
+
+                // Готовим контент меню в зависимости от статуса
+                var menuItems = [];
+                if (status === 'notIntroduced') {
+                    menuItems.push({ label: '🗓 Запланировать', action: 'menu-plan' });
+                    menuItems.push({ label: '❌ Не хочу вводить', action: 'menu-exclude' });
+                } else if (status === 'planned') {
+                    menuItems.push({ label: '❌ Отменить план', action: 'menu-unplan' });
+                    menuItems.push({ label: '❌ Не хочу вводить', action: 'menu-exclude' });
+                } else if (status === 'parentExcluded') {
+                    menuItems.push({ label: '↩️ Вернуть в список', action: 'menu-restore' });
+                } else {
+                    // Для introduced, suspectedReaction, confirmedAllergy – только закрыть
+                    menuItems.push({ label: 'Закрыть', action: 'close-modal' });
+                }
+
+                // Создаём модалку через #modal-root
+                var modalRoot = document.getElementById('modal-root');
+                if (!modalRoot) return;
+
+                // Удаляем старую модалку
+                modalRoot.innerHTML = '';
 
                 var overlay = document.createElement('div');
                 overlay.className = 'modal-overlay';
                 overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(74,58,48,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; box-sizing:border-box;';
                 overlay.addEventListener('click', function(e) {
                     if (e.target === overlay) {
-                        overlay.remove();
+                        modalRoot.innerHTML = '';
                     }
                 });
 
                 var sheet = document.createElement('div');
                 sheet.className = 'modal-sheet';
                 sheet.style.cssText = 'background:white; border-radius:20px; padding:24px; max-width:400px; width:100%; margin:auto;';
-                sheet.innerHTML = `
-                    <h3 style="margin-top:0;">Действия с продуктом</h3>
-                    <button class="btn-secondary" style="width:100%; margin-bottom:10px; padding:12px; border-radius:14px; border:1px solid #F0DED6; background:transparent; font-size:16px; cursor:pointer;" data-action="menu-exclude">❌ Не хочу вводить</button>
-                    <button class="btn-ghost" style="width:100%; padding:12px; border-radius:14px; border:none; background:transparent; font-size:16px; cursor:pointer; color:#8A7A6A;" data-action="close-modal">Отмена</button>
-                `;
+
+                var html = '<h3 style="margin-top:0;">Действия с продуктом</h3>';
+                menuItems.forEach(function(item) {
+                    html += '<button class="btn-secondary" style="width:100%; margin-bottom:10px; padding:12px; border-radius:14px; border:1px solid #F0DED6; background:transparent; font-size:16px; cursor:pointer;" data-action="' + item.action + '">' + item.label + '</button>';
+                });
+                html += '<button class="btn-ghost" style="width:100%; padding:12px; border-radius:14px; border:none; background:transparent; font-size:16px; cursor:pointer; color:#8A7A6A;" data-action="close-modal">Отмена</button>';
+                sheet.innerHTML = html;
                 overlay.appendChild(sheet);
-                document.body.appendChild(overlay);
+                modalRoot.appendChild(overlay);
 
-                sheet.querySelector('[data-action="menu-exclude"]').addEventListener('click', function() {
+                // Обработчики для кнопок меню
+                var closeMenu = function() {
+                    modalRoot.innerHTML = '';
+                };
+
+                sheet.querySelector('[data-action="menu-plan"]')?.addEventListener('click', function() {
                     if (
-                        !window.productStateService ||
-                        typeof window.productStateService.setStatus !== "function"
+                        window.productStateService &&
+                        typeof window.productStateService.setStatus === 'function'
                     ) {
-                        showToast("Сервис продуктов пока недоступен", "error");
-                        return;
-                    }
-                    try {
-                        window.productStateService.setStatus(
-                            childId,
-                            productId,
-                            "parentExcluded"
-                        );
-                        showToast("❌ Продукт исключён", "info");
-                        if (typeof updateProductsList === "function") {
-                            updateProductsList();
+                        try {
+                            window.productStateService.setStatus(childId, productId, 'planned');
+                            showToast("🗓 Продукт запланирован", "info");
+                            closeMenu();
+                        } catch (e) {
+                            console.error("Ошибка при планировании:", e);
+                            showToast("Не удалось запланировать продукт", "error");
                         }
-                        overlay.remove();
-                    } catch (e) {
-                        console.error("Ошибка при исключении продукта:", e);
-                        showToast("Не удалось исключить продукт", "error");
+                    } else {
+                        showToast("Сервис продуктов пока недоступен", "error");
                     }
                 });
 
-                sheet.querySelector('[data-action="close-modal"]').addEventListener('click', function() {
-                    overlay.remove();
+                sheet.querySelector('[data-action="menu-unplan"]')?.addEventListener('click', function() {
+                    if (
+                        window.productStateService &&
+                        typeof window.productStateService.setStatus === 'function'
+                    ) {
+                        try {
+                            window.productStateService.setStatus(childId, productId, 'notIntroduced');
+                            showToast("🗓 План отменён", "info");
+                            closeMenu();
+                        } catch (e) {
+                            console.error("Ошибка при отмене плана:", e);
+                            showToast("Не удалось отменить план", "error");
+                        }
+                    } else {
+                        showToast("Сервис продуктов пока недоступен", "error");
+                    }
                 });
+
+                sheet.querySelector('[data-action="menu-exclude"]')?.addEventListener('click', function() {
+                    if (
+                        window.productStateService &&
+                        typeof window.productStateService.setStatus === 'function'
+                    ) {
+                        try {
+                            window.productStateService.setStatus(childId, productId, 'parentExcluded');
+                            showToast("❌ Продукт исключён", "info");
+                            closeMenu();
+                        } catch (e) {
+                            console.error("Ошибка при исключении:", e);
+                            showToast("Не удалось исключить продукт", "error");
+                        }
+                    } else {
+                        showToast("Сервис продуктов пока недоступен", "error");
+                    }
+                });
+
+                sheet.querySelector('[data-action="menu-restore"]')?.addEventListener('click', function() {
+                    if (
+                        window.productStateService &&
+                        typeof window.productStateService.setStatus === 'function'
+                    ) {
+                        try {
+                            window.productStateService.setStatus(childId, productId, 'notIntroduced');
+                            showToast("↩️ Продукт возвращён в список", "info");
+                            closeMenu();
+                        } catch (e) {
+                            console.error("Ошибка при возврате:", e);
+                            showToast("Не удалось вернуть продукт", "error");
+                        }
+                    } else {
+                        showToast("Сервис продуктов пока недоступен", "error");
+                    }
+                });
+
+                // Закрытие по крестику (закрыть модалку) и по кнопке "Отмена"
+                sheet.querySelector('[data-action="close-modal"]')?.addEventListener('click', closeMenu);
+                // Обработка Escape – будет автоматически закрывать через общий closeModal, но мы добавим локальный listener
+                var keyHandler = function(e) {
+                    if (e.key === 'Escape') {
+                        closeMenu();
+                        document.removeEventListener('keydown', keyHandler);
+                    }
+                };
+                document.addEventListener('keydown', keyHandler);
 
                 break;
             }
@@ -496,9 +620,39 @@ function openProductFromCard(productId) {
 function openProductDetails(product) {
     if (!product) return;
 
-    var oldModal = document.querySelector('.modal-overlay');
-    if (oldModal) oldModal.remove();
+    var modalRoot = document.getElementById('modal-root');
+    if (!modalRoot) return;
 
+    // Удаляем старую модалку
+    modalRoot.innerHTML = '';
+
+    // Получаем статус для текущего ребёнка
+    var childId = window.STATE ? window.STATE.currentChildId : null;
+    var status = 'notIntroduced';
+    if (childId && window.productStateService && typeof window.productStateService.getProductState === 'function') {
+        try {
+            var state = window.productStateService.getProductState(childId, product.id);
+            if (state && typeof state === 'object') {
+                status = state.status || 'notIntroduced';
+            }
+        } catch (e) {
+            console.warn('Не удалось получить статус продукта:', e);
+        }
+    }
+
+    // Статусная метка
+    var statusLabel = '';
+    switch (status) {
+        case 'notIntroduced': statusLabel = '○ Ещё не введён'; break;
+        case 'planned': statusLabel = '🗓 Запланирован'; break;
+        case 'introduced': statusLabel = '✅ Введён'; break;
+        case 'suspectedReaction': statusLabel = '⚠️ Была реакция'; break;
+        case 'confirmedAllergy': statusLabel = '🚫 Аллергия'; break;
+        case 'parentExcluded': statusLabel = '❌ Не хочу вводить'; break;
+        default: statusLabel = '○ Ещё не введён';
+    }
+
+    // Информация о продукте
     var ageText = '—';
     if (product.introduction && product.introduction.fromMonths) {
         ageText = 'с ' + product.introduction.fromMonths + ' мес.';
@@ -519,16 +673,34 @@ function openProductDetails(product) {
         }).join('') + '</ul>';
     }
 
-    var allergenHtml = '';
-    if (product.allergen && product.allergenType && product.allergenType.length) {
-        allergenHtml = '<div class="warning-block"><strong>⚠️ Аллерген</strong><p>Тип: ' + escapeHTML(product.allergenType.join(', ')) + '. Вводите с осторожностью.</p></div>';
+    // Безопасность через Safety Engine
+    var safetyHtml = '';
+    if (childId) {
+        var profile = getChildProfile(childId);
+        if (profile && window.safetyEngine) {
+            try {
+                var safetyResult = window.safetyEngine.evaluateProductSafety(profile, product, null);
+                if (safetyResult) {
+                    var statusMsg = '';
+                    if (safetyResult.status === 'allow') statusMsg = '✅ Разрешён';
+                    else if (safetyResult.status === 'caution') statusMsg = '⚠️ С осторожностью';
+                    else if (safetyResult.status === 'review') statusMsg = 'ℹ️ Требует внимания';
+                    else if (safetyResult.status === 'block' || safetyResult.status === 'not_appropriate') statusMsg = '❌ Не рекомендуется';
+                    else statusMsg = 'ℹ️ ' + (safetyResult.status || '');
+                    var reasonsText = (safetyResult.reasons && safetyResult.reasons.length) ? safetyResult.reasons.join(', ') : '';
+                    safetyHtml = '<div><strong>Безопасность:</strong> ' + statusMsg + (reasonsText ? ' (' + reasonsText + ')' : '') + '</div>';
+                }
+            } catch (e) {
+                console.warn('Safety Engine error:', e);
+            }
+        }
     }
 
-    var safetyHtml = '';
-    if (typeof getSafetyWarning === 'function') {
+    // Если Safety Engine не дал данных, пробуем старую функцию (если она есть)
+    if (!safetyHtml && typeof getSafetyWarning === 'function') {
         var safety = getSafetyWarning(product.name);
         if (safety) {
-            safetyHtml = '<div class="warning-block"><strong>⚠️ Безопасность</strong><p>' + escapeHTML(safety.warning || safety) + '</p></div>';
+            safetyHtml = '<div><strong>⚠️ Безопасность:</strong> ' + escapeHTML(safety.warning || safety) + '</div>';
         }
     }
 
@@ -566,6 +738,7 @@ function openProductDetails(product) {
             '</ul></div>';
     }
 
+    // Сборка модалки
     var content = `
         <div class="modal-sheet" style="background:white; border-radius:20px; padding:24px; max-width:90%; max-height:calc(100vh - 40px); overflow-y:auto; -webkit-overflow-scrolling:touch; box-shadow:0 4px 20px rgba(0,0,0,0.2); position:relative; margin:auto; width:100%; flex-shrink:1; min-height:0;">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
@@ -574,19 +747,21 @@ function openProductDetails(product) {
                 <button type="button" class="btn-close-modal" style="color:#333; font-size:32px; font-weight:bold; background:transparent; border:none; cursor:pointer; padding:0 8px; line-height:1; flex-shrink:0;">×</button>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
-                <div><span style="color:#888;">Категория</span><br><strong>${escapeHTML(categoryText)}</strong></div>
-                <div><span style="color:#888;">Возраст</span><br><strong>${escapeHTML(ageText)}</strong></div>
-                <div><span style="color:#888;">Железо</span><br><strong>${ironText}</strong></div>
+            <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+                <span style="color:#888;">Категория: </span><strong>${escapeHTML(categoryText)}</strong>
+                <span style="color:#888;">Возраст: </span><strong>${escapeHTML(ageText)}</strong>
+                <span style="color:#888;">Железо: </span><strong>${ironText}</strong>
             </div>
+
+            <div style="margin-bottom:12px;"><strong>Статус для ребёнка:</strong> ${statusLabel}</div>
 
             ${desc ? `<div style="margin-bottom:12px;"><strong>О продукте</strong><p>${escapeHTML(desc)}</p></div>` : ''}
 
             ${highlightsHtml ? `<div style="margin-bottom:12px;"><strong>🧠 Польза</strong>${highlightsHtml}</div>` : ''}
 
-            ${allergenHtml}
+            ${allergenHtml ? `<div style="margin-bottom:12px;">${allergenHtml}</div>` : ''}
 
-            ${safetyHtml}
+            ${safetyHtml ? `<div style="margin-bottom:12px;">${safetyHtml}</div>` : ''}
 
             ${safeFormsHtml ? `<div style="margin-bottom:12px;">${safeFormsHtml}</div>` : ''}
 
@@ -597,7 +772,7 @@ function openProductDetails(product) {
             ${labelChecksHtml}
 
             <div style="margin-top:16px;">
-                <button type="button" class="primary-button" data-action="add-food" data-product-id="${escapeHTML(product.id)}" style="width:100%; padding:12px; border-radius:30px; border:none; background:#F5A88C; color:white; font-size:16px; cursor:pointer;">➕ Добавить продукт</button>
+                <button type="button" class="primary-button" data-action="add-product-intro" data-product-id="${escapeHTML(product.id)}" style="width:100%; padding:12px; border-radius:30px; border:none; background:#F5A88C; color:white; font-size:16px; cursor:pointer;">＋ Ввести продукт</button>
             </div>
         </div>
     `;
@@ -625,11 +800,19 @@ function openProductDetails(product) {
     overlay.innerHTML = content;
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) {
-            overlay.remove();
+            modalRoot.innerHTML = '';
         }
     });
+    modalRoot.appendChild(overlay);
 
-    document.body.appendChild(overlay);
+    // Обработка Escape
+    var keyHandler = function(e) {
+        if (e.key === 'Escape') {
+            modalRoot.innerHTML = '';
+            document.removeEventListener('keydown', keyHandler);
+        }
+    };
+    document.addEventListener('keydown', keyHandler);
 }
 
 // ============================================================
@@ -798,9 +981,10 @@ function renderProductPicker(query) {
         container.innerHTML = emptyState("🔎", "Ничего не найдено", "Попробуйте другое название.");
         return;
     }
+    // Исправление: data-action="choose-picker-product"
     container.innerHTML = list.slice(0, 100).map(function(product) {
         return (
-            '<button type="button" class="picker-product" data-action="select-product" data-product-id="' +
+            '<button type="button" class="picker-product" data-action="choose-picker-product" data-product-id="' +
             escapeHTML(product.id) +
             '">' +
             "<span>" + (product.emoji || "🥣") + "</span>" +
@@ -814,9 +998,6 @@ function renderProductPicker(query) {
 function searchProductPicker(query) {
     renderProductPicker(query);
 }
-
-// ===== СТАРЫЙ LISTENER УДАЛЁН =====
-// document.addEventListener("click", function(event) { ... }) для select-product больше нет.
 
 function openDiaryAddModal() { openAddFoodModal(); }
 function openDiaryEditModal(entryId) {
