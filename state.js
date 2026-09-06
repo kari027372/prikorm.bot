@@ -36,7 +36,8 @@
         productStateMigrationVersion: 0,
         // Новые поля для фильтрации продуктов
         productsCategoryFilter: null,
-        productsAgeFilter: null
+        productsAgeFilter: null,
+        productsFilter: 'all'
     };
 
     // ============================================================
