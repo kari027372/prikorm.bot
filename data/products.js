@@ -191,7 +191,7 @@
         {
             id: 'veg-7',
             name: 'Свёкла',
-            emoji: '🍠', // исправлено
+            emoji: '🫜', // исправлено
             category: 'овощи',
             introduction: { fromMonths: 6 },
             status: 'caution',
@@ -634,7 +634,7 @@
             chokingRisk: 'low',
             nutrients: ['vitamin_c', 'fiber'],
             highlights: ['Витамин C', 'Антиоксиданты'],
-            interestingFact: 'Малина содержит эллаговую кислоту – мощный антиоксидант.',
+            interestingFact: 'Малина богата витамином C и клетчаткой.',
             preparation: 'Размять, протереть через сито, чтобы удалить семена.',
             safeForms: ['Пюре без семян'],
             unsafeForms: ['Цельные ягоды с семенами (до 8 мес.)'],
@@ -644,7 +644,7 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Может быть аллергеном, вводите с осторожностью.'
+            desc: 'Может вызывать аллергическую реакцию, вводите с осторожностью.'
         },
         {
             id: 'fruit-11',
@@ -658,7 +658,7 @@
             chokingRisk: 'low',
             nutrients: ['vitamin_c', 'fiber'],
             highlights: ['Витамин C', 'Аромат'],
-            interestingFact: 'Клубника – один из самых частых аллергенов среди ягод.',
+            interestingFact: 'Клубника содержит витамин C и приятный аромат.',
             preparation: 'Размять или дать в пюре.',
             safeForms: ['Пюре', 'Мягкие кусочки'],
             unsafeForms: ['Целая ягода (риск удушья)'],
@@ -668,7 +668,7 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Может быть аллергеном, вводите с осторожностью.'
+            desc: 'Может вызывать аллергическую реакцию, вводите с осторожностью.'
         },
         {
             id: 'fruit-12',
@@ -682,7 +682,7 @@
             chokingRisk: 'low',
             nutrients: ['vitamin_c', 'fiber'],
             highlights: ['Витамин C', 'Экзотический вкус'],
-            interestingFact: 'Киви – один из самых частых аллергенов среди фруктов.',
+            interestingFact: 'Киви — экзотический фрукт с ярким вкусом.',
             preparation: 'Очистить от кожуры, размять или нарезать.',
             safeForms: ['Пюре', 'Мягкие кусочки'],
             unsafeForms: ['Сырой с кожурой'],
@@ -692,9 +692,8 @@
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Экзотический, может вызвать реакцию.'
+            desc: 'Может вызывать аллергическую реакцию, вводите с осторожностью.'
         },
-        // --- Виноград и Черри ---
         {
             id: 'fruit-13',
             name: 'Виноград',
@@ -707,7 +706,7 @@
             chokingRisk: 'high',
             nutrients: ['vitamin_c', 'antioxidants'],
             highlights: ['Антиоксиданты', 'Витамин C'],
-            interestingFact: 'Виноград содержит ресвератрол – мощный антиоксидант.',
+            interestingFact: 'Виноград содержит ресвератрол – природный антиоксидант.',
             preparation: 'Разрезать вдоль или измельчить перед подачей.',
             safeForms: ['разрезанный вдоль', 'измельчённый'],
             unsafeForms: ['целый'],
@@ -719,29 +718,30 @@
             iron: false,
             desc: 'Целый виноград – риск удушья. Давайте в безопасной форме.'
         },
+        // --- ИСПРАВЛЕННАЯ ЗАПИСЬ fruit-14: Помидоры черри ---
         {
             id: 'fruit-14',
-            name: 'Черри (вишня)',
-            emoji: '🍒',
-            category: 'фрукты',
+            name: 'Помидоры черри',
+            emoji: '🍅',
+            category: 'овощи',
             introduction: { fromMonths: 6 },
             status: 'caution',
             allergen: false,
             allergenType: [],
             chokingRisk: 'high',
-            nutrients: ['vitamin_c', 'antioxidants'],
-            highlights: ['Антиоксиданты', 'Витамин C'],
-            interestingFact: 'Черри содержит мелатонин, который может улучшать сон.',
-            preparation: 'Удалить косточку, разрезать на 4 части.',
-            safeForms: ['без косточки, разрезанный на 4 части'],
-            unsafeForms: ['целый', 'с косточкой'],
+            nutrients: ['vitamin_c', 'lycopene'],
+            highlights: ['Яркий вкус', 'Витамин C'],
+            interestingFact: 'Помидоры черри богаты ликопином – природным пигментом.',
+            preparation: 'Разрезать на 4 части или размять перед подачей.',
+            safeForms: ['разрезанный на 4 части', 'размятый'],
+            unsafeForms: ['целый (риск удушья)'],
             commercialProduct: false,
             labelChecks: [],
             ageRestrictions: [],
             medicalNote: null,
             min_age_months: 6,
             iron: false,
-            desc: 'Целая черри – риск удушья. Давайте в безопасной форме.'
+            desc: 'Целые помидоры черри могут быть опасны из-за риска удушья. Давайте в безопасной форме.'
         },
 
         // --- КРУПЫ ---
@@ -756,8 +756,8 @@
             allergenType: [],
             chokingRisk: 'low',
             nutrients: ['carbohydrates'],
-            highlights: ['Гипоаллергенен', 'Хорошо усваивается'],
-            interestingFact: 'Рис – один из самых безопасных злаков для первого прикорма.',
+            highlights: ['Нейтральный вкус', 'Подходит для каш'],
+            interestingFact: 'Рис — один из самых распространённых злаков в мире.',
             preparation: 'Сварить до мягкости, размять или дать зёрна.',
             safeForms: ['Рисовая каша', 'Зёрна (с 8 мес.)'],
             unsafeForms: ['Сухой рис'],
@@ -767,7 +767,7 @@
             medicalNote: null,
             min_age_months: 4.5,
             iron: false,
-            desc: 'Гипоаллергенная каша. Начинайте с рисовой.'
+            desc: 'Нейтральная по вкусу крупа, подходит для приготовления каши.'
         },
         {
             id: 'grain-2',
@@ -1458,7 +1458,6 @@
             iron: false,
             desc: 'Добавляйте 1-2 г в кашу с 6 мес.'
         },
-        // Коровье молоко как напиток
         {
             id: 'dairy-6',
             name: 'Коровье молоко (напиток)',
@@ -1559,7 +1558,7 @@
             chokingRisk: 'high',
             nutrients: ['healthy_fats', 'protein'],
             highlights: ['Здоровые жиры', 'Белок'],
-            interestingFact: 'Орехи – сильный аллерген и опасность удушья.',
+            interestingFact: 'Орехи могут вызывать аллергию и представляют риск удушья в цельном виде.',
             preparation: 'Не давать целые орехи. Измельчать и добавлять в кашу или пасту.',
             safeForms: ['измельчённые', 'гладкая ореховая паста без сахара'],
             unsafeForms: ['цельный', 'крупный кусок'],
@@ -1583,7 +1582,7 @@
             chokingRisk: 'high',
             nutrients: ['protein', 'healthy_fats'],
             highlights: ['Белок', 'Здоровые жиры'],
-            interestingFact: 'Арахис – бобовое, а не орех, но один из самых сильных аллергенов.',
+            interestingFact: 'Арахис может вызывать аллергию и представляет риск удушья в цельном виде.',
             preparation: 'Давать в виде арахисовой пасты (тонкий слой) или порошка.',
             safeForms: ['измельчённый', 'гладкая арахисовая паста без сахара'],
             unsafeForms: ['цельный'],
@@ -1655,8 +1654,8 @@
             chokingRisk: 'medium',
             nutrients: ['protein', 'zinc'],
             highlights: ['Белок', 'Цинк'],
-            interestingFact: 'Креветки – популярные морепродукты, но сильный аллерген.',
-            preparation: 'Не рекомендуется до года из-за аллергенности и риска удушья.',
+            interestingFact: 'Морепродукты могут вызывать аллергию и требуют правильной подготовки.',
+            preparation: 'Давать только хорошо приготовленные, мелко измельчённые.',
             safeForms: ['Хорошо приготовленные, мелко измельчённые'],
             unsafeForms: ['Цельные креветки'],
             commercialProduct: false,
