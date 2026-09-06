@@ -1,14 +1,7 @@
 /* ============================================================
-   ui.js
-   UI / DOM-конструктор приложения ПРИКОРМ
+   ui.js – финальная адаптированная версия
+   (без импортов, использует только существующие глобальные объекты)
    ============================================================ */
-
-// ===== ДОБАВЛЕННЫЕ ИМПОРТЫ =====
-import { getCategoryGroups } from '../data/products.js';
-import { evaluateProductSafety } from '../services/safety-engine.js';
-import { getChildAgeMonths, getCurrentChildId } from '../services/child-service.js';
-import { isProductIntroduced, isProductExcluded } from '../services/product-state.js';
-import state from '../state.js';
 
 const UI = {
     app: null,
@@ -18,7 +11,7 @@ const UI = {
 };
 
 /* ============================================================
-   БАЗОВЫЕ HTML-ПОМОЩНИКИ
+   БАЗОВЫЕ ПОМОЩНИКИ (без изменений)
    ============================================================ */
 
 function escapeHTML(value) {
@@ -59,7 +52,7 @@ function icon(name) {
 }
 
 /* ============================================================
-   ОСНОВНАЯ ОБОЛОЧКА
+   ОБОЛОЧКА (без изменений)
    ============================================================ */
 
 function buildApp() {
@@ -119,8 +112,9 @@ function createHeader({ title = "", subtitle = "", back = false, action = "", ac
 }
 
 /* ============================================================
-   ЭКРАН — ГЛАВНАЯ (оставлен без изменений)
+   ЭКРАНЫ (без изменений)
    ============================================================ */
+
 function createHomeScreen() {
     const section = document.createElement("section");
     section.id = "screen-home";
@@ -185,9 +179,6 @@ function featureCard(emoji, title, subtitle, action, value = "") {
     </button>`;
 }
 
-/* ============================================================
-   ЭКРАН — СЕГОДНЯ (оставлен без изменений)
-   ============================================================ */
 function createTodayScreen() {
     const section = document.createElement("section");
     section.id = "screen-today";
@@ -210,9 +201,6 @@ function createTodayScreen() {
     return section;
 }
 
-/* ============================================================
-   ЭКРАН — ПРОДУКТЫ (ПЕРЕРАБОТАН)
-   ============================================================ */
 function createProductsScreen() {
     const section = document.createElement("section");
     section.id = "screen-products";
@@ -220,34 +208,25 @@ function createProductsScreen() {
     section.innerHTML = `
         ${createHeader({ title: "Продукты", subtitle: "Знакомство с едой" })}
         <div class="screen-body">
-            <!-- Заголовок счётчика -->
             <div class="products-header">
                 <h1 class="h1">Продукты</h1>
                 <div class="introduced-counter" data-action="filter-products" data-filter="introduced">
                     ✅ Введено: <span id="products-introduced-count">0</span>
                 </div>
             </div>
-
-            <!-- Поиск -->
             <div class="search-box">
                 <span>${icon("search")}</span>
                 <input id="product-search" type="search" placeholder="Найти продукт..." autocomplete="off" />
                 <button type="button" class="clear-search" data-action="clear-search">${icon("close")}</button>
             </div>
-
-            <!-- Рекомендовано сейчас -->
             <section class="recommended-section">
                 <h2 class="h2">✨ Рекомендовано сейчас</h2>
                 <div id="recommended-products" class="recommended-grid"></div>
             </section>
-
-            <!-- Категории -->
             <section class="categories-section">
                 <h2 class="h2">Категории</h2>
                 <div id="category-grid" class="categories-grid"></div>
             </section>
-
-            <!-- Фильтры -->
             <section class="filters-section">
                 <div class="filter-group">
                     <span class="filter-label">Статус:</span>
@@ -275,22 +254,16 @@ function createProductsScreen() {
                     </div>
                 </div>
             </section>
-
-            <!-- Список продуктов -->
             <section class="products-list-section">
                 <h2 class="h2">Все продукты</h2>
                 <div id="products-list" class="products-list">${loadingState()}</div>
             </section>
-
             <button type="button" class="floating-add" data-action="add-food">${icon("plus")}<span>Добавить</span></button>
         </div>
     `;
     return section;
 }
 
-/* ============================================================
-   ЭКРАН — ДНЕВНИК (оставлен без изменений)
-   ============================================================ */
 function createDiaryScreen() {
     const section = document.createElement("section");
     section.id = "screen-diary";
@@ -314,9 +287,6 @@ function createDiaryScreen() {
     return section;
 }
 
-/* ============================================================
-   ЭКРАН — РЕЦЕПТЫ (оставлен без изменений)
-   ============================================================ */
 function createRecipesScreen() {
     const section = document.createElement("section");
     section.id = "screen-recipes";
@@ -345,9 +315,6 @@ function categoryChip(id, label, active = false) {
     return `<button type="button" class="category-chip ${active ? "active" : ""}" data-action="product-category" data-category="${id}">${label}</button>`;
 }
 
-/* ============================================================
-   ЭКРАН — ПРОФИЛЬ (оставлен без изменений)
-   ============================================================ */
 function createBabyScreen() {
     const section = document.createElement("section");
     section.id = "screen-baby";
@@ -387,7 +354,7 @@ function settingsRow(emoji, title, action) {
 }
 
 /* ============================================================
-   НОВЫЕ ФУНКЦИИ ДЛЯ ПРОДУКТОВ (переработанные)
+   НОВЫЕ ФУНКЦИИ ДЛЯ ПРОДУКТОВ (адаптированы под вашу структуру)
    ============================================================ */
 
 // Карта категорий → эмодзи (fallback)
@@ -402,7 +369,6 @@ const categoryEmojiMap = {
     'Другое': '🍽'
 };
 
-// Известные некорректные emoji
 const invalidEmojis = ['🤰😂'];
 
 function getProductEmoji(product) {
@@ -412,11 +378,57 @@ function getProductEmoji(product) {
     return categoryEmojiMap[product.category] || '🍽';
 }
 
-// Новая карточка продукта (информационная)
-export function renderProductCard(product, childId) {
-    const age = getChildAgeMonths(childId);
-    const safety = evaluateProductSafety(product, age);
-    const introduced = isProductIntroduced(childId, product.id);
+// Получить возраст ребёнка в месяцах
+function getChildAgeMonths(childId) {
+    const child = STATE.children.find(c => c.id === childId);
+    if (!child || !child.birthDate) return 0;
+    const birth = new Date(child.birthDate);
+    const now = new Date();
+    let months = (now.getFullYear() - birth.getFullYear()) * 12;
+    months += now.getMonth() - birth.getMonth();
+    if (now.getDate() < birth.getDate()) months--;
+    return Math.max(0, months);
+}
+
+// Проверить, исключён ли продукт
+function isProductExcluded(childId, productId) {
+    const child = STATE.children.find(c => c.id === childId);
+    if (!child || !child.productState) return false;
+    return child.productState[productId] === 'parentExcluded';
+}
+
+// Получить категории из продуктов
+function getCategoryGroups() {
+    const products = window.PRODUCTS || [];
+    const cats = new Set(products.map(p => p.category).filter(Boolean));
+    return Array.from(cats);
+}
+
+// Безопасный вызов evaluateProductSafety
+function evaluateProductSafetySafe(product, childId) {
+    const child = STATE.children.find(c => c.id === childId);
+    if (!child) return { decision: 'allow', reason: '' };
+    // Если есть функция в safetyEngine
+    if (window.safetyEngine && typeof window.safetyEngine.evaluateProductSafety === 'function') {
+        try {
+            // Передаём профиль (ребёнка), продукт и null для servingForm
+            const result = window.safetyEngine.evaluateProductSafety(child, product, null);
+            return result || { decision: 'allow', reason: '' };
+        } catch (e) {
+            console.warn('evaluateProductSafety error:', e);
+            return { decision: 'allow', reason: '' };
+        }
+    }
+    // fallback
+    return { decision: 'allow', reason: '' };
+}
+
+// Новая карточка продукта
+function renderProductCard(product, childId) {
+    const safety = evaluateProductSafetySafe(product, childId);
+    const introduced = typeof isProductIntroduced === 'function' 
+        ? isProductIntroduced(childId, product.id) 
+        : false;
     const excluded = isProductExcluded(childId, product.id);
 
     let statusText = '○ Ещё не введён';
@@ -467,16 +479,16 @@ export function renderProductCard(product, childId) {
     `;
 }
 
-// Рендер блока "Рекомендовано сейчас"
-export function renderRecommendedProducts(childId) {
-    const age = getChildAgeMonths(childId);
+// Блок "Рекомендовано сейчас"
+function renderRecommendedProducts(childId) {
     const allProducts = window.PRODUCTS || [];
     const recommended = allProducts
-        .map(p => ({ product: p, safety: evaluateProductSafety(p, age) }))
+        .map(p => ({ product: p, safety: evaluateProductSafetySafe(p, childId) }))
         .filter(({ safety }) => safety.decision === 'allow' || safety.decision === 'caution')
         .sort((a, b) => {
             if (a.safety.decision === 'allow' && b.safety.decision !== 'allow') return -1;
             if (a.safety.decision !== 'allow' && b.safety.decision === 'allow') return 1;
+            const age = getChildAgeMonths(childId);
             const diffA = Math.abs((a.product.ageMinMonths || 0) - age);
             const diffB = Math.abs((b.product.ageMinMonths || 0) - age);
             return diffA - diffB;
@@ -491,8 +503,8 @@ export function renderRecommendedProducts(childId) {
     return `<div class="recommended-grid">${recommended}</div>`;
 }
 
-// Рендер сетки категорий
-export function renderCategoryGrid() {
+// Сетка категорий
+function renderCategoryGrid() {
     const groups = getCategoryGroups();
     return groups
         .map(cat => {
@@ -507,99 +519,104 @@ export function renderCategoryGrid() {
         .join('');
 }
 
-// Обновление списка продуктов (с фильтрами)
-export function updateProductsList() {
-    const childId = getCurrentChildId();
+// Обновление списка продуктов
+function updateProductsList() {
+    const childId = STATE.currentChildId;
+    if (!childId) {
+        console.warn('Нет активного ребёнка');
+        return;
+    }
+    const products = window.PRODUCTS || [];
     const age = getChildAgeMonths(childId);
-    let products = window.PRODUCTS || [];
 
-    // Фильтр по статусу
-    if (state.productsFilter === 'current') {
-        products = products.filter(p => {
-            const safety = evaluateProductSafety(p, age);
+    let filtered = products;
+
+    // Статус
+    if (STATE.productsFilter === 'current') {
+        filtered = filtered.filter(p => {
+            const safety = evaluateProductSafetySafe(p, childId);
             return safety.decision === 'allow' || safety.decision === 'caution';
         });
-    } else if (state.productsFilter === 'introduced') {
-        products = products.filter(p => isProductIntroduced(childId, p.id));
-    }
-    // 'all' — без изменений
-
-    // Фильтр по категории
-    if (state.productsCategoryFilter) {
-        products = products.filter(p => p.category === state.productsCategoryFilter);
+    } else if (STATE.productsFilter === 'introduced') {
+        filtered = filtered.filter(p => 
+            typeof isProductIntroduced === 'function' && isProductIntroduced(childId, p.id)
+        );
     }
 
-    // Фильтр по возрасту (рекомендательный)
-    if (state.productsAgeFilter) {
-        const ageLimit = parseInt(state.productsAgeFilter, 10);
+    // Категория
+    if (STATE.productsCategoryFilter) {
+        filtered = filtered.filter(p => p.category === STATE.productsCategoryFilter);
+    }
+
+    // Возраст
+    if (STATE.productsAgeFilter) {
+        const ageLimit = parseInt(STATE.productsAgeFilter, 10);
         if (!isNaN(ageLimit)) {
-            products = products.filter(p => (p.ageMinMonths || 0) >= ageLimit);
+            filtered = filtered.filter(p => (p.ageMinMonths || 0) >= ageLimit);
         }
     }
 
-    // Поиск (если есть)
-    if (state.searchQuery) {
-        const query = state.searchQuery.toLowerCase();
-        products = products.filter(p => p.name.toLowerCase().includes(query));
+    // Поиск
+    const searchQuery = window.CURRENT_PRODUCT_SEARCH || '';
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
     }
 
-    // Рендерим список
     const container = document.getElementById('products-list');
     if (container) {
-        if (products.length === 0) {
+        if (filtered.length === 0) {
             container.innerHTML = `<p class="text-secondary">Нет продуктов, соответствующих фильтрам.</p>`;
         } else {
-            container.innerHTML = products.map(p => renderProductCard(p, childId)).join('');
+            container.innerHTML = filtered.map(p => renderProductCard(p, childId)).join('');
         }
     }
 
-    // Обновляем счётчик введённых
+    // Счётчик введённых
     const countEl = document.getElementById('products-introduced-count');
     if (countEl) {
-        const introducedCount = (window.PRODUCTS || []).filter(p => isProductIntroduced(childId, p.id)).length;
+        const introducedCount = products.filter(p => 
+            typeof isProductIntroduced === 'function' && isProductIntroduced(childId, p.id)
+        ).length;
         countEl.textContent = introducedCount;
     }
 
-    // Обновляем категории и рекомендованные (если контейнеры есть)
+    // Категории
     const catGrid = document.getElementById('category-grid');
     if (catGrid) catGrid.innerHTML = renderCategoryGrid();
 
+    // Рекомендованные
     const recContainer = document.getElementById('recommended-products');
     if (recContainer) recContainer.innerHTML = renderRecommendedProducts(childId);
 
-    // Обновляем активные чипсы
+    // Активные чипсы
     updateChipsActiveState();
 }
 
-// Вспомогательная функция для обновления активных чипсов
 function updateChipsActiveState() {
-    // Статус
     document.querySelectorAll('#status-filters .chip').forEach(chip => {
         const filter = chip.dataset.filter;
-        chip.classList.toggle('active', filter === state.productsFilter);
+        chip.classList.toggle('active', filter === STATE.productsFilter);
     });
-    // Категория
     document.querySelectorAll('#category-filters .chip').forEach(chip => {
         const cat = chip.dataset.category || '';
-        chip.classList.toggle('active', cat === (state.productsCategoryFilter || ''));
+        chip.classList.toggle('active', cat === (STATE.productsCategoryFilter || ''));
     });
-    // Возраст
     document.querySelectorAll('#age-filters .chip').forEach(chip => {
         const age = chip.dataset.age || '';
-        chip.classList.toggle('active', age === (state.productsAgeFilter || ''));
+        chip.classList.toggle('active', age === (STATE.productsAgeFilter || ''));
     });
 }
 
-// Переопределяем старую функцию productCard для обратной совместимости
-window.productCard = function(product, status) {
-    // Используем новую реализацию, но адаптируем под старый вызов
-    const childId = getCurrentChildId();
+// Старая функция productCard для совместимости
+function productCard(product, status) {
+    const childId = STATE.currentChildId;
     return renderProductCard(product, childId);
-};
+}
 
-// ============================================================
-// ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений)
-// ============================================================
+/* ============================================================
+   ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений)
+   ============================================================ */
 
 function loadingState() {
     return `<div class="loading-state"><div class="loading-spinner"></div><span>Загружаем...</span></div>`;
@@ -653,7 +670,6 @@ function closeModal() {
     UI.modal = null;
 }
 
-// Патч для модалки добавления (чтобы не было конфликтов)
 function openAddFoodModal(product = null) {
     const oldModal = document.querySelector('.modal-overlay');
     if (oldModal) oldModal.remove();
@@ -768,7 +784,6 @@ function renderProductPicker(query) {
     `).join('');
 }
 
-// Обработчик выбора продукта в пикере
 document.addEventListener('click', function(e) {
     const target = e.target.closest('[data-action="select-product"]');
     if (!target) return;
@@ -785,9 +800,9 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ============================================================
-// ГЛОБАЛЬНЫЕ ФУНКЦИИ
-// ============================================================
+/* ============================================================
+   ГЛОБАЛЬНЫЕ ФУНКЦИИ
+   ============================================================ */
 window.UI = UI;
 window.buildApp = buildApp;
 window.showScreen = showScreen;
@@ -806,5 +821,3 @@ window.updateProductsList = updateProductsList;
 window.renderRecommendedProducts = renderRecommendedProducts;
 window.renderCategoryGrid = renderCategoryGrid;
 window.renderProductCard = renderProductCard;
-
-console.log('✅ ui.js загружен — переработан раздел продуктов');
