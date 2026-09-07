@@ -322,29 +322,33 @@ function handleDocumentClick(event) {
                     typeof window.productStateService.markAsIntroduced === 'function'
                 ) {
                     try {
-                        window.productStateService.markAsIntroduced(
+                        var success = window.productStateService.markAsIntroduced(
                             childId,
                             productId,
                             new Date().toISOString().slice(0, 10)
                         );
-                        showToast("✅ Продукт отмечен как введённый", "success");
 
-                        // ===== НОВАЯ ПРАВКА: ОБНОВЛЕНИЕ ОТКРЫТОЙ МОДАЛКИ =====
-                        // Если открыта модалка энциклопедии для этого же продукта, обновляем её
-                        var modalOverlay = document.querySelector('.modal-overlay');
-                        if (modalOverlay) {
-                            // Проверяем, что это модалка именно этого продукта (по data-product-id)
-                            var productCard = modalOverlay.querySelector('[data-product-id]');
-                            if (productCard && productCard.dataset.productId === String(productId)) {
-                                // Удаляем старую модалку
-                                modalOverlay.remove();
-                                // Пересоздаём модалку с обновлённым статусом
-                                if (product) {
-                                    openProductDetails(product);
+                        if (success) {
+                            showToast("✅ Продукт отмечен как введённый", "success");
+
+                            // Обновляем открытую модалку, если она есть
+                            var modalOverlay = document.querySelector('.modal-overlay');
+                            if (modalOverlay) {
+                                // Проверяем, что это модалка именно этого продукта (по data-product-id)
+                                var productCard = modalOverlay.querySelector('[data-product-id]');
+                                if (productCard && productCard.dataset.productId === String(productId)) {
+                                    // Удаляем старую модалку
+                                    modalOverlay.remove();
+                                    // Пересоздаём модалку с обновлённым статусом
+                                    if (product) {
+                                        openProductDetails(product);
+                                    }
                                 }
                             }
+                        } else {
+                            showToast("Не удалось отметить продукт как введённый", "error");
+                            console.warn('markAsIntroduced вернул false для childId:', childId, 'productId:', productId);
                         }
-                        // ===== КОНЕЦ ПРАВКИ =====
 
                     } catch (e) {
                         console.error("Ошибка при введении продукта:", e);
