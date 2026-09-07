@@ -56,16 +56,41 @@
         switch (action) {
             // ===== ПРОДУКТЫ =====
             case 'select-product':
-                if (productId) {
-                    var showFn = window.showProductDetail || window.showProductModal;
-                    if (showFn) showFn(productId);
-                    else console.warn('showProductDetail не определён');
+                if (productId && typeof window.showProductDetailModal === 'function') {
+                    window.showProductDetailModal(productId);
                 }
                 break;
 
             case 'add-product-intro':
-                if (productId && typeof window.markProductAsIntroduced === 'function') {
-                    window.markProductAsIntroduced(productId);
+                if (productId) {
+                    // Получить текущего ребёнка
+                    var childId = null;
+                    if (typeof window.getCurrentChildId === 'function') {
+                        childId = window.getCurrentChildId();
+                    } else if (window.STATE && typeof window.STATE.currentChildId !== 'undefined') {
+                        childId = window.STATE.currentChildId;
+                    }
+
+                    if (!childId) {
+                        console.warn('Нет активного ребёнка для введения продукта');
+                        break;
+                    }
+
+                    if (window.productStateService && typeof window.productStateService.markAsIntroduced === 'function') {
+                        var result = window.productStateService.markAsIntroduced(childId, productId);
+                        if (result === true) {
+                            // Обновить список продуктов
+                            if (typeof window.updateProductsList === 'function') {
+                                window.updateProductsList();
+                            } else if (typeof updateProductsList === 'function') {
+                                updateProductsList();
+                            }
+                        } else {
+                            console.warn('Не удалось отметить продукт как введённый');
+                        }
+                    } else {
+                        console.warn('productStateService.markAsIntroduced не доступен');
+                    }
                 }
                 break;
 
