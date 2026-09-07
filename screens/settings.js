@@ -26,7 +26,7 @@ function renderSettings() {
 
             <button
                 class="settings-row settings-item"
-                data-action="settings"
+                data-action="toggle-notifications"
                 data-setting="notifications"
                 type="button"
             >
@@ -44,7 +44,7 @@ function renderSettings() {
 
             <button
                 class="settings-row settings-item"
-                data-action="settings"
+                data-action="toggle-theme"
                 data-setting="theme"
                 type="button"
             >
@@ -62,7 +62,7 @@ function renderSettings() {
 
             <button
                 class="settings-row settings-item"
-                data-action="settings"
+                data-action="configure-home"
                 data-setting="home-blocks"
                 type="button"
             >
