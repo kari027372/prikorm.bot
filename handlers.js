@@ -39,7 +39,6 @@
 
         // ===== НАВИГАЦИЯ =====
         if (action === 'navigate' && screen) {
-            // Попробуем разные варианты переключения экранов
             if (typeof window.navigateTo === 'function') {
                 window.navigateTo(screen);
             } else if (typeof window.renderScreen === 'function') {
@@ -63,23 +62,19 @@
 
             case 'add-product-intro':
                 if (productId) {
-                    // Получить текущего ребёнка
                     var childId = null;
                     if (typeof window.getCurrentChildId === 'function') {
                         childId = window.getCurrentChildId();
                     } else if (window.STATE && typeof window.STATE.currentChildId !== 'undefined') {
                         childId = window.STATE.currentChildId;
                     }
-
                     if (!childId) {
                         console.warn('Нет активного ребёнка для введения продукта');
                         break;
                     }
-
                     if (window.productStateService && typeof window.productStateService.markAsIntroduced === 'function') {
                         var result = window.productStateService.markAsIntroduced(childId, productId);
                         if (result === true) {
-                            // Обновить список продуктов
                             if (typeof window.updateProductsList === 'function') {
                                 window.updateProductsList();
                             } else if (typeof updateProductsList === 'function') {
@@ -111,7 +106,6 @@
                 if (age !== null && age !== undefined) {
                     state.productsAgeFilter = age || null;
                 }
-                // Обновить список
                 if (typeof window.updateProductsList === 'function') {
                     window.updateProductsList();
                 } else if (typeof updateProductsList === 'function') {
@@ -119,7 +113,6 @@
                 } else {
                     console.warn('updateProductsList не определён');
                 }
-                // Обновить активные чипсы
                 if (typeof window.updateChipsActiveState === 'function') {
                     window.updateChipsActiveState();
                 } else if (typeof updateChipsActiveState === 'function') {
@@ -188,7 +181,6 @@
                 if (recipeId && typeof window.showRecipeDetail === 'function') {
                     window.showRecipeDetail(recipeId);
                 } else {
-                    // Временно заглушка, пока нет реализации
                     console.warn('showRecipeDetail не реализован');
                     if (typeof window.showToast === 'function') {
                         window.showToast('Рецепт временно недоступен', 'error');
@@ -269,14 +261,46 @@
                 break;
 
             case 'settings':
-                // Навигация в settings
                 var navFn = window.navigateTo || window.renderScreen || window.showScreen;
                 if (navFn) navFn('settings');
                 break;
 
-            // ===== НОВЫЙ ОБРАБОТЧИК: ПОКАЗ ВВЕДЁННЫХ ПРОДУКТОВ =====
+            // ===== НОВЫЕ ОБРАБОТЧИКИ ДЛЯ ФИЛЬТРОВ =====
+            case 'product-filter-age':
+                if (typeof window.updateTempAgeFilter === 'function') {
+                    window.updateTempAgeFilter(target.getAttribute('data-value'));
+                }
+                break;
+
+            case 'product-filter-safety':
+                if (typeof window.updateTempSafetyFilter === 'function') {
+                    window.updateTempSafetyFilter(target.getAttribute('data-value'));
+                }
+                break;
+
+            case 'product-filter-apply':
+                if (typeof window.applyProductFilters === 'function') {
+                    window.applyProductFilters();
+                }
+                break;
+
+            case 'product-filter-reset':
+                if (typeof window.resetProductFilters === 'function') {
+                    window.resetProductFilters();
+                }
+                break;
+
+            case 'close-modal':
+                if (typeof window.closeModal === 'function') {
+                    window.closeModal();
+                } else {
+                    var modalRoot = document.getElementById('modal-root');
+                    if (modalRoot) modalRoot.innerHTML = '';
+                }
+                break;
+
+            // ===== ПОКАЗ ВВЕДЁННЫХ ПРОДУКТОВ =====
             case 'show-introduced-products':
-                // Получить текущего ребёнка
                 var currentChildId = null;
                 if (typeof window.getCurrentChildId === 'function') {
                     currentChildId = window.getCurrentChildId();
@@ -289,7 +313,6 @@
                     }
                     break;
                 }
-                // Получить все продукты со статусом 'introduced'
                 var products = window.PRODUCTS || [];
                 var introducedProducts = [];
                 products.forEach(function(p) {
@@ -304,7 +327,6 @@
                     }
                     break;
                 }
-                // Сформировать HTML для модалки
                 var modalContent = '<div class="modal-sheet" style="max-width:400px;margin:0 auto;background:var(--kenora-white);border-radius:var(--kenora-radius-xl) var(--kenora-radius-xl) 0 0;">';
                 modalContent += '<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--kenora-border);">';
                 modalContent += '<h2 style="font-size:20px;font-weight:600;margin:0;color:var(--kenora-text);">Введённые продукты</h2>';
@@ -321,20 +343,9 @@
                 modalContent += '</div>';
                 modalContent += '</div>';
 
-                // Открыть модалку через существующий modal-root
                 var modalRoot = document.getElementById('modal-root');
                 if (modalRoot) {
                     modalRoot.innerHTML = '<div class="modal-overlay active" style="align-items:center;justify-content:center;">' + modalContent + '</div>';
-                }
-                break;
-
-            // ===== НОВЫЙ ОБРАБОТЧИК: ЗАКРЫТИЕ МОДАЛКИ =====
-            case 'close-modal':
-                if (typeof window.closeModal === 'function') {
-                    window.closeModal();
-                } else {
-                    var modalRoot = document.getElementById('modal-root');
-                    if (modalRoot) modalRoot.innerHTML = '';
                 }
                 break;
 
@@ -343,8 +354,19 @@
         }
     }
 
-    // ===== РЕГИСТРАЦИЯ ОБРАБОТЧИКА =====
+    // ===== РЕГИСТРАЦИЯ ОБРАБОТЧИКОВ =====
     document.addEventListener('click', handleDocumentClick);
+
+    // ===== ЦЕНТРАЛИЗОВАННЫЙ ОБРАБОТЧИК ПОИСКА (input) =====
+    document.addEventListener('input', function(e) {
+        var target = e.target.closest('#product-search');
+        if (target) {
+            var query = target.value || '';
+            if (typeof window.setProductsSearch === 'function') {
+                window.setProductsSearch(query);
+            }
+        }
+    });
 
     console.log('✅ handlers.js загружен (централизованный, безопасный)');
 })();
