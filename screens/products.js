@@ -268,7 +268,6 @@
         if (showIntroButton) {
             actionButton = '<button class="btn-primary" data-action="add-product-intro" data-product-id="' + product.id + '">＋ Ввести продукт</button>';
         } else {
-            // --- ИЗМЕНЕНИЕ: статус теперь с точкой и текстом (новые классы) ---
             actionButton = '<span class="product-status"><span class="' + statusDotClass + '"></span> ' + statusText + '</span>';
         }
 
@@ -276,7 +275,6 @@
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         };
 
-        // --- ИЗМЕНЕНИЕ: обновлённая структура карточки (сохранён .product-card) ---
         return '<div class="product-card" data-action="select-product" data-product-id="' + product.id + '">' +
             '<div class="product-card-header">' +
                 '<span class="product-emoji">' + emoji + '</span>' +
@@ -302,39 +300,8 @@
         return found ? found.label : catId.charAt(0).toUpperCase() + catId.slice(1);
     }
 
-    // ===== БЛОК «РЕКОМЕНДОВАНО СЕЙЧАС» (исправлен) =====
-    function renderRecommendedProducts() {
-        var childId = getCurrentChildId();
-        if (!childId) return '<p class="text-secondary">Выберите ребёнка</p>';
-
-        var age = getChildAgeMonths(childId);
-        var products = PRODUCTS || [];
-
-        var recommended = products
-            .filter(function(p) {
-                var status = getProductStatusForChild(p.id, childId);
-                if (status !== 'notIntroduced') return false;
-                if (getProductMinAgeMonths(p) > age) return false;
-                var safety = safeEvaluate(p, childId);
-                return safety.status === 'allow' || safety.status === 'caution';
-            })
-            .sort(function(a, b) {
-                var ageA = getProductMinAgeMonths(a);
-                var ageB = getProductMinAgeMonths(b);
-                var diffA = Math.abs(ageA - age);
-                var diffB = Math.abs(ageB - age);
-                if (diffA !== diffB) return diffA - diffB;
-                return a.name.localeCompare(b.name);
-            })
-            .slice(0, 6)
-            .map(function(p) { return renderProductCard(p); })
-            .join('');
-
-        if (!recommended) {
-            return '<p class="text-secondary">Пока нет рекомендованных продуктов для этого возраста.</p>';
-        }
-        return '<div class="recommended-grid">' + recommended + '</div>';
-    }
+    // ===== БЛОК «РЕКОМЕНДОВАНО СЕЙЧАС» УДАЛЁН =====
+    // Функция renderRecommendedProducts() и все её вызовы удалены
 
     // ===== СЕТКА КАТЕГОРИЙ (KENORA 2.0: SVG вместо эмодзи) =====
     function renderCategoryGrid() {
@@ -342,11 +309,10 @@
         return categories
             .map(function(cat) {
                 var icon = categoryIcons[cat.id] || categoryIcons['другое'];
-                // Если иконка не найдена, используем эмодзи как fallback
                 if (!icon) icon = cat.icon || '📂';
-                return '<div class="category-chip" data-action="filter-products" data-category="' + cat.id + '">' +
-                    '<span class="category-icon">' + icon + '</span>' +
-                    '<span class="category-name">' + escapeHTML(cat.label) + '</span>' +
+                return '<div class="category-kenora" data-action="filter-products" data-category="' + cat.id + '">' +
+                    '<span class="cat-icon">' + icon + '</span>' +
+                    '<span class="cat-label">' + escapeHTML(cat.label) + '</span>' +
                 '</div>';
             })
             .join('');
@@ -388,11 +354,8 @@
         if (window.CURRENT_PRODUCT_SUITABLE === true) {
             filtered = filtered.filter(function(p) {
                 var status = getProductStatusForChild(p.id, childId);
-                // Только notIntroduced
                 if (status !== 'notIntroduced') return false;
-                // Возраст подходит
                 if (getProductMinAgeMonths(p) > getChildAgeMonths(childId)) return false;
-                // Safety allow или caution
                 var safety = safeEvaluate(p, childId);
                 return safety.status === 'allow' || safety.status === 'caution';
             });
@@ -459,7 +422,7 @@
             container.innerHTML = filtered.map(renderProductCard).join('');
         }
 
-        // --- ИЗМЕНЕНИЕ: обновление прогресса (используем новый класс) ---
+        // Обновление прогресса
         var countEl = document.getElementById('products-introduced-count');
         if (countEl) {
             var childId = getCurrentChildId();
@@ -472,11 +435,7 @@
             countEl.textContent = introducedCount;
         }
 
-        var recContainer = document.getElementById('recommended-products');
-        if (recContainer) {
-            recContainer.innerHTML = renderRecommendedProducts();
-        }
-
+        // Блок рекомендаций удалён
         updateChipsActiveState();
     }
 
@@ -486,54 +445,70 @@
         var categoryFilter = (window.STATE && window.STATE.productsCategoryFilter) || null;
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
 
-        // Статус
         document.querySelectorAll('#status-filters .chip').forEach(function(chip) {
             var filter = chip.dataset.filter;
             chip.classList.toggle('active', filter === statusFilter);
         });
-        // Категория
         document.querySelectorAll('#category-filters .chip').forEach(function(chip) {
             var cat = chip.dataset.category || '';
             chip.classList.toggle('active', cat === (categoryFilter || ''));
         });
-        // Возраст
         document.querySelectorAll('#age-filters .chip').forEach(function(chip) {
             var age = chip.dataset.age || '';
             chip.classList.toggle('active', age === (ageFilter || ''));
         });
-        // Suitable toggle
         var suitableToggle = document.querySelector('[data-action="toggle-suitable"]');
         if (suitableToggle) {
             suitableToggle.classList.toggle('active', window.CURRENT_PRODUCT_SUITABLE === true);
         }
     }
 
-    // ===== МОДАЛКА ФИЛЬТРОВ =====
+    // ===== МОДАЛКА ФИЛЬТРОВ (без локальных обработчиков) =====
     function openProductFiltersModal() {
-        // Временные переменные
         var tempAgeFilter = window.STATE.productsAgeFilter || null;
         var tempSafetyFilter = window.CURRENT_PRODUCT_SAFETY_FILTER || 'all';
 
+        // Глобальные функции для handlers.js
+        window.updateTempAgeFilter = function(value) {
+            tempAgeFilter = value || null;
+            updateModalChipsActiveState();
+        };
+        window.updateTempSafetyFilter = function(value) {
+            tempSafetyFilter = value || 'all';
+            updateModalChipsActiveState();
+        };
+        window.applyProductFilters = function() {
+            window.STATE.productsAgeFilter = tempAgeFilter;
+            window.CURRENT_PRODUCT_SAFETY_FILTER = tempSafetyFilter;
+            closeModal();
+            if (typeof updateProductsList === 'function') updateProductsList();
+            if (typeof updateChipsActiveState === 'function') updateChipsActiveState();
+        };
+        window.resetProductFilters = function() {
+            tempAgeFilter = null;
+            tempSafetyFilter = 'all';
+            window.STATE.productsAgeFilter = null;
+            window.CURRENT_PRODUCT_SAFETY_FILTER = 'all';
+            closeModal();
+            if (typeof updateProductsList === 'function') updateProductsList();
+            if (typeof updateChipsActiveState === 'function') updateChipsActiveState();
+        };
+
+        function updateModalChipsActiveState() {
+            document.querySelectorAll('#modal-age-filters .chip').forEach(function(chip) {
+                var value = chip.dataset.value;
+                chip.classList.toggle('active', value === (tempAgeFilter || ''));
+            });
+            document.querySelectorAll('#modal-safety-filters .chip').forEach(function(chip) {
+                var value = chip.dataset.value;
+                chip.classList.toggle('active', value === (tempSafetyFilter || 'all'));
+            });
+        }
+
         var modalRoot = document.getElementById('modal-root');
         if (!modalRoot) return;
-
-        // Удаляем старую модалку
         modalRoot.innerHTML = '';
 
-        var overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
-        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(74,58,48,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; box-sizing:border-box; overflow:hidden; pointer-events:auto; overscroll-behavior:contain;';
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                modalRoot.innerHTML = '';
-            }
-        });
-
-        var sheet = document.createElement('div');
-        sheet.className = 'modal-sheet';
-        sheet.style.cssText = 'background:white; border-radius:20px; padding:24px; max-width:100%; width:100%; max-height:90vh; overflow-y:auto;';
-
-        // Рендерим содержимое модалки
         var ageOptions = ['', '6', '7', '8', '9', '10'];
         var ageLabels = ['Все', '6+', '7+', '8+', '9+', '10+'];
         var ageHtml = ageOptions.map(function(age, idx) {
@@ -548,10 +523,13 @@
             return '<span class="chip' + active + '" data-action="product-filter-safety" data-value="' + opt + '">' + safetyLabels[idx] + '</span>';
         }).join('');
 
+        var sheet = document.createElement('div');
+        sheet.className = 'modal-sheet';
+        sheet.style.cssText = 'background:white; border-radius:20px; padding:24px; max-width:100%; width:100%; max-height:90vh; overflow-y:auto;';
         sheet.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <h2 style="margin:0; font-size:24px; font-weight:900; color:#4A3A30;">Фильтры</h2>
-                <button class="btn-close-modal" style="background:transparent; border:none; font-size:28px; cursor:pointer; color:#8A7A6A;">×</button>
+                <button class="btn-close-modal" data-action="close-modal" style="background:transparent; border:none; font-size:28px; cursor:pointer; color:#8A7A6A;">×</button>
             </div>
             <div style="margin-bottom:20px;">
                 <h3 style="font-size:16px; font-weight:800; margin-bottom:8px; color:#4A3A30;">Возраст введения</h3>
@@ -562,74 +540,30 @@
                 <div class="chips-group" id="modal-safety-filters">${safetyHtml}</div>
             </div>
             <div style="display:flex; gap:12px; margin-top:20px;">
-                <button class="btn-secondary" style="flex:1; padding:12px; border:1px solid #F0DED6; background:transparent; border-radius:14px; font-weight:700; cursor:pointer;" data-action="product-filter-reset">Сбросить</button>
-                <button class="btn-primary" style="flex:2; padding:12px; border:none; background:#F5A88C; border-radius:14px; font-weight:700; color:white; cursor:pointer;" data-action="product-filter-apply">Применить</button>
+                <button class="btn-secondary" data-action="product-filter-reset" style="flex:1; padding:12px; border:1px solid #F0DED6; background:transparent; border-radius:14px; font-weight:700; cursor:pointer;">Сбросить</button>
+                <button class="btn-primary" data-action="product-filter-apply" style="flex:2; padding:12px; border:none; background:#F5A88C; border-radius:14px; font-weight:700; color:white; cursor:pointer;">Применить</button>
             </div>
         `;
+
+        // OVERLAY БЕЗ DATA-ACTION
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(74,58,48,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; box-sizing:border-box; overflow:hidden; pointer-events:auto; overscroll-behavior:contain;';
         overlay.appendChild(sheet);
         modalRoot.appendChild(overlay);
 
-        // Обработчики для чипов возраста внутри модалки
-        sheet.querySelectorAll('[data-action="product-filter-age"]').forEach(function(chip) {
-            chip.addEventListener('click', function(e) {
-                var value = this.dataset.value;
-                tempAgeFilter = value || null;
-                // Обновляем активный класс в модалке
-                sheet.querySelectorAll('[data-action="product-filter-age"]').forEach(function(c) {
-                    c.classList.toggle('active', c.dataset.value === value);
-                });
-            });
-        });
-
-        // Обработчики для чипов безопасности внутри модалки
-        sheet.querySelectorAll('[data-action="product-filter-safety"]').forEach(function(chip) {
-            chip.addEventListener('click', function(e) {
-                var value = this.dataset.value;
-                tempSafetyFilter = value || 'all';
-                sheet.querySelectorAll('[data-action="product-filter-safety"]').forEach(function(c) {
-                    c.classList.toggle('active', c.dataset.value === value);
-                });
-            });
-        });
-
-        // Применить
-        sheet.querySelector('[data-action="product-filter-apply"]').addEventListener('click', function() {
-            window.STATE.productsAgeFilter = tempAgeFilter;
-            window.CURRENT_PRODUCT_SAFETY_FILTER = tempSafetyFilter;
-            modalRoot.innerHTML = '';
-            if (typeof updateProductsList === 'function') updateProductsList();
-            if (typeof updateChipsActiveState === 'function') updateChipsActiveState();
-        });
-
-        // Сбросить
-        sheet.querySelector('[data-action="product-filter-reset"]').addEventListener('click', function() {
-            tempAgeFilter = null;
-            tempSafetyFilter = 'all';
-            window.STATE.productsAgeFilter = null;
-            window.CURRENT_PRODUCT_SAFETY_FILTER = 'all';
-            modalRoot.innerHTML = '';
-            if (typeof updateProductsList === 'function') updateProductsList();
-            if (typeof updateChipsActiveState === 'function') updateChipsActiveState();
-        });
-
-        // Кнопка закрытия (крестик)
-        sheet.querySelector('.btn-close-modal').addEventListener('click', function() {
-            modalRoot.innerHTML = '';
-        });
-
-        // Закрытие по Escape (добавляем глобальный обработчик на этот overlay)
-        var keyHandler = function(e) {
-            if (e.key === 'Escape') {
-                modalRoot.innerHTML = '';
-                document.removeEventListener('keydown', keyHandler);
-            }
-        };
-        document.addEventListener('keydown', keyHandler);
+        // Инициализация активных состояний чипов
+        updateModalChipsActiveState();
     }
 
     // ===== ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРИНГА ЭКРАНА =====
     function renderProducts() {
         var childId = getCurrentChildId();
+        var child = childId ? window.STATE.children.find(c => c.id === childId) : null;
+        var childName = child ? child.name : 'Ребёнок';
+        var childAge = child && childId ? getChildAgeMonths(childId) : 0;
+        var ageText = childAge > 0 ? childAge + ' мес' : '';
+
         var introducedCount = 0;
         if (childId) {
             introducedCount = PRODUCTS.filter(function(p) {
@@ -643,85 +577,55 @@
 
         var html = '';
         html += '<div class="products-screen" id="screen-products">';
-        html += '  <div class="products-header">';
-        html += '    <h1 class="h1">Продукты</h1>';
-        // --- ИЗМЕНЕНИЕ: прогресс теперь в стиле KENORA 2.0 ---
-        html += '    <div class="progress-kenora" style="margin-top:8px;">';
+        // HEADER с именем и возрастом
+        html += '  <div class="products-header" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;">';
+        html += '    <div class="child-info">';
+        html += '      <span style="font-size:20px;font-weight:600;color:var(--kenora-text);">' + escapeHTML(childName) + '</span>';
+        html += '      <span style="font-size:14px;font-weight:500;color:var(--kenora-text-secondary);margin-left:8px;">' + escapeHTML(ageText) + '</span>';
+        html += '    </div>';
+        html += '  </div>';
+
+        // Прогресс с data-action
+        var progressPercent = PRODUCTS.length > 0 ? Math.round((introducedCount / PRODUCTS.length) * 100) : 0;
+        html += '    <div class="progress-kenora" style="margin-top:8px;cursor:pointer;" data-action="show-introduced-products">';
         html += '      <div class="progress-info">';
         html += '        <div class="progress-number-kenora">' + introducedCount + ' <span>/ ' + PRODUCTS.length + '</span></div>';
         html += '        <div class="progress-label-kenora">Продуктов в рационе</div>';
         html += '      </div>';
-        var progressPercent = PRODUCTS.length > 0 ? Math.round((introducedCount / PRODUCTS.length) * 100) : 0;
         html += '      <div class="progress-track-kenora">';
         html += '        <div class="progress-fill-kenora" style="width: ' + progressPercent + '%;"></div>';
         html += '      </div>';
         html += '    </div>';
-        html += '  </div>';
 
+        // Поиск
         html += '  <div class="search-box">';
         html += '    <span>🔍</span>';
         html += '    <input id="product-search" type="search" placeholder="Найти продукт..." autocomplete="off" data-action="search-products" />';
         html += '    <button class="clear-search" data-action="clear-search">✕</button>';
         html += '  </div>';
 
-        // Переключатель "Подходит моему ребёнку сейчас"
+        // Переключатель "Подходит"
         var suitableActive = window.CURRENT_PRODUCT_SUITABLE === true ? ' active' : '';
         html += '  <div class="suitable-toggle">';
         html += '    <span class="chip' + suitableActive + '" data-action="toggle-suitable">✨ Подходит моему ребёнку сейчас</span>';
         html += '  </div>';
 
-        html += '  <section class="recommended-section">';
-        html += '    <h2 class="h2">✨ Рекомендовано сейчас</h2>';
-        html += '    <div id="recommended-products" class="recommended-grid">';
-        html +=        renderRecommendedProducts();
-        html += '    </div>';
-        html += '  </section>';
+        // Кнопка открытия фильтров (добавлена)
+        html += '  <div class="filter-trigger" data-action="open-product-filters">⚙️ Фильтры</div>';
 
+        // Рекомендации УДАЛЕНЫ
+
+        // Категории
         html += '  <section class="categories-section">';
         html += '    <h2 class="h2">Категории</h2>';
-        html += '    <div id="category-grid" class="categories-grid">';
+        html += '    <div id="category-grid" class="categories-kenora">';
         html +=        renderCategoryGrid();
         html += '    </div>';
         html += '  </section>';
 
-        html += '  <section class="filters-section">';
-        html += '    <div class="filter-group">';
-        html += '      <span class="filter-label">Статус:</span>';
-        html += '      <div class="chips-group" id="status-filters">';
-        html += '        <span class="chip' + (statusFilter === 'all' ? ' active' : '') + '" data-action="filter-products" data-filter="all">Все</span>';
-        html += '        <span class="chip' + (statusFilter === 'not_introduced' ? ' active' : '') + '" data-action="filter-products" data-filter="not_introduced">○ Не введённые</span>';
-        html += '        <span class="chip' + (statusFilter === 'planned' ? ' active' : '') + '" data-action="filter-products" data-filter="planned">🗓 Запланированные</span>';
-        html += '        <span class="chip' + (statusFilter === 'introduced' ? ' active' : '') + '" data-action="filter-products" data-filter="introduced">✅ Введённые</span>';
-        html += '        <span class="chip' + (statusFilter === 'reaction' ? ' active' : '') + '" data-action="filter-products" data-filter="reaction">⚠️ Была реакция</span>';
-        html += '      </div>';
-        html += '    </div>';
-        html += '    <div class="filter-group">';
-        html += '      <span class="filter-label">Категория:</span>';
-        html += '      <div class="chips-group" id="category-filters">';
-        html += '        <span class="chip' + (categoryFilter === null ? ' active' : '') + '" data-action="filter-products" data-category="">Все</span>';
-        CATEGORIES.forEach(function(cat) {
-            var active = (categoryFilter === cat.id) ? ' active' : '';
-            html += '        <span class="chip' + active + '" data-action="filter-products" data-category="' + cat.id + '">' + cat.label + '</span>';
-        });
-        html += '      </div>';
-        html += '    </div>';
-        html += '    <div class="filter-group">';
-        html += '      <span class="filter-label">Возраст:</span>';
-        html += '      <div class="chips-group" id="age-filters">';
-        var ageOptions = ['', '6', '7', '8', '9', '10'];
-        ageOptions.forEach(function(age) {
-            var label = age ? age + '+' : 'Все';
-            var active = (ageFilter === age || (age === '' && ageFilter === null)) ? ' active' : '';
-            html += '        <span class="chip' + active + '" data-action="filter-products" data-age="' + age + '">' + label + '</span>';
-        });
-        html += '      </div>';
-        html += '    </div>';
-        // Кнопка "Фильтры"
-        html += '    <div style="margin-top:12px;">';
-        html += '      <button class="filter-trigger" data-action="open-product-filters">⚙️ Фильтры</button>';
-        html += '    </div>';
-        html += '  </section>';
+        // Видимые фильтры УДАЛЕНЫ
 
+        // Основной каталог
         html += '  <section class="products-list-section">';
         html += '    <h2 class="h2">Все продукты</h2>';
         html += '    <div id="products-list" class="products-list">';
@@ -764,9 +668,7 @@
     window.updateProductsList = updateProductsList;
     window.renderProducts = renderProducts;
     window.openProductFiltersModal = openProductFiltersModal;
-
-    // ===== УДАЛЁН ЛОКАЛЬНЫЙ prikorm:statechange (используется глобальный в handlers.js) =====
-    // window.addEventListener('prikorm:statechange', ...) удалён
+    window.updateChipsActiveState = updateChipsActiveState; // ДОБАВЛЕН ЭКСПОРТ
 
     console.log('✅ products.js загружен (исправленный, non-module)');
 })();
