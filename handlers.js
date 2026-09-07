@@ -523,6 +523,29 @@ function handleDocumentClick(event) {
                 break;
             }
 
+            // ===== НОВЫЕ ОБРАБОТЧИКИ ДЛЯ ФИЛЬТРОВ =====
+            case "toggle-suitable": {
+                window.CURRENT_PRODUCT_SUITABLE = !window.CURRENT_PRODUCT_SUITABLE;
+                // Обновить активное состояние чипа
+                var toggleEl = document.querySelector('[data-action="toggle-suitable"]');
+                if (toggleEl) {
+                    toggleEl.classList.toggle('active', window.CURRENT_PRODUCT_SUITABLE === true);
+                }
+                if (typeof updateProductsList === 'function') {
+                    updateProductsList();
+                }
+                break;
+            }
+
+            case "open-product-filters": {
+                if (typeof openProductFiltersModal === 'function') {
+                    openProductFiltersModal();
+                } else {
+                    showToast("Функция фильтров временно недоступна", "error");
+                }
+                break;
+            }
+
             default:
                 break;
         }
