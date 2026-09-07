@@ -274,6 +274,70 @@
                 if (navFn) navFn('settings');
                 break;
 
+            // ===== НОВЫЙ ОБРАБОТЧИК: ПОКАЗ ВВЕДЁННЫХ ПРОДУКТОВ =====
+            case 'show-introduced-products':
+                // Получить текущего ребёнка
+                var currentChildId = null;
+                if (typeof window.getCurrentChildId === 'function') {
+                    currentChildId = window.getCurrentChildId();
+                } else if (window.STATE && typeof window.STATE.currentChildId !== 'undefined') {
+                    currentChildId = window.STATE.currentChildId;
+                }
+                if (!currentChildId) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Выберите ребёнка', 'error');
+                    }
+                    break;
+                }
+                // Получить все продукты со статусом 'introduced'
+                var products = window.PRODUCTS || [];
+                var introducedProducts = [];
+                products.forEach(function(p) {
+                    var status = window.getProductStatusForChild ? window.getProductStatusForChild(p.id, currentChildId) : null;
+                    if (status === 'introduced') {
+                        introducedProducts.push(p);
+                    }
+                });
+                if (introducedProducts.length === 0) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Нет введённых продуктов', 'info');
+                    }
+                    break;
+                }
+                // Сформировать HTML для модалки
+                var modalContent = '<div class="modal-sheet" style="max-width:400px;margin:0 auto;background:var(--kenora-white);border-radius:var(--kenora-radius-xl) var(--kenora-radius-xl) 0 0;">';
+                modalContent += '<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--kenora-border);">';
+                modalContent += '<h2 style="font-size:20px;font-weight:600;margin:0;color:var(--kenora-text);">Введённые продукты</h2>';
+                modalContent += '<button class="btn-close-modal" data-action="close-modal" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--kenora-text-secondary);padding:4px 8px;">×</button>';
+                modalContent += '</div>';
+                modalContent += '<div style="padding:16px 20px;max-height:50vh;overflow-y:auto;">';
+                introducedProducts.forEach(function(p) {
+                    var emoji = p.emoji || '🍽️';
+                    modalContent += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--kenora-border);">';
+                    modalContent += '<span style="font-size:24px;">' + emoji + '</span>';
+                    modalContent += '<span style="font-weight:600;color:var(--kenora-text);">' + p.name + '</span>';
+                    modalContent += '</div>';
+                });
+                modalContent += '</div>';
+                modalContent += '</div>';
+
+                // Открыть модалку через существующий modal-root
+                var modalRoot = document.getElementById('modal-root');
+                if (modalRoot) {
+                    modalRoot.innerHTML = '<div class="modal-overlay active" style="align-items:center;justify-content:center;">' + modalContent + '</div>';
+                }
+                break;
+
+            // ===== НОВЫЙ ОБРАБОТЧИК: ЗАКРЫТИЕ МОДАЛКИ =====
+            case 'close-modal':
+                if (typeof window.closeModal === 'function') {
+                    window.closeModal();
+                } else {
+                    var modalRoot = document.getElementById('modal-root');
+                    if (modalRoot) modalRoot.innerHTML = '';
+                }
+                break;
+
             default:
                 console.warn('Неизвестное действие:', action, target);
         }
