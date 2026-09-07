@@ -38,6 +38,10 @@
         });
     }
 
+    // ===== ГЛОБАЛЬНЫЕ UI-ПЕРЕМЕННЫЕ (НЕ В STATE) =====
+    window.CURRENT_PRODUCT_SUITABLE = window.CURRENT_PRODUCT_SUITABLE === true;
+    window.CURRENT_PRODUCT_SAFETY_FILTER = window.CURRENT_PRODUCT_SAFETY_FILTER || 'all';
+
     // ===== КАРТА КАТЕГОРИЙ → EMOJI (FALLBACK) =====
     var categoryEmojiMap = {};
     CATEGORIES.forEach(function(cat) {
@@ -189,7 +193,6 @@
         var actionButton = '';
         var showIntroButton = false;
 
-        // Определяем статус и кнопку
         switch (status) {
             case 'notIntroduced':
                 statusText = '○ Ещё не введён';
@@ -323,7 +326,7 @@
             .join('');
     }
 
-    // ===== ФИЛЬТРАЦИЯ ПРОДУКТОВ =====
+    // ===== ФИЛЬТРАЦИЯ ПРОДУКТОВ (с новыми статусами, suitable, safety) =====
     function getFilteredProducts() {
         var childId = getCurrentChildId();
         if (!childId) return [];
@@ -334,30 +337,49 @@
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
         var query = window.CURRENT_PRODUCT_SEARCH || '';
 
-        if (statusFilter === 'current') {
+        // 1. Фильтр по статусу (новые статусы)
+        if (statusFilter === 'not_introduced') {
             filtered = filtered.filter(function(p) {
-                var status = getProductStatusForChild(p.id, childId);
-                if (status === 'introduced' || status === 'parentExcluded' ||
-                    status === 'suspectedReaction' || status === 'confirmedAllergy') {
-                    return false;
-                }
-                var productAge = getProductMinAgeMonths(p);
-                if (productAge > getChildAgeMonths(childId)) return false;
-                var safety = safeEvaluate(p, childId);
-                return safety.status === 'allow' || safety.status === 'caution';
+                return getProductStatusForChild(p.id, childId) === 'notIntroduced';
+            });
+        } else if (statusFilter === 'planned') {
+            filtered = filtered.filter(function(p) {
+                return getProductStatusForChild(p.id, childId) === 'planned';
             });
         } else if (statusFilter === 'introduced') {
             filtered = filtered.filter(function(p) {
                 return getProductStatusForChild(p.id, childId) === 'introduced';
             });
+        } else if (statusFilter === 'reaction') {
+            filtered = filtered.filter(function(p) {
+                var status = getProductStatusForChild(p.id, childId);
+                return status === 'suspectedReaction' || status === 'confirmedAllergy';
+            });
+        }
+        // 'all' – без фильтрации по статусу
+
+        // 2. Фильтр «Подходит моему ребёнку сейчас»
+        if (window.CURRENT_PRODUCT_SUITABLE === true) {
+            filtered = filtered.filter(function(p) {
+                var status = getProductStatusForChild(p.id, childId);
+                // Только notIntroduced
+                if (status !== 'notIntroduced') return false;
+                // Возраст подходит
+                if (getProductMinAgeMonths(p) > getChildAgeMonths(childId)) return false;
+                // Safety allow или caution
+                var safety = safeEvaluate(p, childId);
+                return safety.status === 'allow' || safety.status === 'caution';
+            });
         }
 
+        // 3. Фильтр по категории (существующий)
         if (categoryFilter) {
             filtered = filtered.filter(function(p) {
                 return p.category === categoryFilter;
             });
         }
 
+        // 4. Фильтр по возрасту (существующий)
         if (ageFilter) {
             var ageLimit = parseInt(ageFilter, 10);
             if (!isNaN(ageLimit)) {
@@ -367,6 +389,20 @@
             }
         }
 
+        // 5. Фильтр по безопасности (новый)
+        if (window.CURRENT_PRODUCT_SAFETY_FILTER && window.CURRENT_PRODUCT_SAFETY_FILTER !== 'all') {
+            filtered = filtered.filter(function(p) {
+                var safety = safeEvaluate(p, childId);
+                if (window.CURRENT_PRODUCT_SAFETY_FILTER === 'allow') return safety.status === 'allow';
+                if (window.CURRENT_PRODUCT_SAFETY_FILTER === 'caution') return safety.status === 'caution';
+                if (window.CURRENT_PRODUCT_SAFETY_FILTER === 'not_allowed') {
+                    return safety.status === 'review' || safety.status === 'block' || safety.status === 'not_appropriate';
+                }
+                return true;
+            });
+        }
+
+        // 6. Поиск (существующий)
         if (query.trim()) {
             var q = query.trim().toLowerCase();
             filtered = filtered.filter(function(p) {
@@ -384,7 +420,15 @@
 
         var filtered = getFilteredProducts();
         if (filtered.length === 0) {
-            container.innerHTML = '<div class="empty-state"><span class="empty-icon">🥑</span><h3>Ничего не найдено</h3><p>Попробуйте изменить фильтры или поиск.</p></div>';
+            var message = '';
+            if (window.CURRENT_PRODUCT_SEARCH && window.CURRENT_PRODUCT_SEARCH.trim()) {
+                message = 'Ничего не нашли по вашему запросу.';
+            } else if (window.CURRENT_PRODUCT_SUITABLE === true) {
+                message = 'Пока нет подходящих продуктов для введения.';
+            } else {
+                message = 'Нет продуктов с такими фильтрами.';
+            }
+            container.innerHTML = '<div class="empty-state"><span class="empty-icon">🥑</span><h3>' + message + '</h3><p>Попробуйте изменить фильтры или поиск.</p></div>';
         } else {
             container.innerHTML = filtered.map(renderProductCard).join('');
         }
@@ -409,23 +453,151 @@
         updateChipsActiveState();
     }
 
+    // ===== ОБНОВЛЕНИЕ АКТИВНЫХ ЧИПСОВ =====
     function updateChipsActiveState() {
         var statusFilter = (window.STATE && window.STATE.productsFilter) || 'all';
         var categoryFilter = (window.STATE && window.STATE.productsCategoryFilter) || null;
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
 
+        // Статус
         document.querySelectorAll('#status-filters .chip').forEach(function(chip) {
             var filter = chip.dataset.filter;
             chip.classList.toggle('active', filter === statusFilter);
         });
+        // Категория
         document.querySelectorAll('#category-filters .chip').forEach(function(chip) {
             var cat = chip.dataset.category || '';
             chip.classList.toggle('active', cat === (categoryFilter || ''));
         });
+        // Возраст
         document.querySelectorAll('#age-filters .chip').forEach(function(chip) {
             var age = chip.dataset.age || '';
             chip.classList.toggle('active', age === (ageFilter || ''));
         });
+        // Suitable toggle
+        var suitableToggle = document.querySelector('[data-action="toggle-suitable"]');
+        if (suitableToggle) {
+            suitableToggle.classList.toggle('active', window.CURRENT_PRODUCT_SUITABLE === true);
+        }
+    }
+
+    // ===== МОДАЛКА ФИЛЬТРОВ =====
+    function openProductFiltersModal() {
+        // Временные переменные
+        var tempAgeFilter = window.STATE.productsAgeFilter || null;
+        var tempSafetyFilter = window.CURRENT_PRODUCT_SAFETY_FILTER || 'all';
+
+        var modalRoot = document.getElementById('modal-root');
+        if (!modalRoot) return;
+
+        // Удаляем старую модалку
+        modalRoot.innerHTML = '';
+
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(74,58,48,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; box-sizing:border-box; overflow:hidden; pointer-events:auto; overscroll-behavior:contain;';
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                modalRoot.innerHTML = '';
+            }
+        });
+
+        var sheet = document.createElement('div');
+        sheet.className = 'modal-sheet';
+        sheet.style.cssText = 'background:white; border-radius:20px; padding:24px; max-width:100%; width:100%; max-height:90vh; overflow-y:auto;';
+
+        // Рендерим содержимое модалки
+        var ageOptions = ['', '6', '7', '8', '9', '10'];
+        var ageLabels = ['Все', '6+', '7+', '8+', '9+', '10+'];
+        var ageHtml = ageOptions.map(function(age, idx) {
+            var active = (tempAgeFilter === age || (age === '' && tempAgeFilter === null)) ? ' active' : '';
+            return '<span class="chip' + active + '" data-action="product-filter-age" data-value="' + age + '">' + ageLabels[idx] + '</span>';
+        }).join('');
+
+        var safetyOptions = ['all', 'allow', 'caution', 'not_allowed'];
+        var safetyLabels = ['Все', 'Можно', 'С осторожностью', 'Нельзя сейчас'];
+        var safetyHtml = safetyOptions.map(function(opt, idx) {
+            var active = (tempSafetyFilter === opt) ? ' active' : '';
+            return '<span class="chip' + active + '" data-action="product-filter-safety" data-value="' + opt + '">' + safetyLabels[idx] + '</span>';
+        }).join('');
+
+        sheet.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h2 style="margin:0; font-size:24px; font-weight:900; color:#4A3A30;">Фильтры</h2>
+                <button class="btn-close-modal" style="background:transparent; border:none; font-size:28px; cursor:pointer; color:#8A7A6A;">×</button>
+            </div>
+            <div style="margin-bottom:20px;">
+                <h3 style="font-size:16px; font-weight:800; margin-bottom:8px; color:#4A3A30;">Возраст введения</h3>
+                <div class="chips-group" id="modal-age-filters">${ageHtml}</div>
+            </div>
+            <div style="margin-bottom:20px;">
+                <h3 style="font-size:16px; font-weight:800; margin-bottom:8px; color:#4A3A30;">Безопасность</h3>
+                <div class="chips-group" id="modal-safety-filters">${safetyHtml}</div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="btn-secondary" style="flex:1; padding:12px; border:1px solid #F0DED6; background:transparent; border-radius:14px; font-weight:700; cursor:pointer;" data-action="product-filter-reset">Сбросить</button>
+                <button class="btn-primary" style="flex:2; padding:12px; border:none; background:#F5A88C; border-radius:14px; font-weight:700; color:white; cursor:pointer;" data-action="product-filter-apply">Применить</button>
+            </div>
+        `;
+        overlay.appendChild(sheet);
+        modalRoot.appendChild(overlay);
+
+        // Обработчики для чипов возраста внутри модалки
+        sheet.querySelectorAll('[data-action="product-filter-age"]').forEach(function(chip) {
+            chip.addEventListener('click', function(e) {
+                var value = this.dataset.value;
+                tempAgeFilter = value || null;
+                // Обновляем активный класс в модалке
+                sheet.querySelectorAll('[data-action="product-filter-age"]').forEach(function(c) {
+                    c.classList.toggle('active', c.dataset.value === value);
+                });
+            });
+        });
+
+        // Обработчики для чипов безопасности внутри модалки
+        sheet.querySelectorAll('[data-action="product-filter-safety"]').forEach(function(chip) {
+            chip.addEventListener('click', function(e) {
+                var value = this.dataset.value;
+                tempSafetyFilter = value || 'all';
+                sheet.querySelectorAll('[data-action="product-filter-safety"]').forEach(function(c) {
+                    c.classList.toggle('active', c.dataset.value === value);
+                });
+            });
+        });
+
+        // Применить
+        sheet.querySelector('[data-action="product-filter-apply"]').addEventListener('click', function() {
+            window.STATE.productsAgeFilter = tempAgeFilter;
+            window.CURRENT_PRODUCT_SAFETY_FILTER = tempSafetyFilter;
+            modalRoot.innerHTML = '';
+            if (typeof updateProductsList === 'function') updateProductsList();
+            if (typeof updateChipsActiveState === 'function') updateChipsActiveState();
+        });
+
+        // Сбросить
+        sheet.querySelector('[data-action="product-filter-reset"]').addEventListener('click', function() {
+            tempAgeFilter = null;
+            tempSafetyFilter = 'all';
+            window.STATE.productsAgeFilter = null;
+            window.CURRENT_PRODUCT_SAFETY_FILTER = 'all';
+            modalRoot.innerHTML = '';
+            if (typeof updateProductsList === 'function') updateProductsList();
+            if (typeof updateChipsActiveState === 'function') updateChipsActiveState();
+        });
+
+        // Кнопка закрытия (крестик)
+        sheet.querySelector('.btn-close-modal').addEventListener('click', function() {
+            modalRoot.innerHTML = '';
+        });
+
+        // Закрытие по Escape (добавляем глобальный обработчик на этот overlay)
+        var keyHandler = function(e) {
+            if (e.key === 'Escape') {
+                modalRoot.innerHTML = '';
+                document.removeEventListener('keydown', keyHandler);
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
     }
 
     // ===== ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРИНГА ЭКРАНА =====
@@ -457,6 +629,12 @@
         html += '    <button class="clear-search" data-action="clear-search">✕</button>';
         html += '  </div>';
 
+        // Переключатель "Подходит моему ребёнку сейчас"
+        var suitableActive = window.CURRENT_PRODUCT_SUITABLE === true ? ' active' : '';
+        html += '  <div class="suitable-toggle">';
+        html += '    <span class="chip' + suitableActive + '" data-action="toggle-suitable">✨ Подходит моему ребёнку сейчас</span>';
+        html += '  </div>';
+
         html += '  <section class="recommended-section">';
         html += '    <h2 class="h2">✨ Рекомендовано сейчас</h2>';
         html += '    <div id="recommended-products" class="recommended-grid">';
@@ -476,8 +654,10 @@
         html += '      <span class="filter-label">Статус:</span>';
         html += '      <div class="chips-group" id="status-filters">';
         html += '        <span class="chip' + (statusFilter === 'all' ? ' active' : '') + '" data-action="filter-products" data-filter="all">Все</span>';
-        html += '        <span class="chip' + (statusFilter === 'current' ? ' active' : '') + '" data-action="filter-products" data-filter="current">✨ Сейчас</span>';
-        html += '        <span class="chip' + (statusFilter === 'introduced' ? ' active' : '') + '" data-action="filter-products" data-filter="introduced">✅ Введены</span>';
+        html += '        <span class="chip' + (statusFilter === 'not_introduced' ? ' active' : '') + '" data-action="filter-products" data-filter="not_introduced">○ Не введённые</span>';
+        html += '        <span class="chip' + (statusFilter === 'planned' ? ' active' : '') + '" data-action="filter-products" data-filter="planned">🗓 Запланированные</span>';
+        html += '        <span class="chip' + (statusFilter === 'introduced' ? ' active' : '') + '" data-action="filter-products" data-filter="introduced">✅ Введённые</span>';
+        html += '        <span class="chip' + (statusFilter === 'reaction' ? ' active' : '') + '" data-action="filter-products" data-filter="reaction">⚠️ Была реакция</span>';
         html += '      </div>';
         html += '    </div>';
         html += '    <div class="filter-group">';
@@ -501,6 +681,10 @@
         });
         html += '      </div>';
         html += '    </div>';
+        // Кнопка "Фильтры"
+        html += '    <div style="margin-top:12px;">';
+        html += '      <button class="filter-trigger" data-action="open-product-filters">⚙️ Фильтры</button>';
+        html += '    </div>';
         html += '  </section>';
 
         html += '  <section class="products-list-section">';
@@ -508,7 +692,15 @@
         html += '    <div id="products-list" class="products-list">';
         var filtered = getFilteredProducts();
         if (filtered.length === 0) {
-            html += '<div class="empty-state"><span class="empty-icon">🥑</span><h3>Ничего не найдено</h3><p>Попробуйте изменить фильтры или поиск.</p></div>';
+            var msg = '';
+            if (window.CURRENT_PRODUCT_SEARCH && window.CURRENT_PRODUCT_SEARCH.trim()) {
+                msg = 'Ничего не нашли по вашему запросу.';
+            } else if (window.CURRENT_PRODUCT_SUITABLE === true) {
+                msg = 'Пока нет подходящих продуктов для введения.';
+            } else {
+                msg = 'Нет продуктов с такими фильтрами.';
+            }
+            html += '<div class="empty-state"><span class="empty-icon">🥑</span><h3>' + msg + '</h3><p>Попробуйте изменить фильтры или поиск.</p></div>';
         } else {
             html += filtered.map(renderProductCard).join('');
         }
@@ -536,6 +728,7 @@
 
     window.updateProductsList = updateProductsList;
     window.renderProducts = renderProducts;
+    window.openProductFiltersModal = openProductFiltersModal;
 
     // ===== УДАЛЁН ЛОКАЛЬНЫЙ prikorm:statechange (используется глобальный в handlers.js) =====
     // window.addEventListener('prikorm:statechange', ...) удалён
