@@ -1220,29 +1220,11 @@ h1, h2, h3, h4, h5, h6 {
     margin-left: 0;
   }
 }
-.modal-overlay {
-  align-items: center !important;
-  justify-content: center !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  overflow: hidden !important;
-}
-.modal-overlay .modal-sheet {
-  transform: none !important;
-  position: relative !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  width: 100% !important;
-  max-width: 400px !important;
-  max-height: calc(100vh - 40px) !important;
-  margin: 0 !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  box-sizing: border-box;
-  flex-shrink: 1;
-}
+
+/* ===== Переопределение для модальных окон ===== */
+/* Удалён конфликтующий блок, который принудительно задавал opacity:1 !important и pointer-events:auto !important.
+   Теперь состояние overlay управляется классом .active — базовые стили выше. */
+
 .suitable-toggle {
   margin-bottom: 16px;
   display: flex;
