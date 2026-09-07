@@ -29,9 +29,9 @@
   --kenora-radius-lg: 18px;
   --kenora-radius-xl: 24px;
   --kenora-radius-pill: 40px;
-  /* старые имена для совместимости (указывают на новые значения) */
+  /* старые имена для совместимости */
   --kenora-radius: var(--kenora-radius-lg);
-  --kenora-radius-sm-old: 16px; /* не используется, но если где-то есть — оставим */
+  --kenora-radius-sm-old: 16px;
 
   /* ===== GLASS ===== */
   --kenora-glass-bg: rgba(255, 250, 245, 0.72);
@@ -910,6 +910,47 @@ h1, h2, h3, h4, h5, h6 {
 }
 .product-card .product-status .dot.warning {
   background: #E8C9A0;
+}
+
+/* ----- ДОБАВЛЕНЫ СТИЛИ ДЛЯ СТРУКТУРЫ КАРТОЧКИ ----- */
+.product-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.product-card-body {
+  padding: 12px 14px;
+}
+.product-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--kenora-text-secondary);
+}
+.product-category,
+.product-age {
+  font-size: 12px;
+  color: var(--kenora-text-secondary);
+}
+.product-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+.product-actions button {
+  flex: 1;
+  font-family: var(--font-family);
+}
+.product-actions .btn-primary {
+  background: var(--kenora-primary);
+  color: var(--kenora-white);
+  border: none;
+  border-radius: var(--kenora-radius-md);
+  padding: 10px 14px;
+  font-weight: 600;
 }
 
 /* ----- Заголовок ----- */
