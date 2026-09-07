@@ -726,6 +726,16 @@ function renderProductPicker(query) {
 // Старый document.addEventListener для select-product полностью удалён.
 
 /* ============================================================
+   НОВАЯ ФУНКЦИЯ: getDiary() — возвращает записи дневника текущего ребёнка
+   ============================================================ */
+function getDiary() {
+    var childId = window.STATE.currentChildId;
+    if (!childId) return [];
+    var child = window.STATE.children.find(function(c) { return c.id === childId; });
+    return child && Array.isArray(child.diary) ? child.diary : [];
+}
+
+/* ============================================================
    ГЛОБАЛЬНЫЕ ФУНКЦИИ
    ============================================================ */
 window.UI = UI;
@@ -746,3 +756,4 @@ window.updateProductsList = updateProductsList;
 window.renderRecommendedProducts = renderRecommendedProducts;
 window.renderCategoryGrid = renderCategoryGrid;
 window.renderProductCard = renderProductCard;
+window.getDiary = getDiary; // добавлено
