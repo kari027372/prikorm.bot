@@ -178,6 +178,20 @@
         return 'notIntroduced';
     }
 
+    // ============================================================
+    // KENORA 2.0: SVG-ИКОНКИ КАТЕГОРИЙ (вместо эмодзи)
+    // ============================================================
+    var categoryIcons = {
+        'овощи': `<svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v8a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/><path d="M12 7v10"/><path d="M8 12h8"/></svg>`,
+        'фрукты': `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/><path d="M4 4l2 2M20 4l-2 2M4 20l2-2M20 20l-2-2"/></svg>`,
+        'крупы': `<svg viewBox="0 0 24 24"><path d="M6 14l3-3 3 3 3-3 3 3"/><path d="M6 10l3-3 3 3 3-3 3 3"/><path d="M3 18h18"/><path d="M3 6h18"/></svg>`,
+        'мясо': `<svg viewBox="0 0 24 24"><path d="M18 6l-4 4M14 10l-4 4M10 14l-4 4"/><circle cx="18" cy="6" r="2"/><circle cx="14" cy="10" r="2"/><circle cx="10" cy="14" r="2"/><circle cx="6" cy="18" r="2"/></svg>`,
+        'рыба': `<svg viewBox="0 0 24 24"><path d="M2 12c0-3.3 4-6 10-6s10 2.7 10 6-4 6-10 6-10-2.7-10-6z"/><circle cx="10" cy="12" r="1.5"/></svg>`,
+        'молочные': `<svg viewBox="0 0 24 24"><path d="M6 8l2-4h8l2 4-2 10H8z"/><path d="M8 18h8"/><path d="M10 18v2"/><path d="M14 18v2"/></svg>`,
+        'аллергены': `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>`,
+        'другое': `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>`
+    };
+
     // ===== РЕНДЕРИНГ КАРТОЧКИ ПРОДУКТА (с поддержкой всех статусов) =====
     function renderProductCard(product) {
         var childId = getCurrentChildId();
@@ -192,41 +206,49 @@
         var statusClass = '';
         var actionButton = '';
         var showIntroButton = false;
+        var statusDotClass = '';
 
         switch (status) {
             case 'notIntroduced':
-                statusText = '○ Ещё не введён';
+                statusText = 'Ещё не введён';
                 statusClass = 'status-not-introduced';
+                statusDotClass = 'dot wait';
                 showIntroButton = true;
                 break;
             case 'planned':
-                statusText = '🗓 Запланирован';
+                statusText = 'Запланирован';
                 statusClass = 'status-planned';
+                statusDotClass = 'dot wait';
                 showIntroButton = true;
                 break;
             case 'introduced':
-                statusText = '✅ Введён';
+                statusText = 'Введён';
                 statusClass = 'status-introduced';
+                statusDotClass = 'dot ok';
                 showIntroButton = false;
                 break;
             case 'suspectedReaction':
-                statusText = '⚠️ Была реакция';
+                statusText = 'Была реакция';
                 statusClass = 'status-suspected';
+                statusDotClass = 'dot warning';
                 showIntroButton = false;
                 break;
             case 'confirmedAllergy':
-                statusText = '🚫 Аллергия';
+                statusText = 'Аллергия';
                 statusClass = 'status-allergy';
+                statusDotClass = 'dot warning';
                 showIntroButton = false;
                 break;
             case 'parentExcluded':
-                statusText = '❌ Не хочу вводить';
+                statusText = 'Не хочу вводить';
                 statusClass = 'status-excluded';
+                statusDotClass = 'dot wait';
                 showIntroButton = false;
                 break;
             default:
-                statusText = '○ Ещё не введён';
+                statusText = 'Ещё не введён';
                 statusClass = 'status-not-introduced';
+                statusDotClass = 'dot wait';
                 showIntroButton = true;
         }
 
@@ -246,14 +268,16 @@
         if (showIntroButton) {
             actionButton = '<button class="btn-primary" data-action="add-product-intro" data-product-id="' + product.id + '">＋ Ввести продукт</button>';
         } else {
-            actionButton = '<span class="status-label ' + statusClass + '">' + statusText + '</span>';
+            // --- ИЗМЕНЕНИЕ: статус теперь с точкой и текстом (новые классы) ---
+            actionButton = '<span class="product-status"><span class="' + statusDotClass + '"></span> ' + statusText + '</span>';
         }
 
         var escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         };
 
-        return '<div class="card product-card" data-action="select-product" data-product-id="' + product.id + '">' +
+        // --- ИЗМЕНЕНИЕ: обновлённая структура карточки (сохранён .product-card) ---
+        return '<div class="product-card" data-action="select-product" data-product-id="' + product.id + '">' +
             '<div class="product-card-header">' +
                 '<span class="product-emoji">' + emoji + '</span>' +
                 '<h3 class="product-name">' + escape(product.name) + '</h3>' +
@@ -312,14 +336,16 @@
         return '<div class="recommended-grid">' + recommended + '</div>';
     }
 
-    // ===== СЕТКА КАТЕГОРИЙ =====
+    // ===== СЕТКА КАТЕГОРИЙ (KENORA 2.0: SVG вместо эмодзи) =====
     function renderCategoryGrid() {
         var categories = CATEGORIES || [];
         return categories
             .map(function(cat) {
-                var emoji = cat.icon || '📂';
+                var icon = categoryIcons[cat.id] || categoryIcons['другое'];
+                // Если иконка не найдена, используем эмодзи как fallback
+                if (!icon) icon = cat.icon || '📂';
                 return '<div class="category-chip" data-action="filter-products" data-category="' + cat.id + '">' +
-                    '<span class="category-emoji">' + emoji + '</span>' +
+                    '<span class="category-icon">' + icon + '</span>' +
                     '<span class="category-name">' + escapeHTML(cat.label) + '</span>' +
                 '</div>';
             })
@@ -433,6 +459,7 @@
             container.innerHTML = filtered.map(renderProductCard).join('');
         }
 
+        // --- ИЗМЕНЕНИЕ: обновление прогресса (используем новый класс) ---
         var countEl = document.getElementById('products-introduced-count');
         if (countEl) {
             var childId = getCurrentChildId();
@@ -618,8 +645,16 @@
         html += '<div class="products-screen" id="screen-products">';
         html += '  <div class="products-header">';
         html += '    <h1 class="h1">Продукты</h1>';
-        html += '    <div class="introduced-counter" data-action="filter-products" data-filter="introduced">';
-        html += '      ✅ Введено: <span id="products-introduced-count">' + introducedCount + '</span>';
+        // --- ИЗМЕНЕНИЕ: прогресс теперь в стиле KENORA 2.0 ---
+        html += '    <div class="progress-kenora" style="margin-top:8px;">';
+        html += '      <div class="progress-info">';
+        html += '        <div class="progress-number-kenora">' + introducedCount + ' <span>/ ' + PRODUCTS.length + '</span></div>';
+        html += '        <div class="progress-label-kenora">Продуктов в рационе</div>';
+        html += '      </div>';
+        var progressPercent = PRODUCTS.length > 0 ? Math.round((introducedCount / PRODUCTS.length) * 100) : 0;
+        html += '      <div class="progress-track-kenora">';
+        html += '        <div class="progress-fill-kenora" style="width: ' + progressPercent + '%;"></div>';
+        html += '      </div>';
         html += '    </div>';
         html += '  </div>';
 
