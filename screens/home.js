@@ -4,7 +4,8 @@ window.renderHome = function() {
     const currentChild = window.getCurrentChild ? window.getCurrentChild() : (state.baby || {});
     const baby = currentChild || {};
 
-    const diary = state.diary || [];
+    // === ИЗМЕНЕНИЕ: используем getDiary() вместо state.diary ===
+    const diary = typeof getDiary === 'function' ? getDiary() : [];
     const introduced = state.products?.introduced || [];
     const totalIntroduced = introduced.length;
     const totalProducts = (window.PRODUCTS || []).length;
