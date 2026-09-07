@@ -1,51 +1,200 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>KENORA – прикорм без паники</title>
-  <!-- KENORA 2.0: Inter шрифт вместо Nunito -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/main.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#FDF8F2">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#F8F6F2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>KENORA – прикорм без паники</title>
+    <!-- ИКОНКИ И PWA -->
+    <link rel="icon" href="favicon.ico" sizes="32x32">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <!-- ШРИФТЫ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles/main.css?v=2.1.39">
+    <link rel="stylesheet" href="styles/welcome.css?v=2.1.39">
 </head>
 <body>
-  <div id="app">
-    <!-- Загрузочный экран -->
+    <!-- ===== ЗАГРУЗОЧНЫЙ ЭКРАН (единый стиль со splash) ===== -->
     <div id="loading-screen">
-      <div class="spinner"></div>
-      <div class="loading-text">KENORA</div>
-      <div class="loading-version">прикорм без паники</div>
-      <div class="progress-track">
-        <div class="progress-fill" id="loading-progress-fill"></div>
-      </div>
-      <div class="progress-text" id="loading-progress-text">Загрузка...</div>
-      <div class="progress-file" id="loading-progress-file"></div>
+        <div class="splash-container">
+            <!-- Улыбающаяся тарелка -->
+            <svg class="splash-illustration" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="60" cy="72" r="32" stroke="#F5A88C" stroke-width="3" fill="#FFF0E6"/>
+                <circle cx="60" cy="70" r="26" stroke="#F5A88C" stroke-width="2" fill="#FFE4D6"/>
+                <path d="M50 52 C50 44 56 38 60 38 C64 38 70 44 70 52" stroke="#8FBCB5" stroke-width="2.5" fill="#C4E0D8"/>
+                <circle cx="55" cy="48" r="4" fill="#8FBCB5"/>
+                <circle cx="65" cy="48" r="4" fill="#8FBCB5"/>
+                <circle cx="54" cy="56" r="3" fill="#4A3A30"/>
+                <circle cx="66" cy="56" r="3" fill="#4A3A30"/>
+                <path d="M54 62 Q60 68 66 62" stroke="#4A3A30" stroke-width="2" stroke-linecap="round"/>
+                <ellipse cx="50" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
+                <ellipse cx="70" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
+            </svg>
+            <div class="splash-logo" style="opacity:1; transform:none;">
+                <span style="opacity:1; transform:none;">K</span>
+                <span style="opacity:1; transform:none;">E</span>
+                <span style="opacity:1; transform:none;">N</span>
+                <span style="opacity:1; transform:none;">O</span>
+                <span style="opacity:1; transform:none;">R</span>
+                <span style="opacity:1; transform:none;">A</span>
+            </div>
+            <div class="splash-subtitle" style="opacity:1; transform:none;">прикорм без паники</div>
+            <div class="splash-loader" style="margin-top:20px;"></div>
+            <div class="splash-text" style="margin-top:8px; font-size:14px; color:var(--kenora-text-muted);">Загрузка...</div>
+        </div>
     </div>
-
-    <!-- Основной контейнер -->
-    <div id="content" style="display:none"></div>
-  </div>
-
-  <!-- Скрипты -->
-  <script src="state.js"></script>
-  <script src="services/product-state.js"></script>
-  <script src="services/safety-engine.js"></script>
-  <script src="data/products.js"></script>
-  <script src="data/safety.js"></script>
-  <script src="data/recommendations.js"></script>
-  <script src="components/header.js"></script>
-  <script src="components/bottom-nav.js"></script>
-  <script src="components/modal.js"></script>
-  <script src="components/toast.js"></script>
-  <script src="screens/home.js"></script>
-  <script src="screens/products.js"></script>
-  <script src="screens/diary.js"></script>
-  <script src="screens/recipes.js"></script>
-  <script src="screens/settings.js"></script>
-  <script src="screens/baby.js"></script>
-  <script src="handlers.js"></script>
-  <script src="app.js"></script>
+    <!-- ===== СТАРТОВЫЙ ЭКРАН (SPLASH) ===== -->
+    <div id="splash-screen" style="display:none;">
+        <div class="splash-container">
+            <svg class="splash-illustration" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="60" cy="72" r="32" stroke="#F5A88C" stroke-width="3" fill="#FFF0E6"/>
+                <circle cx="60" cy="70" r="26" stroke="#F5A88C" stroke-width="2" fill="#FFE4D6"/>
+                <path d="M50 52 C50 44 56 38 60 38 C64 38 70 44 70 52" stroke="#8FBCB5" stroke-width="2.5" fill="#C4E0D8"/>
+                <circle cx="55" cy="48" r="4" fill="#8FBCB5"/>
+                <circle cx="65" cy="48" r="4" fill="#8FBCB5"/>
+                <circle cx="54" cy="56" r="3" fill="#4A3A30"/>
+                <circle cx="66" cy="56" r="3" fill="#4A3A30"/>
+                <path d="M54 62 Q60 68 66 62" stroke="#4A3A30" stroke-width="2" stroke-linecap="round"/>
+                <ellipse cx="50" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
+                <ellipse cx="70" cy="60" rx="4" ry="3" fill="#FAD8B0" opacity="0.6"/>
+            </svg>
+            <div class="splash-logo">
+                <span class="splash-letter" style="animation-delay: 0.4s;">K</span>
+                <span class="splash-letter" style="animation-delay: 0.6s;">E</span>
+                <span class="splash-letter" style="animation-delay: 0.8s;">N</span>
+                <span class="splash-letter" style="animation-delay: 1.0s;">O</span>
+                <span class="splash-letter" style="animation-delay: 1.2s;">R</span>
+                <span class="splash-letter" style="animation-delay: 1.4s;">A</span>
+            </div>
+            <div class="splash-subtitle">прикорм без паники</div>
+            <button class="splash-btn" id="start-app-btn">Начать</button>
+        </div>
+    </div>
+    <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+    <div id="app" style="display:none;"></div>
+    <!-- ПРИВЕТСТВЕННЫЙ ЭКРАН ДЛЯ ПЕРВОГО ЗАПУСКА -->
+    <div id="welcome-screen" style="display:none;">
+        <div class="welcome-content">
+            <div class="welcome-emoji">🌸</div>
+            <h1 class="welcome-title">KENORA</h1>
+            <p class="welcome-subtitle">прикорм без паники</p>
+            <p class="welcome-desc">Ответьте на несколько вопросов о малыше, и мы подскажем, с чего начать.</p>
+            <button class="welcome-btn" id="start-onboarding-btn">🌱 Начать знакомство</button>
+        </div>
+    </div>
+    <!-- СКРИПТЫ -->
+    <script src="config.js?v=2.1.39"></script>
+    <script src="utils.js?v=2.1.39"></script>
+    <script src="services/storage-service.js?v=2.1.39"></script>
+    <script src="services/child-service.js?v=2.1.39"></script>
+    <script src="services/feeding-readiness-service.js?v=2.1.39"></script>
+    <script src="state.js?v=2.1.39"></script>
+    <script src="ui.js?v=2.1.39"></script>
+    <script src="updater.js?v=2.1.39"></script>
+    <script src="theme.js?v=2.1.39"></script>
+    <script src="handlers.js?v=2.1.39"></script>
+    <script src="data/products.js?v=2.1.39"></script>
+    <script src="data/recipes.js?v=2.1.39"></script>
+    <script src="data/safety.js?v=2.1.39"></script>
+    <script src="services/safety-engine.js?v=2.1.39"></script>
+    <script src="services/product-state.js?v=2.1.39"></script>
+    <script src="services/nutrition-engine.js?v=2.1.39"></script>
+    <script src="services/recipe-service.js?v=2.1.39"></script>
+    <script src="data/recommendations.js?v=2.1.39"></script>
+    <script src="components/header.js?v=2.1.39"></script>
+    <script src="components/bottom-nav.js?v=2.1.39"></script>
+    <script src="components/product-card.js?v=2.1.39"></script>
+    <script src="components/recipe-card.js?v=2.1.39"></script>
+    <script src="components/modal.js?v=2.1.39"></script>
+    <script src="components/toast.js?v=2.1.39"></script>
+    <script src="screens/rendering.js?v=2.1.39"></script>
+    <script src="screens/home.js?v=2.1.39"></script>
+    <script src="screens/products.js?v=2.1.39"></script>
+    <script src="screens/today.js?v=2.1.39"></script>
+    <script src="screens/diary.js?v=2.1.39"></script>
+    <script src="screens/recipes.js?v=2.1.39"></script>
+    <script src="screens/baby.js?v=2.1.39"></script>
+    <script src="screens/settings.js?v=2.1.39"></script>
+    <script src="screens/onboarding.js?v=2.1.39"></script>
+    <script src="app.js?v=2.1.39"></script>
+    <!-- Eruda включён для отладки -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+    <!-- ЗАПУСК -->
+    <script>
+        (function() {
+            function hideLoading() {
+                var ls = document.getElementById('loading-screen');
+                if (ls) {
+                    ls.classList.add('hidden');
+                    setTimeout(function() {
+                        ls.style.display = 'none';
+                    }, 600);
+                }
+            }
+            function showSplash() {
+                var splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.display = 'flex';
+                    setTimeout(function() {
+                        splash.classList.add('visible');
+                    }, 50);
+                }
+            }
+            function hideSplashAndShowApp() {
+                var splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.remove('visible');
+                    splash.classList.add('hiding');
+                    setTimeout(function() {
+                        splash.style.display = 'none';
+                        var app = document.getElementById('app');
+                        if (app) app.style.display = 'block';
+                        splash.classList.remove('hiding');
+                    }, 400);
+                } else {
+                    var app = document.getElementById('app');
+                    if (app) app.style.display = 'block';
+                }
+            }
+            function startApp() {
+                console.log('🚀 Запуск KENORA...');
+                if (typeof startApplication === 'function') {
+                    startApplication();
+                } else if (typeof initApp === 'function') {
+                    initApp();
+                } else if (typeof render === 'function') {
+                    render();
+                } else {
+                    console.warn('⚠️ Не найдена функция запуска приложения!');
+                }
+                hideLoading();
+                showSplash();
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                var startBtn = document.getElementById('start-app-btn');
+                if (startBtn) {
+                    startBtn.addEventListener('click', function() {
+                        hideSplashAndShowApp();
+                    });
+                } else {
+                    var app = document.getElementById('app');
+                    if (app) app.style.display = 'block';
+                }
+            });
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', startApp);
+            } else {
+                startApp();
+            }
+        })();
+    </script>
 </body>
 </html>
