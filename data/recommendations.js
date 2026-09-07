@@ -110,12 +110,11 @@ function getIntroducedProductIds() {
    ============================================================ */
 
 function getFoodHistory() {
-
-    return Array.isArray(
-        STATE?.diary
-    )
-        ? STATE.diary
-        : [];
+    // === ИЗМЕНЕНИЕ: используем getDiary() вместо STATE?.diary ===
+    if (typeof getDiary === 'function') {
+        return getDiary();
+    }
+    return [];
 }
 
 
