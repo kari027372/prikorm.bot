@@ -31,7 +31,6 @@
   --kenora-radius-pill: 40px;
   /* старые имена для совместимости */
   --kenora-radius: var(--kenora-radius-lg);
-  --kenora-radius-sm-old: 16px;
 
   /* ===== GLASS ===== */
   --kenora-glass-bg: rgba(255, 250, 245, 0.72);
@@ -65,7 +64,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
   color: var(--kenora-text);
 }
@@ -917,6 +916,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 14px;
 }
 .product-card-body {
   padding: 12px 14px;
@@ -1362,10 +1362,6 @@ h1, h2, h3, h4, h5, h6 {
   .products-list {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-  }
-  .product-card {
-    padding: 12px;
-    min-height: 160px;
   }
   .product-emoji {
     font-size: 28px;
