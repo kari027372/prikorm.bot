@@ -558,8 +558,12 @@ function showScreen(screenName) {
     if (typeof render === "function") render(screenName);
 
     // === НОВОЕ: обновление нижней навигации через renderBottomNav ===
-    if (typeof window.renderBottomNav === 'function') {
-        window.renderBottomNav(screenName);
+    if (typeof render === "function") render(screenName);
+
+    // === НОВОЕ: обновление нижней навигации через renderBottomNav ===
+    const bottomNav = document.getElementById("bottom-nav");
+    if (bottomNav && typeof window.renderBottomNav === "function") {
+        bottomNav.innerHTML = window.renderBottomNav(screenName);
     }
 }
 
