@@ -1087,9 +1087,24 @@ function saveFoodHandler() {
         createdAt: new Date().toISOString()
     };
 
-    if (!window.STATE) window.STATE = {};
-    if (!Array.isArray(window.STATE.diary)) window.STATE.diary = [];
-    window.STATE.diary.push(entry);
+    // ==== ИЗМЕНЕНИЕ: сохраняем в child.diary ====
+    var childId = window.STATE.currentChildId;
+    if (!childId) {
+        showToast("Не выбран ребёнок", "error");
+        return;
+    }
+    var child = window.STATE.children.find(function(c) { return c.id === childId; });
+    if (!child) {
+        showToast("Ребёнок не найден", "error");
+        return;
+    }
+    if (!Array.isArray(child.diary)) {
+        child.diary = [];
+    }
+    child.diary.push(entry);
+
+    // Удаляем старый глобальный STATE.diary (больше не используется)
+    // if (isNew && product?.id) { ... } – эта часть остаётся без изменений
 
     if (isNew && product?.id) {
         if (!window.STATE.products) window.STATE.products = {};
