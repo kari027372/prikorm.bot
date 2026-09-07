@@ -52,7 +52,7 @@ function icon(name) {
 }
 
 /* ============================================================
-   ОБОЛОЧКА (без изменений)
+   ОБОЛОЧКА (с изменённой навигацией)
    ============================================================ */
 
 function buildApp() {
@@ -60,13 +60,7 @@ function buildApp() {
     root.innerHTML = `
         <div id="prikorm-app" class="prikorm-app">
             <main id="app-content" class="app-content"></main>
-            <nav id="bottom-nav" class="bottom-nav">
-                ${navButton("home", "Главная", "home")}
-                ${navButton("today", "Сегодня", "today")}
-                ${navButton("products", "Продукты", "products")}
-                ${navButton("diary", "Дневник", "diary")}
-                ${navButton("recipes", "Рецепты", "recipes")}
-            </nav>
+            <nav id="bottom-nav" class="bottom-nav"></nav>
             <div id="modal-root" class="modal-root"></div>
             <div id="toast-root" class="toast-root"></div>
         </div>
@@ -87,6 +81,7 @@ function buildApp() {
     return UI.app;
 }
 
+// Функция navButton оставлена для совместимости, но НЕ используется для построения bottom navigation
 function navButton(id, label, iconName) {
     return `
         <button type="button" class="nav-button" data-action="navigate" data-screen="${id}">
@@ -416,40 +411,19 @@ function renderProductCard(product, childId) {
     `;
 }
 
-// Блок "Рекомендовано сейчас"
-function renderRecommendedProducts(childId) {
-    const allProducts = window.PRODUCTS || [];
-    const recommended = allProducts
-        .map(p => ({ product: p, safety: evaluateProductSafetySafe(p, childId) }))
-        .filter(({ safety }) => safety.decision === 'allow' || safety.decision === 'caution')
-        .sort((a, b) => {
-            if (a.safety.decision === 'allow' && b.safety.decision !== 'allow') return -1;
-            if (a.safety.decision !== 'allow' && b.safety.decision === 'allow') return 1;
-            const age = getChildAgeMonths(childId);
-            const diffA = Math.abs((a.product.ageMinMonths || 0) - age);
-            const diffB = Math.abs((b.product.ageMinMonths || 0) - age);
-            return diffA - diffB;
-        })
-        .slice(0, 6)
-        .map(({ product }) => renderProductCard(product, childId))
-        .join('');
+// ===== ФУНКЦИЯ renderRecommendedProducts() УДАЛЕНА =====
+// (отдельный блок рекомендаций больше не используется в Products 2.0)
 
-    if (!recommended) {
-        return `<p class="text-secondary">Пока нет рекомендованных продуктов для этого возраста.</p>`;
-    }
-    return `<div class="recommended-grid">${recommended}</div>`;
-}
-
-// Сетка категорий
+// Сетка категорий (исправлены классы)
 function renderCategoryGrid() {
     const groups = getCategoryGroups();
     return groups
         .map(cat => {
             const emoji = categoryEmojiMap[cat] || '📂';
             return `
-                <div class="category-chip" data-action="filter-products" data-category="${cat}">
-                    <span class="category-emoji">${emoji}</span>
-                    <span class="category-name">${escapeHTML(cat)}</span>
+                <div class="category-kenora" data-action="filter-products" data-category="${cat}">
+                    <span class="cat-icon">${emoji}</span>
+                    <span class="cat-label">${escapeHTML(cat)}</span>
                 </div>
             `;
         })
@@ -522,9 +496,9 @@ function updateProductsList() {
     const catGrid = document.getElementById('category-grid');
     if (catGrid) catGrid.innerHTML = renderCategoryGrid();
 
-    // Рекомендованные
-    const recContainer = document.getElementById('recommended-products');
-    if (recContainer) recContainer.innerHTML = renderRecommendedProducts(childId);
+    // Рекомендованные – УДАЛЕНА (больше нет блока)
+    // const recContainer = document.getElementById('recommended-products');
+    // if (recContainer) recContainer.innerHTML = renderRecommendedProducts(childId);
 
     // Активные чипсы
     updateChipsActiveState();
@@ -582,6 +556,11 @@ function showScreen(screenName) {
     if (STATE?.ui) STATE.ui.screen = screenName;
     if (typeof saveState === "function") saveState();
     if (typeof render === "function") render(screenName);
+
+    // === НОВОЕ: обновление нижней навигации через renderBottomNav ===
+    if (typeof window.renderBottomNav === 'function') {
+        window.renderBottomNav(screenName);
+    }
 }
 
 function updateProfileUI() {
@@ -614,8 +593,9 @@ function openAddFoodModal(product = null) {
     const root = document.getElementById("modal-root");
     if (!root) return;
 
+    // Убрали data-action="close-modal" с overlay, оставили только на крестике
     root.innerHTML = `
-        <div class="modal-overlay" data-action="close-modal">
+        <div class="modal-overlay">
             <div class="modal-sheet" data-modal-content>
                 <div class="modal-header">
                     <div>
@@ -682,7 +662,7 @@ function openAddFoodModal(product = null) {
 function openProductPicker() {
     const root = document.getElementById("modal-root");
     root.innerHTML = `
-        <div class="modal-overlay" data-action="close-modal">
+        <div class="modal-overlay">
             <div class="modal-sheet large" data-modal-content>
                 <div class="modal-header">
                     <div><h2>Выберите продукт</h2><p>Можно найти в базе</p></div>
@@ -712,7 +692,7 @@ function renderProductPicker(query) {
         container.innerHTML = emptyState('🥑', 'Ничего не найдено', 'Попробуйте изменить запрос');
         return;
     }
-    // ИСПРАВЛЕНИЕ: заменён data-action с "select-product" на "choose-picker-product"
+    // Используем data-action="choose-picker-product" для выбора продукта в дневник
     container.innerHTML = filtered.map(p => `
         <button class="picker-product" data-action="choose-picker-product" data-product-id="${p.id}" style="display:flex; align-items:center; gap:12px; width:100%; padding:12px; border:none; background:transparent; border-bottom:1px solid #eee; cursor:pointer; text-align:left;">
             <span style="font-size:24px;">${p.emoji || '🥣'}</span>
@@ -736,7 +716,7 @@ function getDiary() {
 }
 
 /* ============================================================
-   ГЛОБАЛЬНЫЕ ФУНКЦИИ
+   ГЛОБАЛЬНЫЕ ФУНКЦИИ (экспорт)
    ============================================================ */
 window.UI = UI;
 window.buildApp = buildApp;
@@ -753,7 +733,7 @@ window.loadingState = loadingState;
 window.escapeHTML = escapeHTML;
 window.renderProductPicker = renderProductPicker;
 window.updateProductsList = updateProductsList;
-window.renderRecommendedProducts = renderRecommendedProducts;
+// window.renderRecommendedProducts = renderRecommendedProducts; // УДАЛЕН
 window.renderCategoryGrid = renderCategoryGrid;
 window.renderProductCard = renderProductCard;
-window.getDiary = getDiary; // добавлено
+window.getDiary = getDiary;
