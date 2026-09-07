@@ -1,44 +1,44 @@
 /* ============================================================
-   KENORA – ДЕТСКИЙ СТИЛЬ (с CSS-переменными)
+   KENORA 2.0 — SOFT EDITORIAL iOS
    ============================================================ */
-:root {
-  /* Существующие переменные (сохранены) */
-  --kenora-bg: #FFF7F1;
-  --kenora-white: #FFFFFF;
-  --kenora-card: #FFFFFF;
-  --kenora-text: #4A3A30;
-  --kenora-text-secondary: #8A7A6A;
-  --kenora-text-muted: #C4B0A0;
-  --kenora-primary: #F5A88C;
-  --kenora-secondary: #8FBCB5;
-  --kenora-accent: #FAD8B0;
-  --kenora-border: #F0DED6;
-  --kenora-shadow: 0 4px 16px rgba(74, 58, 48, 0.08);
-  --kenora-shadow-strong: 0 8px 24px rgba(74, 58, 48, 0.12);
-  --kenora-radius: 24px;
-  --kenora-radius-sm: 16px;
-  --kenora-radius-lg: 32px;
-  --font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* ===== KENORA 2.0 — Soft Editorial iOS (добавлено поверх) ===== */
-  --kenora-primary-soft: #B5C9B0;
+:root {
+  /* ===== ЦВЕТА ===== */
+  --kenora-bg: #FFF7F1;               /* тёплый ivory */
+  --kenora-white: #FFFFFF;
+  --kenora-text: #3D332A;             /* тёплый charcoal */
+  --kenora-text-secondary: #7A6B5E;
+  --kenora-text-muted: #A99D92;
+  --kenora-primary: #B5C9B0;          /* muted sage */
   --kenora-primary-dark: #8FAF9F;
   --kenora-primary-light: #DCE8D8;
-  --kenora-text-warm: #3D332A;
-  --kenora-text-soft: #7A6B5E;
-  --kenora-text-muted: #A99D92;
+  --kenora-accent: #F5D9C8;           /* peach */
+  --kenora-blush: #F5E0E6;            /* blush */
+  --kenora-border: rgba(61, 51, 42, 0.07);
   --kenora-border-light: rgba(61, 51, 42, 0.07);
+
+  /* ===== ТЕНИ ===== */
+  --kenora-shadow: 0 4px 20px rgba(61, 51, 42, 0.05);
   --kenora-shadow-soft: 0 4px 20px rgba(61, 51, 42, 0.05);
+  --kenora-shadow-strong: 0 8px 24px rgba(74, 58, 48, 0.12);
   --kenora-shadow-glass: 0 8px 32px rgba(61, 51, 42, 0.07);
+
+  /* ===== РАДИУСЫ ===== */
   --kenora-radius-sm: 10px;
   --kenora-radius-md: 14px;
   --kenora-radius-lg: 18px;
   --kenora-radius-xl: 24px;
   --kenora-radius-pill: 40px;
+  /* старые имена для совместимости (указывают на новые значения) */
+  --kenora-radius: var(--kenora-radius-lg);
+  --kenora-radius-sm-old: 16px; /* не используется, но если где-то есть — оставим */
+
+  /* ===== GLASS ===== */
   --kenora-glass-bg: rgba(255, 250, 245, 0.72);
   --kenora-glass-blur: 20px;
-  --kenora-peach: #F5D9C8;
-  --kenora-blush: #F5E0E6;
+
+  /* ===== ШРИФТ ===== */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* ===== ОБЩИЕ СТИЛИ ===== */
@@ -100,7 +100,7 @@ h1, h2, h3, h4, h5, h6 {
   left: -120px;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, var(--kenora-peach), transparent 70%);
+  background: radial-gradient(circle, var(--kenora-accent), transparent 70%);
   filter: blur(140px);
   opacity: 0.25;
   pointer-events: none;
@@ -184,9 +184,9 @@ h1, h2, h3, h4, h5, h6 {
 .meal-item,
 .settings-row,
 .recipe-card {
-  background: var(--kenora-card);
-  border: 2px solid var(--kenora-border);
-  border-radius: var(--kenora-radius);
+  background: var(--kenora-white);
+  border: 1px solid var(--kenora-border);
+  border-radius: var(--kenora-radius-lg);
   box-shadow: var(--kenora-shadow);
   padding: 18px 20px;
 }
@@ -225,8 +225,8 @@ h1, h2, h3, h4, h5, h6 {
 /* ===== ГЛАВНАЯ СТАТИСТИКА ===== */
 .today-product {
   background: linear-gradient(135deg, #FFF7F1, #FFF0E6);
-  border: 2px solid var(--kenora-border);
-  border-radius: var(--kenora-radius);
+  border: 1px solid var(--kenora-border);
+  border-radius: var(--kenora-radius-lg);
   padding: 16px 20px;
   margin-bottom: 16px;
   display: flex;
@@ -250,9 +250,9 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 16px;
 }
 .stat-card {
-  background: var(--kenora-card);
-  border: 2px solid var(--kenora-border);
-  border-radius: var(--kenora-radius-sm);
+  background: var(--kenora-white);
+  border: 1px solid var(--kenora-border);
+  border-radius: var(--kenora-radius-md);
   padding: 16px;
   text-align: center;
   box-shadow: var(--kenora-shadow);
@@ -279,9 +279,9 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 2px;
 }
 .last-meal {
-  background: var(--kenora-card);
-  border: 2px solid var(--kenora-border);
-  border-radius: var(--kenora-radius);
+  background: var(--kenora-white);
+  border: 1px solid var(--kenora-border);
+  border-radius: var(--kenora-radius-lg);
   padding: 16px 20px;
   margin-bottom: 16px;
 }
@@ -313,7 +313,7 @@ h1, h2, h3, h4, h5, h6 {
 .last-meal-status {
   font-size: 14px;
   font-weight: 700;
-  color: var(--kenora-secondary);
+  color: var(--kenora-primary-dark);
   margin-left: auto;
   background: rgba(143, 188, 181, 0.15);
   padding: 4px 14px;
@@ -322,7 +322,7 @@ h1, h2, h3, h4, h5, h6 {
 .start-btn {
   background: var(--kenora-primary);
   border: none;
-  border-radius: 50px;
+  border-radius: var(--kenora-radius-pill);
   padding: 18px;
   font-size: 20px;
   font-weight: 800;
@@ -333,10 +333,10 @@ h1, h2, h3, h4, h5, h6 {
   margin: 20px auto 0;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 8px 24px rgba(245, 168, 140, 0.3);
+  box-shadow: 0 8px 24px rgba(181, 201, 176, 0.3);
 }
 .start-btn:hover {
-  background: #E8977A;
+  background: var(--kenora-primary-dark);
   transform: translateY(-2px);
 }
 .start-btn:active {
@@ -344,7 +344,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   BOTTOM NAVIGATION (обновлён для KENORA 2.0)
+   BOTTOM NAVIGATION (KENORA 2.0)
    ============================================================ */
 .bottom-navigation {
   position: fixed;
@@ -410,13 +410,12 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(181, 201, 176, 0.15);
 }
 .bottom-navigation .nav-item.active .nav-icon svg {
-  stroke: var(--kenora-primary-soft);
+  stroke: var(--kenora-primary);
   stroke-width: 2.5;
 }
 .bottom-navigation .nav-item.active .nav-label {
-  color: var(--kenora-primary-soft);
+  color: var(--kenora-primary);
 }
-/* Скрываем nav-dot визуально */
 .bottom-navigation .nav-dot {
   display: none !important;
 }
@@ -425,7 +424,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   ONBOARDING
+   ONBOARDING (сохранены старые стили, но с новыми переменными)
    ============================================================ */
 .onboarding {
   padding: 20px 8px 30px;
@@ -485,8 +484,8 @@ h1, h2, h3, h4, h5, h6 {
   gap: 14px;
   padding: 16px 18px;
   background: var(--kenora-white);
-  border-radius: var(--kenora-radius-sm);
-  border: 2px solid var(--kenora-border);
+  border-radius: var(--kenora-radius-md);
+  border: 1px solid var(--kenora-border);
   transition: all 0.25s ease;
   cursor: pointer;
   font-weight: 600;
@@ -497,7 +496,7 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--kenora-primary);
   background: #FFF7F1;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 168, 140, 0.15);
+  box-shadow: 0 4px 12px rgba(181, 201, 176, 0.15);
 }
 .radio-option:active,
 .checkbox-option:active {
@@ -521,7 +520,7 @@ h1, h2, h3, h4, h5, h6 {
 .radio-option input[type="radio"]:checked {
   border-color: var(--kenora-primary);
   background: var(--kenora-primary);
-  box-shadow: 0 0 0 4px rgba(245, 168, 140, 0.2);
+  box-shadow: 0 0 0 4px rgba(181, 201, 176, 0.2);
 }
 .radio-option input[type="radio"]:checked::after {
   content: '';
@@ -540,7 +539,7 @@ h1, h2, h3, h4, h5, h6 {
 .checkbox-option input[type="checkbox"]:checked {
   border-color: var(--kenora-primary);
   background: var(--kenora-primary);
-  box-shadow: 0 0 0 4px rgba(245, 168, 140, 0.2);
+  box-shadow: 0 0 0 4px rgba(181, 201, 176, 0.2);
 }
 .checkbox-option input[type="checkbox"]:checked::after {
   content: '✓';
@@ -567,15 +566,15 @@ h1, h2, h3, h4, h5, h6 {
   padding: 18px 20px;
   font-size: 18px;
   font-weight: 600;
-  border: 2px solid var(--kenora-border);
-  border-radius: var(--kenora-radius-sm);
+  border: 1px solid var(--kenora-border);
+  border-radius: var(--kenora-radius-md);
   background: var(--kenora-white);
   color: var(--kenora-text);
 }
 .onboarding-input:focus {
   border-color: var(--kenora-primary);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(245, 168, 140, 0.15);
+  box-shadow: 0 0 0 4px rgba(181, 201, 176, 0.15);
 }
 .gestational-group {
   padding: 20px;
@@ -595,15 +594,15 @@ h1, h2, h3, h4, h5, h6 {
   padding: 16px;
   font-size: 18px;
   font-weight: 600;
-  border: 2px solid var(--kenora-border);
-  border-radius: var(--kenora-radius-sm);
+  border: 1px solid var(--kenora-border);
+  border-radius: var(--kenora-radius-md);
   background: var(--kenora-white);
   color: var(--kenora-text);
 }
 .gestational-row input:focus {
   border-color: var(--kenora-primary);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(245, 168, 140, 0.15);
+  box-shadow: 0 0 0 4px rgba(181, 201, 176, 0.15);
 }
 .nav-buttons {
   display: flex;
@@ -611,7 +610,7 @@ h1, h2, h3, h4, h5, h6 {
   gap: 16px;
   margin-top: 32px;
   padding-top: 20px;
-  border-top: 2px solid var(--kenora-border);
+  border-top: 1px solid var(--kenora-border);
 }
 .prev-btn {
   flex: 1;
@@ -620,8 +619,8 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
   background: transparent;
   color: var(--kenora-text-secondary);
-  border: 2px solid var(--kenora-border);
-  border-radius: var(--kenora-radius-sm);
+  border: 1px solid var(--kenora-border);
+  border-radius: var(--kenora-radius-md);
   cursor: pointer;
   transition: all 0.25s;
 }
@@ -638,23 +637,23 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 17px;
   font-weight: 800;
   border: none;
-  border-radius: var(--kenora-radius-sm);
+  border-radius: var(--kenora-radius-md);
   cursor: pointer;
   transition: all 0.25s;
 }
 .next-btn {
   background: var(--kenora-primary);
   color: var(--kenora-white);
-  box-shadow: 0 4px 16px rgba(245, 168, 140, 0.3);
+  box-shadow: 0 4px 16px rgba(181, 201, 176, 0.3);
 }
 .next-btn:hover {
-  background: #E8977A;
+  background: var(--kenora-primary-dark);
 }
 .next-btn:active {
   transform: scale(0.96);
 }
 .finish-btn {
-  background: var(--kenora-secondary);
+  background: var(--kenora-primary-dark);
   color: var(--kenora-white);
   box-shadow: 0 4px 16px rgba(143, 188, 181, 0.3);
 }
@@ -670,25 +669,25 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--kenora-primary);
   color: var(--kenora-white);
   border: none;
-  border-radius: var(--kenora-radius-sm);
+  border-radius: var(--kenora-radius-md);
   padding: 16px 20px;
   font-size: 17px;
   font-weight: 800;
   cursor: pointer;
   width: 100%;
-  box-shadow: 0 4px 16px rgba(245, 168, 140, 0.2);
+  box-shadow: 0 4px 16px rgba(181, 201, 176, 0.2);
 }
 .primary-button:hover {
-  background: #E8977A;
+  background: var(--kenora-primary-dark);
 }
 .primary-button:active {
   transform: scale(0.98);
 }
 .secondary-button {
-  background: var(--kenora-secondary);
+  background: var(--kenora-primary-dark);
   color: var(--kenora-white);
   border: none;
-  border-radius: var(--kenora-radius-sm);
+  border-radius: var(--kenora-radius-md);
   padding: 16px 20px;
   font-size: 17px;
   font-weight: 800;
@@ -705,14 +704,14 @@ h1, h2, h3, h4, h5, h6 {
 .info-box,
 .warning-box {
   padding: 16px 20px;
-  border-radius: var(--kenora-radius-sm);
+  border-radius: var(--kenora-radius-md);
   margin-top: 16px;
   border-left: 6px solid;
-  background: var(--kenora-card);
+  background: var(--kenora-white);
   font-weight: 600;
 }
 .info-box {
-  border-color: var(--kenora-secondary);
+  border-color: var(--kenora-primary-dark);
 }
 .warning-box {
   border-color: var(--kenora-primary);
@@ -722,7 +721,7 @@ h1, h2, h3, h4, h5, h6 {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(74, 58, 48, 0.4);
+  background: rgba(61, 51, 42, 0.4);
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -740,7 +739,7 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--kenora-white);
   max-width: 400px;
   width: 100%;
-  border-radius: var(--kenora-radius-lg) var(--kenora-radius-lg) 0 0;
+  border-radius: var(--kenora-radius-xl) var(--kenora-radius-xl) 0 0;
   padding: 24px 20px 20px;
   transform: translateY(100%);
   transition: transform 0.3s;
@@ -756,7 +755,7 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--kenora-text);
   color: var(--kenora-white);
   padding: 14px 20px;
-  border-radius: var(--kenora-radius-sm);
+  border-radius: var(--kenora-radius-md);
   font-size: 15px;
   font-weight: 600;
   text-align: center;
@@ -774,7 +773,7 @@ h1, h2, h3, h4, h5, h6 {
    KENORA 2.0: НОВЫЕ КЛАССЫ
    ============================================================ */
 
-/* ----- Прогресс (KENORA 2.0) ----- */
+/* ----- Прогресс ----- */
 .progress-kenora {
   background: var(--kenora-white);
   border-radius: var(--kenora-radius-lg);
@@ -789,18 +788,18 @@ h1, h2, h3, h4, h5, h6 {
 .progress-number-kenora {
   font-size: 22px;
   font-weight: 700;
-  color: var(--kenora-text-warm);
+  color: var(--kenora-text);
   letter-spacing: -0.5px;
   line-height: 1.1;
 }
 .progress-number-kenora span {
   font-weight: 500;
-  color: var(--kenora-text-soft);
+  color: var(--kenora-text-secondary);
 }
 .progress-label-kenora {
   font-size: 13px;
   font-weight: 500;
-  color: var(--kenora-text-soft);
+  color: var(--kenora-text-secondary);
   letter-spacing: 0.2px;
 }
 .progress-track-kenora {
@@ -814,11 +813,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 .progress-fill-kenora {
   height: 100%;
-  background: var(--kenora-primary-soft);
+  background: var(--kenora-primary);
   border-radius: var(--kenora-radius-sm);
 }
 
-/* ----- Категории (KENORA 2.0 — editorial-стиль) ----- */
+/* ----- Категории (editorial-стиль) ----- */
 .categories-kenora {
   display: flex;
   gap: 6px;
@@ -859,17 +858,17 @@ h1, h2, h3, h4, h5, h6 {
   transition: color 0.2s;
 }
 .category-kenora.active {
-  border-bottom-color: var(--kenora-primary-soft);
+  border-bottom-color: var(--kenora-primary);
 }
 .category-kenora.active .cat-icon svg {
-  stroke: var(--kenora-primary-soft);
+  stroke: var(--kenora-primary);
 }
 .category-kenora.active .cat-label {
-  color: var(--kenora-primary-soft);
+  color: var(--kenora-primary);
   font-weight: 600;
 }
 
-/* ----- Карточка продукта (обновление через существующий класс) ----- */
+/* ----- Карточка продукта (обновлённый визуал) ----- */
 .product-card {
   background: var(--kenora-white);
   border-radius: var(--kenora-radius-lg);
@@ -889,12 +888,12 @@ h1, h2, h3, h4, h5, h6 {
 .product-card .product-name {
   font-weight: 600;
   font-size: 16px;
-  color: var(--kenora-text-warm);
+  color: var(--kenora-text);
 }
 .product-card .product-status {
   font-weight: 500;
   font-size: 12px;
-  color: var(--kenora-text-soft);
+  color: var(--kenora-text-secondary);
 }
 .product-card .product-status .dot {
   display: inline-block;
@@ -904,19 +903,37 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 4px;
 }
 .product-card .product-status .dot.ok {
-  background: var(--kenora-primary-soft);
+  background: var(--kenora-primary);
 }
 .product-card .product-status .dot.wait {
-  background: var(--kenora-peach);
+  background: var(--kenora-accent);
 }
 .product-card .product-status .dot.warning {
   background: #E8C9A0;
 }
 
-/* ----- Обновление заголовка ----- */
+/* ----- Заголовок ----- */
 .header-title {
   font-weight: 600;
   font-size: 20px;
+  margin: 0;
+}
+
+/* ----- HEADER (минимальный набор) ----- */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 0 8px 0;
+  box-sizing: border-box;
+}
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* ===== АДАПТИВНОСТЬ ===== */
@@ -955,7 +972,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* ===== Products Screen (существующие стили) ===== */
+/* ===== Products Screen (старые стили, адаптированы) ===== */
 .products-screen {
   padding: 16px;
   padding-bottom: 80px;
@@ -972,8 +989,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 .product-count {
   font-size: 14px;
-  color: var(--text-secondary);
-  background: var(--bg-secondary);
+  color: var(--kenora-text-secondary);
+  background: var(--kenora-bg);
   padding: 4px 12px;
   border-radius: 20px;
 }
@@ -984,10 +1001,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   padding: 12px 16px;
   border-radius: 30px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-input);
+  border: 1px solid var(--kenora-border);
+  background: var(--kenora-white);
   font-size: 16px;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-family);
 }
 .products-filters {
   display: flex;
@@ -998,18 +1015,18 @@ h1, h2, h3, h4, h5, h6 {
 .filter-btn {
   padding: 8px 16px;
   border-radius: 30px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-card);
+  border: 1px solid var(--kenora-border);
+  background: var(--kenora-white);
   font-size: 14px;
-  font-family: 'Nunito', sans-serif;
-  color: var(--text-primary);
+  font-family: var(--font-family);
+  color: var(--kenora-text);
   cursor: pointer;
   transition: all 0.2s;
 }
 .filter-btn.active {
-  background: var(--primary-color);
+  background: var(--kenora-primary);
   color: white;
-  border-color: var(--primary-color);
+  border-color: var(--kenora-primary);
 }
 .filter-btn:hover {
   opacity: 0.8;
@@ -1019,7 +1036,7 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   gap: 12px;
 }
-/* product-card уже определён выше — используем обновлённую версию */
+/* Старые классы product-card уже обновлены выше */
 .product-card:active {
   transform: scale(0.98);
 }
@@ -1049,11 +1066,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 4px;
 }
 .highlight {
-  background: var(--bg-secondary);
+  background: var(--kenora-bg);
   padding: 2px 10px;
   border-radius: 12px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--kenora-text-secondary);
 }
 .product-badges {
   display: flex;
@@ -1065,8 +1082,8 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 11px;
   padding: 2px 10px;
   border-radius: 12px;
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
+  background: var(--kenora-bg);
+  color: var(--kenora-text-secondary);
 }
 .badge.age-ok {
   background: #d4edda;
@@ -1098,16 +1115,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 .product-arrow {
   font-size: 24px;
-  color: var(--text-secondary);
+  color: var(--kenora-text-secondary);
 }
 .empty-state {
   text-align: center;
   padding: 40px 0;
-  color: var(--text-secondary);
+  color: var(--kenora-text-secondary);
   font-size: 18px;
 }
 
-/* ===== Модалка деталей продукта ===== */
+/* ===== Модалка деталей продукта (адаптирована) ===== */
 .product-detail-modal .modal-header {
   display: flex;
   align-items: center;
@@ -1148,7 +1165,7 @@ h1, h2, h3, h4, h5, h6 {
 .modal-section {
   margin: 16px 0;
   padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--kenora-border);
 }
 .modal-section:last-child {
   border-bottom: none;
@@ -1156,7 +1173,7 @@ h1, h2, h3, h4, h5, h6 {
 .modal-section h4 {
   margin: 0 0 8px 0;
   font-size: 16px;
-  color: var(--text-primary);
+  color: var(--kenora-text);
 }
 .modal-section ul {
   margin: 8px 0;
@@ -1199,16 +1216,16 @@ h1, h2, h3, h4, h5, h6 {
 .btn-close-modal {
   padding: 12px 40px;
   border-radius: 30px;
-  background: var(--primary-color);
+  background: var(--kenora-primary);
   color: white;
   border: none;
   font-size: 16px;
-  font-family: 'Nunito', sans-serif;
+  font-family: var(--font-family);
   cursor: pointer;
 }
 .disclaimer {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--kenora-text-secondary);
   text-align: center;
 }
 @media (max-width: 480px) {
@@ -1221,10 +1238,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* ===== Переопределение для модальных окон ===== */
-/* Удалён конфликтующий блок, который принудительно задавал opacity:1 !important и pointer-events:auto !important.
-   Теперь состояние overlay управляется классом .active — базовые стили выше. */
-
+/* ===== Переключатели и фильтры (адаптированы) ===== */
 .suitable-toggle {
   margin-bottom: 16px;
   display: flex;
@@ -1234,7 +1248,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 8px 20px;
   font-size: 16px;
   background: var(--kenora-white);
-  border: 2px solid var(--kenora-border);
+  border: 1px solid var(--kenora-border);
   border-radius: 50px;
   cursor: pointer;
   font-weight: 700;
@@ -1245,7 +1259,7 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--kenora-primary);
   border-color: var(--kenora-primary);
   color: white;
-  box-shadow: 0 4px 12px rgba(245, 168, 140, 0.3);
+  box-shadow: 0 4px 12px rgba(181, 201, 176, 0.3);
 }
 .suitable-toggle .chip:active {
   transform: scale(0.96);
@@ -1257,7 +1271,7 @@ h1, h2, h3, h4, h5, h6 {
   gap: 6px;
   padding: 8px 16px;
   background: var(--kenora-white);
-  border: 2px solid var(--kenora-border);
+  border: 1px solid var(--kenora-border);
   border-radius: 50px;
   font-size: 15px;
   font-weight: 700;
