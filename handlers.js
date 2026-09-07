@@ -1103,23 +1103,9 @@ function saveFoodHandler() {
     }
     child.diary.push(entry);
 
-    // Удаляем старый глобальный STATE.diary (больше не используется)
-    // if (isNew && product?.id) { ... } – эта часть остаётся без изменений
+    // ===== УДАЛЁН СТАРЫЙ БЛОК STATE.products.introduced =====
+    // (isNewProduct больше не влияет на Product State)
 
-    if (isNew && product?.id) {
-        if (!window.STATE.products) window.STATE.products = {};
-        if (!Array.isArray(window.STATE.products.introduced)) window.STATE.products.introduced = [];
-        var exists = window.STATE.products.introduced.some(function(item) {
-            return ((typeof item === "object" ? item.id : item) === product.id);
-        });
-        if (!exists) {
-            window.STATE.products.introduced.push({
-                id: product.id,
-                name: product.name,
-                introducedAt: entry.date
-            });
-        }
-    }
     if (CURRENT_FOOD_SOURCE === "store" && brand) {
         if (!Array.isArray(window.STATE.brands)) window.STATE.brands = [];
         var brandExists = window.STATE.brands.some(function(item) {
@@ -1169,14 +1155,20 @@ function searchProductPicker(query) {
 }
 
 function openDiaryAddModal() { openAddFoodModal(); }
+
+// ===== ИСПРАВЛЕНА openDiaryEditModal: использует getDiary() =====
 function openDiaryEditModal(entryId) {
-    var entry = STATE.diary.find(function(item) { return String(item.id) === String(entryId); });
+    var diary = typeof getDiary === 'function' ? getDiary() : [];
+    var entry = diary.find(function(item) {
+        return String(item.id) === String(entryId);
+    });
     if (!entry) {
         showToast("Запись не найдена.", "error");
         return;
     }
     showToast("Редактирование записи подключим в следующем слое.", "default");
 }
+
 function openDiaryFilter() { showToast("Фильтры дневника готовы для подключения.", "default"); }
 function openDiaryCalendar() { showToast("Календарь дневника готов для подключения.", "default"); }
 
