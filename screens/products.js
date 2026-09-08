@@ -132,10 +132,9 @@
         return Math.max(0, months);
     }
 
-    // ===== ИЗМЕНЕНИЕ: БЕЗОПАСНЫЙ EVALUATE С FALLBACK =====
     function safeEvaluate(product, childId) {
         var profile = getChildProfile(childId);
-        if (!profile) return { status: 'review', reasons: ['Нет профиля ребёнка'] }; // было 'allow'
+        if (!profile) return { status: 'review', reasons: ['Нет профиля ребёнка'] };
         try {
             if (window.safetyEngine && typeof window.safetyEngine.evaluateProductSafety === 'function') {
                 var result = window.safetyEngine.evaluateProductSafety(profile, product, null);
@@ -149,7 +148,7 @@
         } catch (e) {
             console.warn('⚠️ Safety Engine error for', product.name, e);
         }
-        return { status: 'review', reasons: ['Ошибка оценки безопасности'] }; // было 'allow'
+        return { status: 'review', reasons: ['Ошибка оценки безопасности'] };
     }
 
     // ===== ПОЛУЧЕНИЕ СТАТУСА ПРОДУКТА (единый источник) =====
@@ -301,6 +300,24 @@
         return found ? found.label : catId.charAt(0).toUpperCase() + catId.slice(1);
     }
 
+    // ============================================================
+    // НОВЫЕ ФУНКЦИИ ПРОГРЕССА
+    // ============================================================
+    function getIntroducedProductsCount(childId) {
+        if (!childId || !PRODUCTS.length) return 0;
+        return PRODUCTS.filter(function(product) {
+            return getProductStatusForChild(product.id, childId) === 'introduced';
+        }).length;
+    }
+    function getProductsProgressPercent(childId) {
+        if (!childId || !PRODUCTS.length) return 0;
+        var count = getIntroducedProductsCount(childId);
+        return Math.min(
+            100,
+            Math.round((count / PRODUCTS.length) * 100)
+        );
+    }
+
     // ===== БЛОК «РЕКОМЕНДОВАНО СЕЙЧАС» УДАЛЁН =====
     // Функция renderRecommendedProducts() и все её вызовы удалены
 
@@ -427,12 +444,7 @@
         var countEl = document.getElementById('products-introduced-count');
         if (countEl) {
             var childId = getCurrentChildId();
-            var introducedCount = 0;
-            if (childId) {
-                introducedCount = PRODUCTS.filter(function(p) {
-                    return getProductStatusForChild(p.id, childId) === 'introduced';
-                }).length;
-            }
+            var introducedCount = getIntroducedProductsCount(childId);
             countEl.textContent = introducedCount;
         }
 
@@ -559,18 +571,24 @@
 
     // ===== ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРИНГА ЭКРАНА =====
     function renderProducts() {
+        var state = window.STATE || {};
+        var children = Array.isArray(state.children) ? state.children : [];
         var childId = getCurrentChildId();
-        var child = childId ? window.STATE.children.find(c => c.id === childId) : null;
-        var childName = child ? child.name : 'Ребёнок';
-        var childAge = child && childId ? getChildAgeMonths(childId) : 0;
-        var ageText = childAge > 0 ? childAge + ' мес' : '';
+        var child = childId
+            ? children.find(function(c) {
+                return c.id === childId;
+            })
+            : null;
+        var childName = child && child.name
+            ? child.name
+            : 'Ребёнок';
+        var childAgeMonths = childId
+            ? getChildAgeMonths(childId)
+            : 0;
+        var ageText = childAgeMonths > 0 ? childAgeMonths + ' мес' : '';
 
-        var introducedCount = 0;
-        if (childId) {
-            introducedCount = PRODUCTS.filter(function(p) {
-                return getProductStatusForChild(p.id, childId) === 'introduced';
-            }).length;
-        }
+        var introducedCount = getIntroducedProductsCount(childId);
+        var progressPercent = getProductsProgressPercent(childId);
 
         var statusFilter = (window.STATE && window.STATE.productsFilter) || 'all';
         var categoryFilter = (window.STATE && window.STATE.productsCategoryFilter) || null;
@@ -587,7 +605,6 @@
         html += '  </div>';
 
         // Прогресс с data-action
-        var progressPercent = PRODUCTS.length > 0 ? Math.round((introducedCount / PRODUCTS.length) * 100) : 0;
         html += '    <div class="progress-kenora" style="margin-top:8px;cursor:pointer;" data-action="show-introduced-products">';
         html += '      <div class="progress-info">';
         html += '        <div class="progress-number-kenora">' + introducedCount + ' <span>/ ' + PRODUCTS.length + '</span></div>';
@@ -673,4 +690,4 @@
     window.getProductStatusForChild = getProductStatusForChild;
 
     console.log('✅ products.js загружен (исправленный, non-module)');
-})(); и вот последний файл щас можешь сделать вы ввод по всем 4 и дать тз  на правки 
+})();
