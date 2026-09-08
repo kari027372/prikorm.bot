@@ -2347,6 +2347,7 @@ h1, h2, h3, h4, h5, h6 {
  #app::after {
      pointer-events: none;
  }
+
 /* ============================================================
    PASS 6 — Product Cards / Card Composition 2.0 (исправленный)
    Повышенная специфичность для .products-list
