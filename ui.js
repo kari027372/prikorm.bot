@@ -563,11 +563,13 @@ function showScreen(screenName) {
     document.querySelectorAll(".nav-button").forEach(button => {
         button.classList.toggle("active", button.dataset.screen === screenName);
     });
+    function showScreen(screenName) {
+    // ...
     if (STATE?.ui) STATE.ui.screen = screenName;
-    if (typeof saveState === "function") saveState();
-
-    // Единственный вызов render перед обновлением bottom-nav
+    // saveState удалён
     if (typeof render === "function") render(screenName);
+    // ...
+}
 
     // Обновление нижней навигации
     const bottomNav = document.getElementById("bottom-nav");
