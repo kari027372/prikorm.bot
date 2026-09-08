@@ -2040,3 +2040,149 @@ h1, h2, h3, h4, h5, h6 {
 .products-grid {
     gap: 18px;
 }
+/* ============================================================
+   PASS 4 — Общая композиция, iOS-полировка (поверх Pass 3)
+   ============================================================ */
+
+/* ----- 1. Общий экран ----- */
+.products-screen {
+    padding: 20px 16px 104px;
+}
+
+/* ----- 2. Header ----- */
+.screen-header {
+    margin-bottom: 22px;
+}
+.screen-header h2 {
+    font-size: 32px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.6px;
+    color: var(--kenora-text);
+}
+.product-count {
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 450;
+    color: var(--kenora-text-secondary);
+    background: rgba(255, 255, 255, 0.34);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    padding: 5px 10px;
+    border-radius: 14px;
+    box-shadow: none;
+}
+
+/* ----- 3. Поиск ----- */
+.products-search {
+    margin-bottom: 22px;
+}
+.products-search input {
+    height: 48px;
+    border-radius: 24px;
+    background: rgba(255, 250, 245, 0.58);
+    backdrop-filter: blur(14px) saturate(1.05);
+    -webkit-backdrop-filter: blur(14px) saturate(1.05);
+    border: 1px solid rgba(255, 255, 255, 0.52);
+    box-shadow: 0 4px 18px rgba(61, 51, 42, 0.04);
+}
+.products-search input::placeholder {
+    color: var(--kenora-text-muted);
+    opacity: 0.9;
+}
+
+/* ----- 4. Категории (почти невесомые) ----- */
+.categories-kenora {
+    gap: 6px;
+    margin-bottom: 20px;
+    padding-top: 2px;
+    padding-bottom: 4px;
+}
+.category-kenora {
+    padding: 5px 12px 7px;
+    border-radius: 26px;
+    background: transparent;
+}
+.category-kenora .cat-icon {
+    width: 34px;
+    height: 34px;
+}
+.category-kenora .cat-label {
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 400;
+    color: var(--kenora-text-muted);
+}
+.category-kenora.active {
+    background: rgba(181, 201, 176, 0.12);
+    backdrop-filter: blur(10px) saturate(1.05);
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 26px;
+}
+
+/* ----- 5. Сетка продуктов ----- */
+.products-grid {
+    gap: 18px;
+    padding-top: 2px;
+}
+
+/* ----- 6. Floating Add ----- */
+.floating-add {
+    background: rgba(181, 201, 176, 0.76);
+    backdrop-filter: blur(18px) saturate(1.08);
+    -webkit-backdrop-filter: blur(18px) saturate(1.08);
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow: 0 8px 28px rgba(61, 51, 42, 0.07);
+    color: var(--kenora-text);
+    font-weight: 550;
+}
+
+/* ----- 7. Bottom Navigation (только визуал, геометрия не трогается) ----- */
+.bottom-navigation {
+    background: rgba(255, 250, 245, 0.58);
+    backdrop-filter: blur(22px) saturate(1.08);
+    -webkit-backdrop-filter: blur(22px) saturate(1.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.36);
+    box-shadow: 0 -4px 20px rgba(61, 51, 42, 0.035);
+}
+.bottom-navigation .nav-item.active {
+    background: rgba(181, 201, 176, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* ----- 8. Атмосфера фона (убедимся, что opacity низкая) ----- */
+#app::before {
+    opacity: 0.25;
+}
+#app::after {
+    opacity: 0.18;
+}
+
+/* ----- 9. Mobile Polish (узкие экраны) ----- */
+@media (max-width: 400px) {
+    .products-screen {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+    .screen-header h2 {
+        font-size: 29px;
+    }
+    .products-search input {
+        height: 46px;
+    }
+    .category-kenora {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .product-card-header {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+    .product-card-body {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}
