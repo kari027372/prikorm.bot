@@ -63,8 +63,8 @@ function initApp() {
     }
 
     var screen = STATE && STATE.ui && STATE.ui.screen ? STATE.ui.screen : DEFAULT_SCREEN;
-    if (typeof showScreen === 'function') {
-        showScreen(screen);
+    if (typeof window.showScreen === 'function') {
+        window.showScreen(screen);
     } else if (typeof render === 'function') {
         render(screen);
     } else {
@@ -297,37 +297,9 @@ function buildAppShell() {
     app.innerHTML = '<div id="app-content" class="app-content"></div><div id="modal-root"></div><div id="toast-root" aria-live="polite"></div>';
 }
 
-function showScreen(screen) {
-    var validScreens = [
-        'home',
-        'products',
-        'today',
-        'diary',
-        'recipes',
-        'baby',
-        'settings',
-        'onboarding'
-    ];
-    if (!validScreens.includes(screen)) {
-        screen = DEFAULT_SCREEN;
-    }
-    if (window.STATE) {
-        STATE.ui = STATE.ui || {};
-        STATE.navigation = STATE.navigation || {};
-        STATE.ui.screen = screen;
-        STATE.navigation.currentScreen = screen;
-    }
-    if (typeof saveState === 'function') {
-        saveState();
-    }
-    if (typeof render === 'function') {
-        render(screen);
-    } else {
-        console.error('❌ render() не найден');
-    }
-    window.scrollTo({ top: 0, behavior: 'instant' });
-}
+// ===== ФУНКЦИЯ showScreen УДАЛЕНА (используется глобальная из ui.js) =====
 
+// ===== openModal (только здесь, используется ui.js) =====
 function openModal(content) {
     var root = document.getElementById('modal-root');
     if (!root) return;
@@ -335,34 +307,9 @@ function openModal(content) {
     document.body.classList.add('modal-open');
 }
 
-function closeModal() {
-    var root = document.getElementById('modal-root');
-    if (root) {
-        root.innerHTML = '';
-    }
-    document.body.classList.remove('modal-open');
-}
+// ===== closeModal УДАЛЕНА (используется глобальная из ui.js) =====
 
-function showToast(message, type) {
-    var root = document.getElementById('toast-root');
-    if (!root) {
-        console.log(message);
-        return;
-    }
-    var toast = document.createElement('div');
-    toast.className = 'toast toast-' + (type || 'default');
-    toast.textContent = message;
-    root.appendChild(toast);
-    requestAnimationFrame(function() {
-        toast.classList.add('visible');
-    });
-    setTimeout(function() {
-        toast.classList.remove('visible');
-        setTimeout(function() {
-            toast.remove();
-        }, 250);
-    }, 2800);
-}
+// ===== showToast УДАЛЕНА (используется глобальная из ui.js) =====
 
 function setBaby(data) {
     if (!window.STATE) return;
@@ -586,9 +533,8 @@ function startApplication() {
         }
     }
 
-    if (typeof render === 'function') {
-        render(screen);
-    }
+    // ===== УДАЛЕН ЛИШНИЙ render(screen) — рендер уже выполнен через showScreen =====
+    // if (typeof render === 'function') render(screen);
 
     console.log('✅ Финальный экран:', screen);
 }
@@ -601,10 +547,10 @@ if (document.readyState === 'loading') {
 
 window.initApp = initApp;
 window.startApplication = startApplication;
-window.showScreen = showScreen;
+// window.showScreen больше не экспортируется – используется из ui.js
 window.openModal = openModal;
-window.closeModal = closeModal;
-window.showToast = showToast;
+// window.closeModal больше не экспортируется – используется из ui.js
+// window.showToast больше не экспортируется – используется из ui.js
 window.setBaby = setBaby;
 window.toggleFavoriteProduct = toggleFavoriteProduct;
 window.resetState = resetState;
@@ -619,3 +565,13 @@ window.resetOnboarding = function() {
         location.reload();
     }
 };
+
+// ===== ОБРАБОТЧИК prikorm:statechange (перерисовка при смене ребёнка) =====
+window.addEventListener('prikorm:statechange', function() {
+    var currentScreen = window.STATE?.ui?.screen || 'home';
+    if (typeof window.showScreen === 'function') {
+        window.showScreen(currentScreen);
+    } else if (typeof render === 'function') {
+        render(currentScreen);
+    }
+});
