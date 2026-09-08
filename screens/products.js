@@ -132,9 +132,10 @@
         return Math.max(0, months);
     }
 
+    // ===== ИЗМЕНЕНИЕ: БЕЗОПАСНЫЙ EVALUATE С FALLBACK =====
     function safeEvaluate(product, childId) {
         var profile = getChildProfile(childId);
-        if (!profile) return { status: 'allow', reasons: [] };
+        if (!profile) return { status: 'review', reasons: ['Нет профиля ребёнка'] }; // было 'allow'
         try {
             if (window.safetyEngine && typeof window.safetyEngine.evaluateProductSafety === 'function') {
                 var result = window.safetyEngine.evaluateProductSafety(profile, product, null);
@@ -148,7 +149,7 @@
         } catch (e) {
             console.warn('⚠️ Safety Engine error for', product.name, e);
         }
-        return { status: 'allow', reasons: [] };
+        return { status: 'review', reasons: ['Ошибка оценки безопасности'] }; // было 'allow'
     }
 
     // ===== ПОЛУЧЕНИЕ СТАТУСА ПРОДУКТА (единый источник) =====
@@ -668,8 +669,8 @@
     window.updateProductsList = updateProductsList;
     window.renderProducts = renderProducts;
     window.openProductFiltersModal = openProductFiltersModal;
-    window.updateChipsActiveState = updateChipsActiveState; // ДОБАВЛЕН ЭКСПОРТ
-    window.getProductStatusForChild = getProductStatusForChild; // ДОБАВЛЕНО
+    window.updateChipsActiveState = updateChipsActiveState;
+    window.getProductStatusForChild = getProductStatusForChild;
 
     console.log('✅ products.js загружен (исправленный, non-module)');
-})();
+})(); и вот последний файл щас можешь сделать вы ввод по всем 4 и дать тз  на правки 
