@@ -2375,12 +2375,12 @@ h1, h2, h3, h4, h5, h6 {
     console.log('❌ Для удаления выполните: document.getElementById("pass6-test-style").remove();');
 })();
 /* ============================================================
-   PASS 6 — Product Cards / Card Composition 2.0
-   Финальный override для композиции карточки и списка.
+   PASS 6 — Product Cards / Card Composition 2.0 (исправленный)
+   Повышенная специфичность для .products-list
    ============================================================ */
 
 /* ----- 1. Список продуктов (одна колонка) ----- */
-.products-list {
+.products-screen .products-list {
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -2498,7 +2498,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ----- 11. Адаптив до 400px ----- */
 @media (max-width: 400px) {
-    .products-list {
+    .products-screen .products-list {
         gap: 12px;
     }
     .product-card-header {
