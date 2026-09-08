@@ -1,6 +1,5 @@
 /* ============================================================
-   ui.js – финальная адаптированная версия
-   (без импортов, использует только существующие глобальные объекты)
+   ui.js – финальная адаптированная версия (без импортов, использует только существующие глобальные объекты)
    ============================================================ */
 
 const UI = {
@@ -27,9 +26,9 @@ function icon(name) {
     const icons = {
         home: "⌂",
         today: "☀️",
-        products: "🥑",
+        products: "📋",
         diary: "📖",
-        recipes: "🍲",
+        recipes: "🍳",
         baby: "👶",
         plus: "+",
         search: "⌕",
@@ -58,13 +57,14 @@ function icon(name) {
 function buildApp() {
     const root = document.getElementById("app") || document.body;
     root.innerHTML = `
-        <div id="prikorm-app" class="prikorm-app">
-            <main id="app-content" class="app-content"></main>
-            <nav id="bottom-nav" class="bottom-nav"></nav>
-            <div id="modal-root" class="modal-root"></div>
-            <div id="toast-root" class="toast-root"></div>
+        <div id="prikorm-app">
+            <div id="app-content"></div>
+            <div id="toast-root"></div>
+            <div id="modal-root"></div>
+            <div id="bottom-nav"></div>
         </div>
     `;
+
     UI.app = document.getElementById("prikorm-app");
     UI.screens = {
         home: createHomeScreen(),
@@ -74,35 +74,34 @@ function buildApp() {
         recipes: createRecipesScreen(),
         baby: createBabyScreen()
     };
+
     Object.values(UI.screens).forEach(screen =>
         document.getElementById("app-content").appendChild(screen)
     );
+
     // showScreen(STATE?.ui?.screen || "home"); // УДАЛЕН (экран показывает initApp)
+
     return UI.app;
 }
 
 // Функция navButton оставлена для совместимости, но НЕ используется для построения bottom navigation
 function navButton(id, label, iconName) {
     return `
-        <button type="button" class="nav-button" data-action="navigate" data-screen="${id}">
-            <span class="nav-icon">${icon(iconName)}</span>
-            <span class="nav-label">${label}</span>
+        <button class="nav-button" data-screen="${id}">
+            ${icon(iconName)}
+            ${label}
         </button>
     `;
 }
 
 function createHeader({ title = "", subtitle = "", back = false, action = "", actionLabel = "" } = {}) {
     return `
-        <header class="screen-header">
-            <div class="header-left">
-                ${back ? `<button type="button" class="icon-button" data-action="back">${icon("back")}</button>` : ""}
-                <div>
-                    <h1>${escapeHTML(title)}</h1>
-                    ${subtitle ? `<p>${escapeHTML(subtitle)}</p>` : ""}
-                </div>
-            </div>
-            ${action ? `<button type="button" class="header-action" data-action="${action}">${actionLabel || icon("plus")}</button>` : ""}
-        </header>
+        <div class="screen-header">
+            ${back ? `<button class="back-btn" data-action="navigate" data-target="home">${icon("back")}</button>` : ""}
+            <h2>${escapeHTML(title)}</h2>
+            ${subtitle ? `<p class="subtitle">${escapeHTML(subtitle)}</p>` : ""}
+            ${action ? `<button class="action-btn" data-action="${action}">${actionLabel || icon("plus")}</button>` : ""}
+        </div>
     `;
 }
 
@@ -116,62 +115,65 @@ function createHomeScreen() {
     section.className = "screen";
     section.innerHTML = `
         ${createHeader({ title: "Прикорм", subtitle: "Спокойно, понятно, по шагам" })}
-        <div class="home-content">
-            <section class="baby-card" data-action="open-baby">
-                <div class="baby-avatar">👶</div>
-                <div class="baby-info">
-                    <span class="eyebrow">Малыш</span>
-                    <strong id="home-baby-name">Ваш малыш</strong>
-                    <span id="home-baby-age">Заполните профиль</span>
-                </div>
-                <span class="card-arrow">${icon("arrow")}</span>
-            </section>
-            <section class="today-card">
-                <div class="section-heading">
-                    <div>
-                        <span class="eyebrow">Сегодня</span>
-                        <h2>План прикорма</h2>
-                    </div>
-                    <button type="button" class="text-button" data-action="navigate" data-screen="today">Открыть</button>
-                </div>
-                <div id="home-today-preview" class="today-preview">
-                    ${emptyState("☀️", "Пока ничего не запланировано", "Откройте «Сегодня», чтобы посмотреть рекомендации.")}
-                </div>
-            </section>
-            <div class="quick-actions">
-                ${quickAction("🥑", "Добавить продукт", "add-food")}
-                ${quickAction("📖", "Записать в дневник", "add-diary")}
-                ${quickAction("🍲", "Найти рецепт", "navigate", "recipes")}
-                ${quickAction("👶", "Профиль малыша", "open-baby")}
+
+        <div class="home-baby-card" data-action="navigate" data-target="baby">
+            <div class="baby-avatar">👶</div>
+            <div class="baby-info">
+                <span class="baby-name" id="home-baby-name">Малыш</span>
+                <span class="baby-age" id="home-baby-age">Заполните профиль</span>
             </div>
-            <section class="home-section">
-                <div class="section-heading"><h2>Быстрый доступ</h2></div>
-                <div class="feature-grid">
-                    ${featureCard("🥕", "Новые продукты", "Что можно попробовать", "products-new")}
-                    ${featureCard("⚠️", "Безопасность", "Аллергены и ограничения", "safety")}
-                    ${featureCard("❤️", "Любимые", "Что нравится малышу", "favorites")}
-                    ${featureCard("📊", "Мой дневник", "История прикорма", "navigate", "diary")}
-                </div>
-            </section>
+            ${icon("arrow")}
+        </div>
+
+        <div class="home-today-preview" data-action="navigate" data-target="today">
+            <div class="preview-header">
+                <span class="preview-title">Сегодня</span>
+                <span class="preview-action">Открыть ${icon("arrow")}</span>
+            </div>
+            <div class="preview-content">
+                <h3>План прикорма</h3>
+                ${emptyState("☀️", "Пока ничего не запланировано", "Откройте «Сегодня», чтобы посмотреть рекомендации.")}
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            ${quickAction("🍽️", "Добавить продукт", "add-food")}
+            ${quickAction("📝", "Записать в дневник", "add-diary")}
+            ${quickAction("🔍", "Найти рецепт", "navigate", "recipes")}
+            ${quickAction("👶", "Профиль малыша", "open-baby")}
+        </div>
+
+        <div class="home-features">
+            <h3>Быстрый доступ</h3>
+            ${featureCard("🌱", "Новые продукты", "Что можно попробовать", "products-new")}
+            ${featureCard("⚠️", "Безопасность", "Аллергены и ограничения", "safety")}
+            ${featureCard("❤️", "Любимые", "Что нравится малышу", "favorites")}
+            ${featureCard("📖", "Мой дневник", "История прикорма", "navigate", "diary")}
         </div>
     `;
     return section;
 }
 
 function quickAction(emoji, label, action, value = "") {
-    return `<button type="button" class="quick-action" data-action="${action}" ${value ? `data-screen="${value}"` : ""}>
-        <span class="quick-action-icon">${emoji}</span>
-        <span>${label}</span>
-    </button>`;
+    return `
+        <button class="quick-action" data-action="${action}" data-value="${value}">
+            <span class="qa-emoji">${emoji}</span>
+            <span class="qa-label">${label}</span>
+        </button>
+    `;
 }
 
 function featureCard(emoji, title, subtitle, action, value = "") {
-    return `<button type="button" class="feature-card" data-action="${action}" ${value ? `data-screen="${value}"` : ""}>
-        <span class="feature-icon">${emoji}</span>
-        <span class="feature-title">${title}</span>
-        <span class="feature-subtitle">${subtitle}</span>
-        <span class="feature-arrow">${icon("arrow")}</span>
-    </button>`;
+    return `
+        <div class="feature-card" data-action="${action}" data-value="${value}">
+            <div class="fc-emoji">${emoji}</div>
+            <div class="fc-content">
+                <div class="fc-title">${title}</div>
+                <div class="fc-subtitle">${subtitle}</div>
+            </div>
+            ${icon("arrow")}
+        </div>
+    `;
 }
 
 function createTodayScreen() {
@@ -180,18 +182,21 @@ function createTodayScreen() {
     section.className = "screen";
     section.innerHTML = `
         ${createHeader({ title: "Сегодня", subtitle: "Ваш план прикорма" })}
-        <div class="screen-body">
-            <div class="date-selector">
-                <button type="button" class="icon-button" data-action="previous-day">‹</button>
-                <button type="button" class="date-main" data-action="select-date">
-                    <span id="today-date">Сегодня</span>
-                    <small>Нажмите, чтобы выбрать дату</small>
-                </button>
-                <button type="button" class="icon-button" data-action="next-day">›</button>
-            </div>
-            <div id="daily-plan" class="daily-plan">${loadingState()}</div>
-            <button type="button" class="floating-add" data-action="add-food">${icon("plus")}<span>Добавить</span></button>
+
+        <div class="today-date-selector">
+            <button class="date-nav" data-action="today-prev">‹</button>
+            <span class="today-date">Сегодня</span>
+            <button class="date-nav" data-action="today-next">›</button>
+            <span class="today-date-hint">Нажмите, чтобы выбрать дату</span>
         </div>
+
+        <div id="today-content">
+            ${loadingState()}
+        </div>
+
+        <button class="fab-today" data-action="add-diary">
+            ${icon("plus")}Добавить
+        </button>
     `;
     return section;
 }
@@ -205,19 +210,34 @@ function createDiaryScreen() {
     section.className = "screen";
     section.innerHTML = `
         ${createHeader({ title: "Дневник", subtitle: "История питания" })}
-        <div class="screen-body">
-            <div class="diary-summary" id="diary-summary">
-                <div class="summary-item"><strong id="diary-total">0</strong><span>записей</span></div>
-                <div class="summary-item"><strong id="diary-products">0</strong><span>продуктов</span></div>
-                <div class="summary-item"><strong id="diary-reactions">0</strong><span>реакций</span></div>
+
+        <div class="diary-stats">
+            <div class="stat-item">
+                <span class="stat-value">0</span>
+                <span class="stat-label">записей</span>
             </div>
-            <div class="diary-filters">
-                <button type="button" class="filter-button" data-action="diary-filter">${icon("filter")}Фильтр</button>
-                <button type="button" class="filter-button" data-action="diary-calendar">${icon("calendar")}По дате</button>
+            <div class="stat-item">
+                <span class="stat-value">0</span>
+                <span class="stat-label">продуктов</span>
             </div>
-            <div id="diary-list" class="diary-list">${emptyState("📖", "Дневник пока пуст", "Добавьте первый приём пищи.")}</div>
-            <button type="button" class="floating-add" data-action="add-diary">${icon("plus")}<span>Записать</span></button>
+            <div class="stat-item">
+                <span class="stat-value">0</span>
+                <span class="stat-label">реакций</span>
+            </div>
         </div>
+
+        <div class="diary-toolbar">
+            <button class="toolbar-btn" data-action="filter-diary">${icon("filter")}Фильтр</button>
+            <button class="toolbar-btn" data-action="sort-diary">${icon("calendar")}По дате</button>
+        </div>
+
+        <div id="diary-list">
+            ${emptyState("📭", "Дневник пока пуст", "Добавьте первый приём пищи.")}
+        </div>
+
+        <button class="fab-diary" data-action="add-diary">
+            ${icon("plus")}Записать
+        </button>
     `;
     return section;
 }
@@ -228,26 +248,31 @@ function createRecipesScreen() {
     section.className = "screen";
     section.innerHTML = `
         ${createHeader({ title: "Рецепты", subtitle: "Идеи для малыша" })}
-        <div class="screen-body">
-            <div class="search-box">
-                <span>${icon("search")}</span>
-                <input id="recipe-search" type="search" placeholder="Найти рецепт..." autocomplete="off" />
-            </div>
-            <div class="horizontal-scroll">
-                ${categoryChip("all", "Все", true)}
-                ${categoryChip("breakfast", "🌞 Завтрак")}
-                ${categoryChip("lunch", "🍲 Обед")}
-                ${categoryChip("dinner", "🌙 Ужин")}
-                ${categoryChip("snack", "🍌 Перекус")}
-            </div>
-            <div id="recipes-list" class="recipes-list">${loadingState()}</div>
+
+        <div class="recipes-search">
+            <input type="text" placeholder="Поиск рецептов..." id="recipes-search-input">
+            ${icon("search")}
+        </div>
+
+        <div class="recipes-categories">
+            ${categoryChip("all", "Все", true)}
+            ${categoryChip("breakfast", "🍳 Завтрак")}
+            ${categoryChip("lunch", "🥗 Обед")}
+            ${categoryChip("dinner", "🍲 Ужин")}
+            ${categoryChip("snack", "🍎 Перекус")}
+        </div>
+
+        <div id="recipes-list">
+            ${loadingState()}
         </div>
     `;
     return section;
 }
 
 function categoryChip(id, label, active = false) {
-    return `<button type="button" class="category-chip ${active ? "active" : ""}" data-action="product-category" data-category="${id}">${label}</button>`;
+    return `
+        <button class="chip ${active ? 'active' : ''}" data-category="${id}">${label}</button>
+    `;
 }
 
 function createBabyScreen() {
@@ -256,36 +281,39 @@ function createBabyScreen() {
     section.className = "screen";
     section.innerHTML = `
         ${createHeader({ title: "Малыш", subtitle: "Профиль и настройки", back: true })}
-        <div class="screen-body">
-            <section class="profile-hero">
-                <div class="profile-avatar">👶</div>
-                <div><h2 id="profile-name">Ваш малыш</h2><p id="profile-age">Заполните данные</p></div>
-                <button type="button" class="icon-button" data-action="edit-baby">${icon("edit")}</button>
-            </section>
-            <section class="settings-group">
-                <h3>Прикорм</h3>
-                ${settingsRow("📅", "Дата начала прикорма", "prikorm-start")}
-                ${settingsRow("🥛", "Тип кормления", "feeding-type")}
-                ${settingsRow("🍽️", "Подход к прикорму", "approach")}
-                ${settingsRow("✓", "Готовность к прикорму", "readiness")}
-            </section>
-            <section class="settings-group">
-                <h3>Настройки</h3>
-                ${settingsRow("🔔", "Уведомления", "notifications")}
-                ${settingsRow("🎨", "Оформление", "theme")}
-            </section>
-            <button type="button" class="danger-button" data-action="reset-data">Сбросить данные</button>
+
+        <div class="baby-profile-card">
+            <div class="baby-avatar-large">👶</div>
+            <div class="baby-profile-name" id="profile-name">Ваш малыш</div>
+            <div class="baby-profile-age" id="profile-age">Заполните данные</div>
+            <button class="edit-profile-btn" data-action="edit-baby">${icon("edit")} Редактировать</button>
+        </div>
+
+        <div class="baby-settings">
+            <h3>Прикорм</h3>
+            ${settingsRow("📅", "Дата начала прикорма", "prikorm-start")}
+            ${settingsRow("🍼", "Тип кормления", "feeding-type")}
+            ${settingsRow("🥄", "Подход к прикорму", "approach")}
+            ${settingsRow("✅", "Готовность к прикорму", "readiness")}
+
+            <h3>Настройки</h3>
+            ${settingsRow("🔔", "Уведомления", "notifications")}
+            ${settingsRow("🎨", "Оформление", "theme")}
+
+            <button class="danger-btn" data-action="reset-data">🗑 Сбросить данные</button>
         </div>
     `;
     return section;
 }
 
 function settingsRow(emoji, title, action) {
-    return `<button type="button" class="settings-row" data-action="settings" data-setting="${action}">
-        <span class="settings-icon">${emoji}</span>
-        <span class="settings-title">${title}</span>
-        <span class="settings-arrow">${icon("arrow")}</span>
-    </button>`;
+    return `
+        <div class="settings-row" data-action="${action}">
+            <span class="sr-emoji">${emoji}</span>
+            <span class="sr-title">${title}</span>
+            ${icon("arrow")}
+        </div>
+    `;
 }
 
 /* ============================================================
@@ -294,23 +322,23 @@ function settingsRow(emoji, title, action) {
 
 // Карта категорий → эмодзи (fallback)
 const categoryEmojiMap = {
-    'Овощи': '🥦',
+    'Овощи': '🥕',
     'Фрукты': '🍎',
     'Крупы': '🌾',
-    'Мясо': '🍗',
+    'Мясо': '🥩',
     'Рыба': '🐟',
     'Молочные': '🥛',
     'Аллергены': '⚠️',
-    'Другое': '🍽'
+    'Другое': '📦'
 };
 
-const invalidEmojis = ['🤰😂'];
+const invalidEmojis = ['', '❓', '?'];
 
 function getProductEmoji(product) {
     if (product.emoji && !invalidEmojis.includes(product.emoji)) {
         return product.emoji;
     }
-    return categoryEmojiMap[product.category] || '🍽';
+    return categoryEmojiMap[product.category] || '🍽️';
 }
 
 // Получить возраст ребёнка в месяцах
@@ -343,6 +371,7 @@ function getCategoryGroups() {
 function evaluateProductSafetySafe(product, childId) {
     const child = STATE.children.find(c => c.id === childId);
     if (!child) return { decision: 'allow', reason: '' };
+
     if (window.safetyEngine && typeof window.safetyEngine.evaluateProductSafety === 'function') {
         try {
             const result = window.safetyEngine.evaluateProductSafety(child, product, null);
@@ -365,6 +394,7 @@ function renderProductCard(product, childId) {
 
     let statusText = '○ Ещё не введён';
     let statusClass = 'status-not-introduced';
+
     if (introduced) {
         statusText = '✅ Введён';
         statusClass = 'status-introduced';
@@ -378,24 +408,26 @@ function renderProductCard(product, childId) {
 
     let warningBadge = '';
     if (safety.decision === 'caution') {
-        warningBadge = `<span class="badge badge-caution">⚠️ ${safety.reason || 'С осторожностью'}</span>`;
+        warningBadge = `⚠️ ${safety.reason || 'С осторожностью'}`;
     } else if (safety.decision === 'review') {
-        warningBadge = `<span class="badge badge-review">ℹ️ ${safety.reason || 'Требует внимания'}</span>`;
+        warningBadge = `ℹ️ ${safety.reason || 'Требует внимания'}`;
     }
 
     let actionButton = '';
     if (!introduced && !excluded) {
-        actionButton = `<button class="btn-primary" data-action="add-product-intro" data-product-id="${product.id}">＋ Ввести продукт</button>`;
+        actionButton = `＋ Ввести продукт`;
     } else {
-        actionButton = `<span class="status-label ${statusClass}">${statusText}</span>`;
+        actionButton = `${statusText}`;
     }
 
     return `
-        <div class="card product-card" data-action="select-product" data-product-id="${product.id}">
+        <div class="product-card" data-product-id="${product.id}">
             <div class="product-card-header">
-                <span class="product-emoji">${emoji}</span>
-                <h3 class="product-name">${escapeHTML(product.name)}</h3>
-                ${warningBadge}
+                <div class="product-emoji">${emoji}</div>
+                <div class="product-info">
+                    <div class="product-name">${escapeHTML(product.name)}</div>
+                    ${warningBadge ? `<div class="product-warning">${warningBadge}</div>` : ''}
+                </div>
             </div>
             <div class="product-card-body">
                 <div class="product-meta">
@@ -403,8 +435,10 @@ function renderProductCard(product, childId) {
                     ${ageLabel ? `<span class="product-age">${ageLabel}</span>` : ''}
                 </div>
                 <div class="product-actions">
-                    ${actionButton}
-                    <button class="btn-icon" data-action="show-product-menu" data-product-id="${product.id}">⋯</button>
+                    <button class="btn-primary" data-action="introduce-product" data-product-id="${product.id}">
+                        ${actionButton}
+                    </button>
+                    <button class="btn-more" data-action="product-menu" data-product-id="${product.id}">⋯</button>
                 </div>
             </div>
         </div>
@@ -419,12 +453,11 @@ function renderCategoryGrid() {
     const groups = getCategoryGroups();
     return groups
         .map(cat => {
-            const emoji = categoryEmojiMap[cat] || '📂';
+            const emoji = categoryEmojiMap[cat] || '';
             return `
-                <div class="category-kenora" data-action="filter-products" data-category="${cat}">
-                    <span class="cat-icon">${emoji}</span>
-                    <span class="cat-label">${escapeHTML(cat)}</span>
-                </div>
+                <button class="category-chip" data-category="${escapeHTML(cat)}">
+                    ${emoji} ${escapeHTML(cat)}
+                </button>
             `;
         })
         .join('');
@@ -437,9 +470,9 @@ function updateProductsList() {
         console.warn('Нет активного ребёнка');
         return;
     }
+
     const products = window.PRODUCTS || [];
     const age = getChildAgeMonths(childId);
-
     let filtered = products;
 
     // Статус
@@ -450,7 +483,8 @@ function updateProductsList() {
         });
     } else if (STATE.productsFilter === 'introduced') {
         filtered = filtered.filter(p =>
-            typeof isProductIntroduced === 'function' && isProductIntroduced(childId, p.id)
+            typeof isProductIntroduced === 'function' &&
+            isProductIntroduced(childId, p.id)
         );
     }
 
@@ -471,13 +505,21 @@ function updateProductsList() {
     const searchQuery = window.CURRENT_PRODUCT_SEARCH || '';
     if (searchQuery) {
         const q = searchQuery.toLowerCase();
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+        filtered = filtered.filter(p =>
+            p.name.toLowerCase().includes(q)
+        );
     }
 
     const container = document.getElementById('products-list');
     if (container) {
         if (filtered.length === 0) {
-            container.innerHTML = `<p class="text-secondary">Нет продуктов, соответствующих фильтрам.</p>`;
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-emoji">🔍</span>
+                    <h3>Нет продуктов</h3>
+                    <p>Нет продуктов, соответствующих фильтрам.</p>
+                </div>
+            `;
         } else {
             container.innerHTML = filtered.map(p => renderProductCard(p, childId)).join('');
         }
@@ -487,7 +529,8 @@ function updateProductsList() {
     const countEl = document.getElementById('products-introduced-count');
     if (countEl) {
         const introducedCount = products.filter(p =>
-            typeof isProductIntroduced === 'function' && isProductIntroduced(childId, p.id)
+            typeof isProductIntroduced === 'function' &&
+            isProductIntroduced(childId, p.id)
         ).length;
         countEl.textContent = introducedCount;
     }
@@ -509,10 +552,12 @@ function updateChipsActiveState() {
         const filter = chip.dataset.filter;
         chip.classList.toggle('active', filter === STATE.productsFilter);
     });
+
     document.querySelectorAll('#category-filters .chip').forEach(chip => {
         const cat = chip.dataset.category || '';
         chip.classList.toggle('active', cat === (STATE.productsCategoryFilter || ''));
     });
+
     document.querySelectorAll('#age-filters .chip').forEach(chip => {
         const age = chip.dataset.age || '';
         chip.classList.toggle('active', age === (STATE.productsAgeFilter || ''));
@@ -530,46 +575,69 @@ function productCard(product, status) {
    ============================================================ */
 
 function loadingState() {
-    return `<div class="loading-state"><div class="loading-spinner"></div><span>Загружаем...</span></div>`;
+    return `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Загружаем...</p>
+        </div>
+    `;
 }
 
 function emptyState(emoji, title, text) {
-    return `<div class="empty-state"><div class="empty-state-icon">${emoji}</div><h3>${escapeHTML(title)}</h3><p>${escapeHTML(text)}</p></div>`;
+    return `
+        <div class="empty-state">
+            <span class="empty-emoji">${emoji}</span>
+            <h3>${escapeHTML(title)}</h3>
+            <p>${escapeHTML(text)}</p>
+        </div>
+    `;
 }
 
 function showToast(message, type = "default") {
     const root = document.getElementById("toast-root");
     if (!root) return;
-    root.innerHTML = `<div class="toast toast-${type}">${type === "success" ? "✓" : type === "error" ? "⚠️" : "ℹ️"}<span>${escapeHTML(message)}</span></div>`;
+
+    root.innerHTML = `
+        <div class="toast ${type}">
+            <span class="toast-icon">${type === "success" ? "✓" : type === "error" ? "⚠️" : "ℹ️"}</span>
+            <span class="toast-message">${escapeHTML(message)}</span>
+        </div>
+    `;
+
     clearTimeout(UI.toastTimer);
-    UI.toastTimer = setTimeout(() => { root.innerHTML = ""; }, 3000);
+    UI.toastTimer = setTimeout(() => {
+        root.innerHTML = "";
+    }, 3000);
 }
 
 /* ============================================================
    ОСНОВНАЯ showScreen (с поддержкой Products 2.0)
    ============================================================ */
+
 function showScreen(screenName) {
     // Products не в UI.screens, но должен работать через screens/products.js
     const isProductsScreen = screenName === "products";
+
     if (
         (!UI.screens || !UI.screens[screenName]) &&
         !isProductsScreen
     ) {
         screenName = "home";
     }
+
     Object.entries(UI.screens).forEach(([name, element]) => {
         element.classList.toggle("active", name === screenName);
     });
+
     document.querySelectorAll(".nav-button").forEach(button => {
         button.classList.toggle("active", button.dataset.screen === screenName);
     });
-    function showScreen(screenName) {
-    // ...
+
     if (STATE?.ui) STATE.ui.screen = screenName;
-    // saveState удалён
+    if (typeof saveState === "function") saveState();
+
+    // Единственный вызов render перед обновлением bottom-nav
     if (typeof render === "function") render(screenName);
-    // ...
-}
 
     // Обновление нижней навигации
     const bottomNav = document.getElementById("bottom-nav");
@@ -581,14 +649,17 @@ function showScreen(screenName) {
 function updateProfileUI() {
     const baby = typeof getBaby === "function" ? getBaby() : STATE?.baby;
     if (!baby) return;
+
     const name = baby.name || "Ваш малыш";
     const age = baby.ageMonths != null ? `${baby.ageMonths} мес.` : "Заполните профиль";
+
     const fields = {
         "home-baby-name": name,
         "profile-name": name,
         "home-baby-age": age,
         "profile-age": age
     };
+
     Object.entries(fields).forEach(([id, value]) => {
         const element = document.getElementById(id);
         if (element) element.textContent = value;
@@ -613,66 +684,100 @@ function openAddFoodModal(product = null) {
     // Убрали data-action="close-modal" с overlay, оставили только на крестике
     root.innerHTML = `
         <div class="modal-overlay">
-            <div class="modal-sheet" data-modal-content>
+            <div class="modal-content">
                 <div class="modal-header">
-                    <div>
-                        <span class="eyebrow">Новый приём пищи</span>
-                        <h2>Добавить продукт</h2>
-                    </div>
-                    <button type="button" class="icon-button" data-action="close-modal">${icon("close")}</button>
+                    <h2>Новый приём пищи</h2>
+                    <button class="modal-close" data-action="close-modal">${icon("close")}</button>
                 </div>
                 <div class="modal-body">
-                    ${product ? `
-                        <div class="selected-product">
-                            <span>${product.emoji || "🥣"}</span>
-                            <strong>${escapeHTML(product.name)}</strong>
-                            <input type="hidden" id="food-product-id" value="${escapeHTML(product.id)}" />
-                        </div>
-                    ` : `
-                        <label class="form-label">
-                            Продукт
-                            <button type="button" class="select-field" data-action="choose-product">
-                                <span id="selected-product-label">Выберите продукт</span>
-                                <span>${icon("arrow")}</span>
+                    <div class="form-group">
+                        <label>Добавить продукт</label>
+                        ${product ? `
+                            <div class="selected-product" data-product-id="${product.id}">
+                                <span class="sp-emoji">${product.emoji || ""}</span>
+                                <span class="sp-name">${escapeHTML(product.name)}</span>
+                            </div>
+                        ` : `
+                            <button class="product-picker-btn" data-action="open-picker">
+                                <span class="ppb-icon">🔍</span>
+                                Выберите продукт
+                                ${icon("arrow")}
                             </button>
-                            <input type="hidden" id="food-product-id" value="" />
+                        `}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Как приготовили?</label>
+                        <div class="btn-group">
+                            <button class="btn-option" data-value="homemade">🏠 Приготовила сама</button>
+                            <button class="btn-option" data-value="store">🛒 Купила</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Бренд</label>
+                        <input type="text" placeholder="Название продукта" class="form-input">
+                        <input type="text" placeholder="Объём упаковки" class="form-input" style="width:80px">
+                        <span>г</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Состав</label>
+                        <button class="btn-secondary">📷 Сфотографировать этикетку</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Способ приготовления</label>
+                        <div class="btn-group">
+                            <button class="btn-option" data-value="boil">Варила</button>
+                            <button class="btn-option" data-value="steam">На пару</button>
+                            <button class="btn-option" data-value="bake">Запекала</button>
+                            <button class="btn-option" data-value="other">Другое</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Сколько съел?</label>
+                        <input type="number" placeholder="0" class="form-input" style="width:80px">
+                        <span>г</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Форма</label>
+                        <div class="btn-group">
+                            <button class="btn-option" data-value="puree">Пюре</button>
+                            <button class="btn-option" data-value="mashed">Размятое</button>
+                            <button class="btn-option" data-value="soft">Мягкие кусочки</button>
+                            <button class="btn-option" data-value="finger">Finger food</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Понравилось?</label>
+                        <div class="btn-group">
+                            <button class="btn-option" data-value="like">❤️ Понравилось</button>
+                            <button class="btn-option" data-value="dislike">👎 Не понравилось</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Заметка</label>
+                        <textarea class="form-textarea" placeholder="Ваши заметки..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked> Это новый продукт для малыша
                         </label>
-                    `}
-                    <div class="source-selector">
-                        <span class="form-label-title">Как приготовили?</span>
-                        <div class="segmented-control">
-                            <button type="button" class="segment active" data-action="food-source" data-source="homemade">🏠 Приготовила сама</button>
-                            <button type="button" class="segment" data-action="food-source" data-source="store">🛒 Купила</button>
-                        </div>
                     </div>
-                    <div id="store-fields" class="conditional-fields" hidden>
-                        <label class="form-label">Бренд <input id="food-brand" type="text" placeholder="Например, Gerber" autocomplete="off" /></label>
-                        <label class="form-label">Название продукта <input id="food-product-title" type="text" placeholder="Например, Яблоко" /></label>
-                        <label class="form-label">Объём упаковки <div class="input-with-unit"><input id="food-package-size" type="number" min="0" placeholder="80" /><span>г</span></div></label>
-                        <label class="form-label">Состав <textarea id="food-ingredients" rows="3" placeholder="Можно переписать с упаковки"></textarea></label>
-                        <button type="button" class="secondary-button" data-action="scan-label">📷 Сфотографировать этикетку</button>
-                    </div>
-                    <div id="homemade-fields" class="conditional-fields">
-                        <label class="form-label">Способ приготовления <select id="food-preparation"><option value="">Выберите</option><option value="boiled">Варила</option><option value="steam">На пару</option><option value="baked">Запекала</option><option value="other">Другое</option></select></label>
-                    </div>
-                    <div class="form-row">
-                        <label class="form-label">Сколько съел? <div class="input-with-unit"><input id="food-amount" type="number" min="0" step="1" placeholder="Не обязательно" /><span>г</span></div></label>
-                        <label class="form-label">Форма <select id="food-form"><option value="">Выберите</option><option value="puree">Пюре</option><option value="mashed">Размятое</option><option value="soft">Мягкие кусочки</option><option value="finger-food">Finger food</option></select></label>
-                    </div>
-                    <div class="form-label">
-                        <span class="form-label-title">Понравилось?</span>
-                        <div class="like-selector">
-                            <button type="button" class="like-option" data-action="set-liked" data-liked="true">❤️ Понравилось</button>
-                            <button type="button" class="like-option" data-action="set-liked" data-liked="false">🙅🏻‍♀️ Не понравилось</button>
-                        </div>
-                    </div>
-                    <label class="form-label">Заметка <textarea id="food-notes" rows="3" placeholder="Например: ел с удовольствием"></textarea></label>
-                    <label class="checkbox-row"><input id="food-new-product" type="checkbox" checked /><span>Это новый продукт для малыша</span></label>
-                    <button type="button" class="primary-button full-width" data-action="save-food">Добавить в дневник</button>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-primary" data-action="save-diary">Добавить в дневник</button>
                 </div>
             </div>
         </div>
     `;
+
     UI.modal = root;
 }
 
@@ -680,17 +785,20 @@ function openProductPicker() {
     const root = document.getElementById("modal-root");
     root.innerHTML = `
         <div class="modal-overlay">
-            <div class="modal-sheet large" data-modal-content>
+            <div class="modal-content">
                 <div class="modal-header">
-                    <div><h2>Выберите продукт</h2><p>Можно найти в базе</p></div>
-                    <button type="button" class="icon-button" data-action="close-modal">${icon("close")}</button>
+                    <h2>Выберите продукт</h2>
+                    <p class="modal-subtitle">Можно найти в базе</p>
+                    <button class="modal-close" data-action="close-modal">${icon("close")}</button>
                 </div>
                 <div class="modal-body">
                     <div class="search-box">
-                        <span>${icon("search")}</span>
-                        <input id="picker-search" type="search" placeholder="Поиск..." autocomplete="off" />
+                        <input type="text" placeholder="Поиск продуктов..." id="picker-search" oninput="renderProductPicker(this.value)">
+                        ${icon("search")}
                     </div>
-                    <div id="picker-products" class="products-list">${loadingState()}</div>
+                    <div id="picker-products">
+                        ${loadingState()}
+                    </div>
                 </div>
             </div>
         </div>
@@ -702,20 +810,24 @@ function openProductPicker() {
 function renderProductPicker(query) {
     const container = document.getElementById('picker-products');
     if (!container) return;
+
     const products = window.PRODUCTS || [];
     const q = (query || '').trim().toLowerCase();
     const filtered = q ? products.filter(p => p.name.toLowerCase().includes(q)) : products;
+
     if (!filtered.length) {
-        container.innerHTML = emptyState('🥑', 'Ничего не найдено', 'Попробуйте изменить запрос');
+        container.innerHTML = emptyState('🔍', 'Ничего не найдено', 'Попробуйте изменить запрос');
         return;
     }
+
     // Используем data-action="choose-picker-product" для выбора продукта в дневник
     container.innerHTML = filtered.map(p => `
-        <button class="picker-product" data-action="choose-picker-product" data-product-id="${p.id}" style="display:flex; align-items:center; gap:12px; width:100%; padding:12px; border:none; background:transparent; border-bottom:1px solid #eee; cursor:pointer; text-align:left;">
-            <span style="font-size:24px;">${p.emoji || '🥣'}</span>
-            <div style="flex:1;"><strong>${escapeHTML(p.name)}</strong><br><span style="font-size:13px; color:#888;">${p.cat || ''}</span></div>
-            <span>›</span>
-        </button>
+        <div class="picker-item" data-action="choose-picker-product" data-product-id="${p.id}">
+            <span class="pi-emoji">${p.emoji || '🍽️'}</span>
+            <span class="pi-name">${escapeHTML(p.name)}</span>
+            <span class="pi-category">${p.cat || ''}</span>
+            <span class="pi-arrow">›</span>
+        </div>
     `).join('');
 }
 
@@ -725,18 +837,25 @@ function renderProductPicker(query) {
 /* ============================================================
    НОВАЯ ФУНКЦИЯ: getDiary() — возвращает записи дневника текущего ребёнка
    ============================================================ */
+
 function getDiary() {
     var childId = window.STATE.currentChildId;
     if (!childId) return [];
-    var child = window.STATE.children.find(function(c) { return c.id === childId; });
+    var child = window.STATE.children.find(function(c) {
+        return c.id === childId;
+    });
     return child && Array.isArray(child.diary) ? child.diary : [];
 }
 
 /* ============================================================
    НОВАЯ ФУНКЦИЯ: showProductMenu — меню действий с продуктом
    ============================================================ */
+
 window.showProductMenu = function(productId) {
-    var product = (window.PRODUCTS || []).find(function(p) { return p.id === productId; });
+    var product = (window.PRODUCTS || []).find(function(p) {
+        return p.id === productId;
+    });
+
     if (!product) {
         if (typeof window.showToast === 'function') {
             window.showToast('Продукт не найден', 'error');
@@ -750,56 +869,27 @@ window.showProductMenu = function(productId) {
     var isExcluded = (status === 'parentExcluded');
 
     var menuHtml = `
-        <div class="modal-sheet" style="max-width:400px;margin:0 auto;background:var(--kenora-white);border-radius:var(--kenora-radius-xl) var(--kenora-radius-xl) 0 0;">
-            <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--kenora-border);">
-                <h2 style="font-size:20px;font-weight:600;margin:0;color:var(--kenora-text);">${escapeHTML(product.name)}</h2>
-                <button class="btn-close-modal" data-action="close-modal" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--kenora-text-secondary);padding:4px 8px;">×</button>
+        <div class="modal-overlay" data-action="close-modal">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h2>${escapeHTML(product.name)}</h2>
+                    <button class="modal-close" data-action="close-modal">${icon("close")}</button>
+                </div>
+                <div class="modal-body">
+                    <div class="product-menu-actions">
+                        ${!isIntroduced ? `<button class="menu-item" data-action="introduce-product" data-product-id="${product.id}">✅ Ввести продукт</button>` : ''}
+                        ${!isExcluded ? `<button class="menu-item" data-action="exclude-product" data-product-id="${product.id}">🚫 Исключить</button>` : ''}
+                        ${isExcluded ? `<button class="menu-item" data-action="unexclude-product" data-product-id="${product.id}">↩️ Вернуть</button>` : ''}
+                        <button class="menu-item" data-action="view-product-details" data-product-id="${product.id}">📋 Подробнее</button>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body" style="padding:16px 20px;display:flex;flex-direction:column;gap:8px;">
-                <button class="btn-primary" data-action="select-product" data-product-id="${productId}" style="width:100%;text-align:center;">📖 Посмотреть подробности</button>
+        </div>
     `;
-    if (!isIntroduced && !isExcluded) {
-        menuHtml += `<button class="btn-primary" data-action="add-product-intro" data-product-id="${productId}" style="width:100%;text-align:center;background:var(--kenora-primary);">✅ Отметить как введённый</button>`;
-    }
-    if (window.productStateService && typeof window.productStateService.setStatus === 'function') {
-        if (!isExcluded) {
-            menuHtml += `<button class="btn-secondary" data-action="exclude-product" data-product-id="${productId}" style="width:100%;text-align:center;">🚫 Исключить</button>`;
-        } else {
-            menuHtml += `<button class="btn-secondary" data-action="include-product" data-product-id="${productId}" style="width:100%;text-align:center;">↩️ Вернуть</button>`;
-        }
-    }
-    menuHtml += `</div></div>`;
 
-    if (typeof window.openModal === 'function') {
-        window.openModal(menuHtml);
-    } else {
-        var modalRoot = document.getElementById('modal-root');
-        if (modalRoot) {
-            modalRoot.innerHTML = '<div class="modal-overlay active" style="align-items:center;justify-content:center;">' + menuHtml + '</div>';
-        }
+    var root = document.getElementById('modal-root');
+    if (root) {
+        root.innerHTML = menuHtml;
+        UI.modal = root;
     }
 };
-
-/* ============================================================
-   ГЛОБАЛЬНЫЕ ФУНКЦИИ (экспорт)
-   ============================================================ */
-window.UI = UI;
-window.buildApp = buildApp;
-window.showScreen = showScreen;
-window.updateProfileUI = updateProfileUI;
-window.openAddFoodModal = openAddFoodModal;
-window.openProductPicker = openProductPicker;
-window.closeModal = closeModal;
-window.showToast = showToast;
-window.productCard = productCard;
-window.diaryCard = diaryCard;
-window.emptyState = emptyState;
-window.loadingState = loadingState;
-window.escapeHTML = escapeHTML;
-window.renderProductPicker = renderProductPicker;
-window.updateProductsList = updateProductsList;
-// window.renderRecommendedProducts = renderRecommendedProducts; // УДАЛЕН
-window.renderCategoryGrid = renderCategoryGrid;
-window.renderProductCard = renderProductCard;
-window.getDiary = getDiary;
-// window.showProductMenu уже определён выше как глобальный
