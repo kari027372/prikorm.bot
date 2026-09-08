@@ -39,18 +39,21 @@
 
         // ===== НАВИГАЦИЯ =====
         if (action === 'navigate' && screen) {
-            if (typeof window.navigateTo === 'function') {
-                window.navigateTo(screen);
-            } else if (typeof window.renderScreen === 'function') {
-                window.renderScreen(screen);
-            } else if (typeof window.showScreen === 'function') {
-                window.showScreen(screen);
-            } else {
-                console.warn('Неизвестная функция навигации, screen:', screen);
-            }
-            return;
+    if (typeof window.navigateTo === 'function') {
+        window.navigateTo(screen);
+    } else if (typeof window.renderScreen === 'function') {
+        window.renderScreen(screen);
+    } else if (typeof window.showScreen === 'function') {
+        window.showScreen(screen);
+        // Сохраняем состояние после переключения экрана
+        if (typeof window.saveState === 'function') {
+            window.saveState();
         }
-
+    } else {
+        console.warn('Неизвестная функция навигации, screen:', screen);
+    }
+    return;
+}
         // ===== ОСТАЛЬНЫЕ ДЕЙСТВИЯ =====
         switch (action) {
             // ===== ПРОДУКТЫ =====
