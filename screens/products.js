@@ -268,7 +268,7 @@
         if (showIntroButton) {
             actionButton = '<button class="btn-primary" data-action="add-product-intro" data-product-id="' + product.id + '">＋ Ввести продукт</button>';
         } else {
-            actionButton = '<span class="product-status"><span class="' + statusDotClass + '"></span> ' + statusText + '</span>';
+            actionButton = '<span class="product-status ' + statusClass + '"><span class="' + statusDotClass + '"></span> ' + statusText + '</span>';
         }
 
         var escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) {
