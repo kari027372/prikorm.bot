@@ -1,13 +1,371 @@
 /* ============================================================
-   KENORA 2.0 — PRODUCTS SCREEN (финальный, чистый, scoped)
+   KENORA 2.0 — PRODUCTS SCREEN (финальный визуал)
+   Живой фон + матовые карточки + иерархия стекла
    ============================================================ */
 
-/* ----- 1. Общий контейнер ----- */
+/* ----- 1. Общий контейнер (основа для псевдоэлементов) ----- */
 .products-screen {
     padding: 20px 16px 104px;
+    position: relative;
+    overflow: hidden; /* чтобы псевдоэлементы не вылезали за границы */
 }
 
-/* ----- 2. Header (имя + возраст) ----- */
+/* ----- 2. Атмосферный фон (три размытые органические формы) ----- */
+.products-screen::before,
+.products-screen::after,
+.products-screen .bg-shape {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Форма 1: керамическая миска (sage) */
+.products-screen::before {
+    width: 600px;
+    height: 600px;
+    top: -180px;
+    right: -200px;
+    background: radial-gradient(circle at 30% 20%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.25) 40%, transparent 70%);
+    filter: blur(140px);
+    opacity: 0.5;
+}
+
+/* Форма 2: ложка (peach) */
+.products-screen::after {
+    width: 350px;
+    height: 350px;
+    bottom: -80px;
+    left: -120px;
+    background: radial-gradient(circle at 70% 80%, var(--kenora-accent) 0%, rgba(245, 217, 200, 0.2) 50%, transparent 70%);
+    filter: blur(120px);
+    opacity: 0.4;
+}
+
+/* Форма 3: органический элемент (лист/овощ) — добавляем через дополнительный псевдоэлемент, но у нас уже есть ::before и ::after,
+   поэтому используем отдельный элемент, который создадим через JS? Нет, лучше использовать дополнительный :before на другом уровне.
+   Поскольку мы можем использовать только два псевдоэлемента, можно добавить ещё один слой через box-shadow или создать отдельный элемент,
+   но мы не можем менять HTML. Поэтому сделаем форму через радиальный градиент на самом .products-screen с использованием background:
+   но тогда он будет под контентом. Можно использовать псевдоэлемент .products-screen::before и ::after, а третью форму добавить через
+   дополнительный псевдоэлемент на .products-screen .products-list, но это может быть сложно. Проще: добавим третью форму через
+   ::before на .products-screen .products-list (список продуктов) — он тоже находится внутри .products-screen, и его псевдоэлемент будет
+   позади карточек. Но это может нарушить иерархию. Альтернатива: использовать два псевдоэлемента, но сделать один из них более сложным
+   с несколькими радиальными градиентами, чтобы имитировать несколько форм. Давайте так и сделаем: в ::before объединим две формы (миска + лист)
+   с помощью нескольких радиальных градиентов. Это безопасно. */
+.products-screen::before {
+    background:
+        radial-gradient(circle at 30% 20%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.25) 40%, transparent 70%),
+        radial-gradient(circle at 80% 70%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.15) 30%, transparent 60%);
+    /* первая — миска, вторая — лист/органическая форма */
+    filter: blur(140px);
+    opacity: 0.5;
+}
+
+/* Ложка остаётся в ::after */
+.products-screen::after {
+    background: radial-gradient(circle at 70% 80%, var(--kenora-accent) 0%, rgba(245, 217, 200, 0.2) 50%, transparent 70%);
+    filter: blur(120px);
+    opacity: 0.4;
+}
+
+/* Контент поверх фона */
+.products-screen .products-header,
+.products-screen .search-box,
+.products-screen .suitable-toggle,
+.products-screen .filter-trigger,
+.products-screen .categories-kenora,
+.products-screen .products-list {
+    position: relative;
+    z-index: 1;
+}
+
+/* ----- 3. Карточка продукта (матовое светлое стекло, отдельное от фона) ----- */
+.products-screen .product-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+    background: rgba(255, 248, 242, 0.78); /* более плотный ivory, чтобы выделяться */
+    backdrop-filter: blur(16px) saturate(1.05);
+    -webkit-backdrop-filter: blur(16px) saturate(1.05);
+    border: 0.5px solid rgba(255, 255, 255, 0.7);
+    border-radius: 24px;
+    box-shadow: 0 6px 24px rgba(61, 51, 42, 0.05), 0 1px 4px rgba(61, 51, 42, 0.02);
+    transition: transform .18s ease, box-shadow .18s ease;
+    z-index: 1;
+}
+.products-screen .product-card:active {
+    transform: scale(0.99);
+    box-shadow: 0 4px 16px rgba(61, 51, 42, 0.03);
+}
+
+/* ----- 4. Emoji — более выраженный frosted-glass (отдельный объект) ----- */
+.products-screen .product-card .product-emoji {
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    line-height: 1;
+    border-radius: 18px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(20px) saturate(1.1);
+    -webkit-backdrop-filter: blur(20px) saturate(1.1);
+    border: 0.5px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 2px 12px rgba(61, 51, 42, 0.02);
+}
+
+/* ----- 5. Внутренние элементы (чистый текст, без стекла) ----- */
+.products-screen .product-card .product-name {
+    min-width: 0;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.2px;
+    overflow-wrap: anywhere;
+    color: var(--kenora-text);
+}
+.products-screen .product-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+    min-height: 18px;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--kenora-text-secondary);
+    opacity: 0.9;
+}
+.products-screen .product-category,
+.products-screen .product-age {
+    font-size: 13px;
+    font-weight: 450;
+    color: var(--kenora-text-secondary);
+}
+.products-screen .product-category + .product-age::before {
+    content: "·";
+    margin-right: 6px;
+    color: var(--kenora-text-muted);
+}
+
+/* Highlights — очень лёгкие, почти плоские */
+.products-screen .product-highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+.products-screen .highlight {
+    background: rgba(181, 201, 176, 0.08);
+    border: 0.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 400;
+    color: var(--kenora-text-secondary);
+}
+
+/* Badges — почти плоские мягкие акценты (без стекла) */
+.products-screen .product-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+.products-screen .product-badges .badge {
+    background: rgba(255, 255, 255, 0.15);
+    border: 0.5px solid rgba(255, 255, 255, 0.25);
+    border-radius: 14px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--kenora-text-secondary);
+    box-shadow: none;
+}
+.products-screen .badge.age-ok {
+    background: rgba(181, 201, 176, 0.15);
+    color: var(--kenora-primary-dark);
+}
+.products-screen .badge.age-not {
+    background: rgba(245, 217, 200, 0.15);
+    color: var(--kenora-text-secondary);
+}
+.products-screen .badge.allergen {
+    background: rgba(245, 160, 160, 0.08);
+    color: #B06A6A;
+}
+.products-screen .badge.iron {
+    background: rgba(150, 200, 220, 0.08);
+    color: #3A7A8A;
+}
+.products-screen .badge.omega {
+    background: rgba(200, 200, 230, 0.08);
+    color: #5A5A8A;
+}
+.products-screen .badge.choking {
+    background: rgba(245, 200, 150, 0.08);
+    color: #8A6A3A;
+}
+.products-screen .badge.commercial {
+    background: rgba(200, 200, 200, 0.06);
+    color: #5A5A5A;
+}
+
+/* Статус — translucent pill (небольшой стеклянный акцент) */
+.products-screen .product-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px) saturate(1.04);
+    -webkit-backdrop-filter: blur(8px) saturate(1.04);
+    border: 0.5px solid rgba(255, 255, 255, 0.25);
+    color: var(--kenora-text-secondary);
+}
+.products-screen .product-status .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.products-screen .product-status.status-introduced .dot {
+    background: var(--kenora-primary);
+}
+.products-screen .product-status.status-introduced {
+    background: rgba(181, 201, 176, 0.12);
+    color: var(--kenora-primary-dark);
+}
+.products-screen .product-status.status-suspected .dot {
+    background: #E8C9A0;
+}
+.products-screen .product-status.status-suspected {
+    background: rgba(245, 217, 200, 0.15);
+    color: #8A6A3A;
+}
+.products-screen .product-status.status-allergy .dot {
+    background: #D16A6A;
+}
+.products-screen .product-status.status-allergy {
+    background: rgba(245, 160, 160, 0.08);
+    color: #B06A6A;
+}
+.products-screen .product-status.status-excluded .dot {
+    background: #A99D92;
+}
+.products-screen .product-status.status-excluded {
+    background: rgba(200, 190, 180, 0.06);
+    color: #7A6B5E;
+}
+.products-screen .product-status.status-planned .dot {
+    background: #A9B8D1;
+}
+.products-screen .product-status.status-planned {
+    background: rgba(200, 210, 230, 0.08);
+    color: #5A6A8A;
+}
+.products-screen .product-status.status-not-introduced .dot {
+    background: #C0B8B0;
+}
+.products-screen .product-status.status-not-introduced {
+    background: rgba(200, 190, 180, 0.04);
+    color: var(--kenora-text-muted);
+}
+
+/* CTA — спокойный muted sage, НЕ стеклянная */
+.products-screen .product-actions .btn-primary {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: 18px;
+    background: rgba(181, 201, 176, 0.2);
+    border: 0.5px solid rgba(255, 255, 255, 0.3);
+    color: var(--kenora-text);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.05px;
+    box-shadow: 0 2px 12px rgba(181, 201, 176, 0.04);
+    transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+.products-screen .product-actions .btn-primary:active {
+    transform: scale(0.97);
+    background: rgba(181, 201, 176, 0.3);
+}
+
+/* ⋯ — лёгкий translucent control (может иметь небольшой glass) */
+.products-screen .product-actions .btn-icon {
+    flex: 0 0 42px;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(6px) saturate(1.03);
+    -webkit-backdrop-filter: blur(6px) saturate(1.03);
+    border: 0.5px solid rgba(255, 255, 255, 0.25);
+    color: var(--kenora-text-secondary);
+    font-size: 19px;
+    line-height: 1;
+    transition: transform .16s ease, background-color .16s ease;
+}
+.products-screen .product-actions .btn-icon:active {
+    transform: scale(0.93);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* ----- 6. Остальные элементы интерфейса (лёгкий glass, но не конкурируют с карточками) ----- */
+.products-screen .search-box {
+    background: rgba(255, 252, 248, 0.5);
+    backdrop-filter: blur(12px) saturate(1.05);
+    -webkit-backdrop-filter: blur(12px) saturate(1.05);
+    border: 0.5px solid rgba(255, 255, 255, 0.5);
+    border-radius: 28px;
+    box-shadow: 0 2px 14px rgba(61, 51, 42, 0.03);
+}
+.products-screen .progress-kenora {
+    background: rgba(255, 250, 245, 0.5);
+    backdrop-filter: blur(12px) saturate(1.05);
+    -webkit-backdrop-filter: blur(12px) saturate(1.05);
+    border: 0.5px solid rgba(255, 255, 255, 0.5);
+    border-radius: 18px;
+    box-shadow: 0 2px 14px rgba(61, 51, 42, 0.03);
+}
+.products-screen .suitable-toggle .chip,
+.products-screen .filter-trigger {
+    background: rgba(255, 252, 248, 0.4);
+    backdrop-filter: blur(8px) saturate(1.05);
+    -webkit-backdrop-filter: blur(8px) saturate(1.05);
+    border: 0.5px solid rgba(255, 255, 255, 0.4);
+}
+.products-screen .floating-add {
+    background: rgba(181, 201, 176, 0.6);
+    backdrop-filter: blur(12px) saturate(1.06);
+    -webkit-backdrop-filter: blur(12px) saturate(1.06);
+    border: 0.5px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 20px rgba(61, 51, 42, 0.04);
+}
+
+/* ----- 7. Заголовок, категории, список (без изменений, но с z-index) ----- */
 .products-screen .products-header {
     display: flex;
     justify-content: space-between;
@@ -31,167 +389,6 @@
     color: var(--kenora-text-secondary);
 }
 
-/* ----- 3. Progress (компактный glass) ----- */
-.products-screen .progress-kenora {
-    background: var(--kenora-glass-bg-light);
-    backdrop-filter: blur(var(--kenora-glass-blur-soft)) saturate(var(--kenora-glass-saturate));
-    -webkit-backdrop-filter: blur(var(--kenora-glass-blur-soft)) saturate(var(--kenora-glass-saturate));
-    border-radius: var(--kenora-radius-lg);
-    box-shadow: var(--kenora-glass-shadow);
-    border: 1px solid var(--kenora-glass-border-light);
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    cursor: pointer;
-}
-.products-screen .progress-kenora .progress-info {
-    display: flex;
-    flex-direction: column;
-}
-.products-screen .progress-kenora .progress-number-kenora {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--kenora-text);
-    letter-spacing: -0.5px;
-    line-height: 1.1;
-}
-.products-screen .progress-kenora .progress-number-kenora span {
-    font-weight: 500;
-    color: var(--kenora-text-secondary);
-}
-.products-screen .progress-kenora .progress-label-kenora {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--kenora-text-secondary);
-    letter-spacing: 0.2px;
-}
-.products-screen .progress-kenora .progress-track-kenora {
-    width: 80px;
-    height: 4px;
-    background: var(--kenora-primary-light);
-    border-radius: var(--kenora-radius-sm);
-    overflow: hidden;
-    flex-shrink: 0;
-    margin-left: 12px;
-}
-.products-screen .progress-kenora .progress-fill-kenora {
-    height: 100%;
-    background: var(--kenora-primary);
-    border-radius: var(--kenora-radius-sm);
-}
-
-/* ----- 4. Поиск ----- */
-.products-screen .search-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    width: 100%;
-    background: rgba(255,250,245,.72);
-    border: 1px solid rgba(255,255,255,.62);
-    border-radius: 24px;
-    padding: 0 16px;
-    box-shadow: 0 3px 12px rgba(61,51,42,.025);
-}
-.products-screen .search-box span {
-    font-size: 18px;
-    opacity: 0.6;
-    flex-shrink: 0;
-}
-.products-screen .search-box input {
-    flex: 1;
-    height: 48px;
-    min-height: 48px;
-    border: none;
-    background: transparent;
-    font-size: 16px;
-    color: var(--kenora-text);
-    outline: none;
-    padding: 0;
-    font-family: var(--font-family);
-}
-.products-screen .search-box input::placeholder {
-    color: var(--kenora-text-muted);
-    opacity: .9;
-}
-.products-screen .search-box input:focus-visible {
-    outline: none;
-}
-.products-screen .search-box .clear-search {
-    background: none;
-    border: none;
-    font-size: 18px;
-    color: var(--kenora-text-muted);
-    cursor: pointer;
-    padding: 4px;
-    opacity: 0.5;
-    transition: opacity 0.2s;
-    flex-shrink: 0;
-}
-.products-screen .search-box .clear-search:hover {
-    opacity: 1;
-}
-
-/* ----- 5. Подходит ребёнку (toggle) ----- */
-.products-screen .suitable-toggle {
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: center;
-}
-.products-screen .suitable-toggle .chip {
-    padding: 8px 20px;
-    font-size: 16px;
-    background: var(--kenora-glass-bg-light);
-    backdrop-filter: blur(8px) saturate(1.05);
-    -webkit-backdrop-filter: blur(8px) saturate(1.05);
-    border: 1px solid var(--kenora-glass-border-light);
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 700;
-    color: var(--kenora-text-secondary);
-    transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
-}
-.products-screen .suitable-toggle .chip.active {
-    background: rgba(181, 201, 176, 0.2);
-    backdrop-filter: blur(8px) saturate(1.1);
-    -webkit-backdrop-filter: blur(8px) saturate(1.1);
-    border-color: var(--kenora-primary);
-    color: var(--kenora-primary);
-    box-shadow: 0 4px 16px rgba(181, 201, 176, 0.15);
-}
-.products-screen .suitable-toggle .chip:active {
-    transform: scale(0.96);
-}
-
-/* ----- 6. Фильтр (вторичный pill) ----- */
-.products-screen .filter-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 20px;
-    background: var(--kenora-glass-bg-light);
-    backdrop-filter: blur(var(--kenora-glass-blur-soft)) saturate(var(--kenora-glass-saturate));
-    -webkit-backdrop-filter: blur(var(--kenora-glass-blur-soft)) saturate(var(--kenora-glass-saturate));
-    border: 1px solid var(--kenora-glass-border-light);
-    border-radius: var(--kenora-radius-pill);
-    box-shadow: var(--kenora-glass-shadow);
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--kenora-text-secondary);
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
-    width: fit-content;
-    margin: 0 0 16px 0;
-}
-.products-screen .filter-trigger:active {
-    transform: scale(0.96);
-    background: var(--kenora-bg);
-}
-
-/* ----- 7. Категории (горизонтальная навигация с SVG) ----- */
 .products-screen .categories-kenora {
     display: flex;
     gap: 8px;
@@ -212,7 +409,7 @@
     padding: 6px 10px 8px;
     border-radius: 24px;
     background: transparent;
-    border: 1px solid transparent;
+    border: 0.5px solid transparent;
     min-width: 52px;
     cursor: pointer;
     transition: background-color .18s ease, border-color .18s ease;
@@ -243,10 +440,11 @@
     transition: color 0.2s, font-weight 0.2s;
 }
 .products-screen .category-kenora.active {
-    background: rgba(181,201,176,.12);
-    border-color: rgba(181,201,176,.14);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    background: rgba(181, 201, 176, 0.15);
+    backdrop-filter: blur(8px) saturate(1.05);
+    -webkit-backdrop-filter: blur(8px) saturate(1.05);
+    border-color: rgba(181, 201, 176, 0.2);
+    border-radius: 24px;
 }
 .products-screen .category-kenora.active .cat-icon svg {
     stroke: var(--kenora-primary);
@@ -255,8 +453,10 @@
     color: var(--kenora-primary-dark);
     font-weight: 500;
 }
+.products-screen .category-kenora:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
 
-/* ----- 8. Заголовок раздела «Все продукты» ----- */
 .products-screen .products-list-section .h2 {
     margin: 0 0 12px 0;
     font-size: 18px;
@@ -266,340 +466,45 @@
     color: var(--kenora-text);
 }
 
-/* ----- 9. Список продуктов (вертикальный) ----- */
 .products-screen .products-list {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
     width: 100%;
 }
 
-/* ----- 10. Карточка продукта (информационная, не магазин) ----- */
-.products-screen .product-card {
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-    overflow: hidden;
-    position: relative;
-    background: rgba(255,252,248,.82);
-    border: 1px solid rgba(255,255,255,.72);
-    box-shadow: 0 6px 20px rgba(61,51,42,.045), 0 1px 4px rgba(61,51,42,.025);
-    border-radius: 22px;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    transition: transform .18s ease, box-shadow .18s ease;
-}
-.products-screen .product-card:active {
-    transform: scale(.992);
-}
-
-/* ----- 11. Верх карточки (grid: emoji | название | warning) ----- */
 .products-screen .product-card-header {
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr) auto;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: 12px;
-    padding: 14px 16px 8px;
+    column-gap: 14px;
+    padding: 16px 18px 10px;
     min-width: 0;
 }
-
-/* ----- 12. Emoji (glass-акцент) ----- */
-.products-screen .product-card .product-emoji {
-    width: 48px;
-    min-width: 48px;
-    height: 48px;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    line-height: 1;
-    border-radius: 16px;
-    box-sizing: border-box;
-    background: rgba(255,255,255,.50);
-    border: 1px solid rgba(255,255,255,.62);
-    backdrop-filter: blur(10px) saturate(1.04);
-    -webkit-backdrop-filter: blur(10px) saturate(1.04);
-}
-
-/* ----- 13. Название продукта ----- */
-.products-screen .product-card .product-name {
-    min-width: 0;
-    margin: 0;
-    font-size: 17px;
-    line-height: 1.2;
-    font-weight: 650;
-    letter-spacing: -0.2px;
-    overflow-wrap: anywhere;
-    color: var(--kenora-text);
-}
-
-/* ----- 14. Warning-бейдж внутри header ----- */
-.products-screen .product-card-header .badge {
-    max-width: 150px;
-    min-width: 0;
-    box-sizing: border-box;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    line-height: 1.2;
-    font-size: 11px;
-    font-weight: 500;
-    border-radius: 11px;
-    padding: 4px 8px;
-}
-
-/* ----- 15. Тело карточки ----- */
 .products-screen .product-card-body {
-    padding: 2px 16px 14px;
+    padding: 4px 18px 16px;
     min-width: 0;
 }
-
-/* ----- 16. Meta (категория · возраст) ----- */
-.products-screen .product-meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 2px;
-    min-height: 18px;
-    font-size: 12px;
-    line-height: 1.3;
-    color: var(--kenora-text-secondary);
-    opacity: 0.92;
-}
-.products-screen .product-category,
-.products-screen .product-age {
-    font-size: 12px;
-    font-weight: 450;
-    color: var(--kenora-text-secondary);
-}
-.products-screen .product-category + .product-age::before {
-    content: "·";
-    margin-right: 6px;
-    color: var(--kenora-text-muted);
-}
-
-/* ----- 17. Highlights (мягкие чипсы) ----- */
-.products-screen .product-highlights {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
-}
-.products-screen .highlight {
-    background: rgba(181,201,176,.08);
-    border: 1px solid rgba(181,201,176,.10);
-    color: var(--kenora-text-secondary);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    padding: 4px 9px;
-    border-radius: 11px;
-    font-size: 11px;
-    line-height: 1.2;
-    font-weight: 400;
-}
-
-/* ----- 18. Информационные badges (маленькие, без glass) ----- */
-.products-screen .product-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
-}
-.products-screen .product-badges .badge {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
-    font-weight: 500;
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 11px;
-    line-height: 1.1;
-    border: 1px solid rgba(255,255,255,.30);
-}
-.products-screen .badge.age-ok {
-    background: rgba(181,201,176,.20);
-    color: var(--kenora-primary-dark);
-}
-.products-screen .badge.age-not {
-    background: rgba(245,217,200,.20);
-    color: var(--kenora-text-secondary);
-}
-.products-screen .badge.allergen {
-    background: rgba(245,160,160,.12);
-    color: #B06A6A;
-}
-.products-screen .badge.iron {
-    background: rgba(150,200,220,.12);
-    color: #3A7A8A;
-}
-.products-screen .badge.omega {
-    background: rgba(200,200,230,.12);
-    color: #5A5A8A;
-}
-.products-screen .badge.choking {
-    background: rgba(245,200,150,.12);
-    color: #8A6A3A;
-}
-.products-screen .badge.commercial {
-    background: rgba(200,200,200,.10);
-    color: #5A5A5A;
-}
-
-/* ----- 19. Статусы (вместо кнопки) ----- */
-.products-screen .product-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.3;
-    background: rgba(200,190,180,0.15);
-    color: var(--kenora-text-secondary);
-    border: 1px solid rgba(255,255,255,0.30);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-.products-screen .product-status .dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-.products-screen .product-status.status-introduced .dot {
-    background: var(--kenora-primary);
-}
-.products-screen .product-status.status-introduced {
-    background: rgba(181,201,176,0.15);
-    color: var(--kenora-primary-dark);
-}
-.products-screen .product-status.status-suspected .dot {
-    background: #E8C9A0;
-}
-.products-screen .product-status.status-suspected {
-    background: rgba(245,217,200,0.20);
-    color: #8A6A3A;
-}
-.products-screen .product-status.status-allergy .dot {
-    background: #D16A6A;
-}
-.products-screen .product-status.status-allergy {
-    background: rgba(245,160,160,0.12);
-    color: #B06A6A;
-}
-.products-screen .product-status.status-excluded .dot {
-    background: #A99D92;
-}
-.products-screen .product-status.status-excluded {
-    background: rgba(200,190,180,0.10);
-    color: #7A6B5E;
-}
-.products-screen .product-status.status-planned .dot {
-    background: #A9B8D1;
-}
-.products-screen .product-status.status-planned {
-    background: rgba(200,210,230,0.12);
-    color: #5A6A8A;
-}
-.products-screen .product-status.status-not-introduced .dot {
-    background: #C0B8B0;
-}
-.products-screen .product-status.status-not-introduced {
-    background: rgba(200,190,180,0.08);
-    color: var(--kenora-text-muted);
-}
-
-/* ----- 20. Действия (кнопка и ⋯) ----- */
 .products-screen .product-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding-top: 10px;
-}
-.products-screen .product-actions .btn-primary {
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: 40px;
-    padding: 8px 16px;
-    border-radius: 15px;
-    background: rgba(181,201,176,.24);
-    border: 1px solid rgba(255,255,255,.36);
-    color: var(--kenora-text);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: -0.05px;
-    box-shadow: 0 3px 12px rgba(181,201,176,.08);
-    transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
-}
-.products-screen .product-actions .btn-primary:active {
-    transform: scale(.98);
-}
-.products-screen .product-actions .btn-icon {
-    flex: 0 0 40px;
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border-radius: 14px;
-    background: rgba(255,255,255,.30);
-    border: 1px solid rgba(255,255,255,.38);
-    color: var(--kenora-text-secondary);
-    font-size: 18px;
-    line-height: 1;
-    transition: transform .16s ease, background-color .16s ease;
-}
-.products-screen .product-actions .btn-icon:active {
-    transform: scale(.94);
+    padding-top: 12px;
 }
 
-/* ----- 21. Floating Add (фиксированный) ----- */
-.products-screen .floating-add {
-    position: fixed;
-    right: 16px;
-    bottom: calc(76px + env(safe-area-inset-bottom));
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 18px;
-    background: rgba(181,201,176,.82);
-    border: 1px solid rgba(255,255,255,.55);
-    box-shadow: 0 7px 22px rgba(61,51,42,.065);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    color: var(--kenora-text);
-    font-weight: 600;
-    border-radius: var(--kenora-radius-pill);
-    z-index: 90;
-    cursor: pointer;
-    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
-}
-.products-screen .floating-add:active {
-    transform: scale(0.96);
-    background: rgba(143,175,159,0.9);
-}
-
-/* ----- 22. Интерактивные состояния (hover, focus, reduced-motion) ----- */
+/* ----- 8. Интерактивные состояния (hover, focus, reduced-motion) ----- */
 @media (hover: hover) and (pointer: fine) {
     .products-screen .product-actions .btn-primary:hover {
-        box-shadow: 0 4px 14px rgba(61,51,42,.06);
+        box-shadow: 0 4px 18px rgba(61, 51, 42, 0.06);
     }
     .products-screen .product-actions .btn-icon:hover {
-        background: rgba(255,255,255,.42);
-    }
-    .products-screen .category-kenora:hover {
-        background: rgba(255,255,255,.20);
+        background: rgba(255, 255, 255, 0.4);
     }
 }
 .products-screen .search-box input:focus-visible,
 .products-screen .product-actions button:focus-visible {
-    outline: 2px solid rgba(143,188,181,.45);
+    outline: 2px solid rgba(143, 188, 181, 0.45);
     outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -612,7 +517,7 @@
     }
 }
 
-/* ----- 23. Адаптив 375–390px ----- */
+/* ----- 9. Адаптив до 400px (только Products) ----- */
 @media (max-width: 400px) {
     .products-screen {
         padding-left: 14px;
@@ -646,12 +551,12 @@
         font-size: 10px;
     }
     .products-screen .products-list {
-        gap: 12px;
+        gap: 14px;
     }
     .products-screen .product-card-header {
         grid-template-columns: 44px minmax(0, 1fr) auto;
         column-gap: 10px;
-        padding: 13px 14px 8px;
+        padding: 14px 14px 8px;
     }
     .products-screen .product-card .product-emoji {
         width: 44px;
