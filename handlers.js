@@ -92,6 +92,8 @@
             case 'show-product-menu':
                 if (productId && typeof window.showProductMenu === 'function') {
                     window.showProductMenu(productId);
+                } else {
+                    console.warn('showProductMenu не определён');
                 }
                 break;
 
@@ -165,9 +167,89 @@
             // ===== ДНЕВНИК =====
             case 'add-diary':
             case 'add-diary-entry':
-                var diaryFn = window.showAddDiaryModal || window.showAddDiary;
-                if (diaryFn) diaryFn();
-                else console.warn('showAddDiaryModal не определён');
+                if (typeof window.openAddFoodModal === 'function') {
+                    window.openAddFoodModal();
+                } else {
+                    console.warn('openAddFoodModal не определён');
+                }
+                break;
+
+            case 'save-food':
+                // Сохранение записи в дневник текущего ребёнка
+                var childId = window.STATE?.currentChildId;
+                if (!childId) {
+                    if (typeof window.showToast === 'function') window.showToast('Выберите ребёнка', 'error');
+                    break;
+                }
+                var child = window.STATE.children.find(function(c) { return c.id === childId; });
+                if (!child) break;
+                if (!Array.isArray(child.diary)) child.diary = [];
+
+                // Получаем данные из формы
+                var productId = document.getElementById('food-product-id')?.value;
+                var amount = document.getElementById('food-amount')?.value;
+                var preparation = document.getElementById('food-preparation')?.value;
+                var notes = document.getElementById('food-notes')?.value;
+                var isNewProduct = document.getElementById('food-new-product')?.checked || false;
+
+                // Определяем liked
+                var liked = null;
+                var likedTrueBtn = document.querySelector('[data-liked="true"]');
+                var likedFalseBtn = document.querySelector('[data-liked="false"]');
+                if (likedTrueBtn && likedTrueBtn.classList.contains('active')) liked = true;
+                else if (likedFalseBtn && likedFalseBtn.classList.contains('active')) liked = false;
+
+                // Определяем source
+                var source = 'homemade';
+                var sourceHomemade = document.querySelector('[data-source="homemade"]');
+                var sourceStore = document.querySelector('[data-source="store"]');
+                if (sourceStore && sourceStore.classList.contains('active')) source = 'store';
+                else if (sourceHomemade && sourceHomemade.classList.contains('active')) source = 'homemade';
+
+                // Определяем название продукта
+                var productName = '';
+                var selectedLabel = document.getElementById('selected-product-label');
+                var productTitleField = document.getElementById('food-product-title');
+                if (selectedLabel && selectedLabel.textContent && selectedLabel.textContent !== 'Выберите продукт') {
+                    productName = selectedLabel.textContent;
+                } else if (productTitleField && productTitleField.value && productTitleField.value.trim() !== '') {
+                    productName = productTitleField.value.trim();
+                } else {
+                    productName = 'Продукт';
+                }
+
+                // Создаём запись
+                var entry = {
+                    id: 'diary_' + Date.now(),
+                    date: new Date().toISOString().split('T')[0],
+                    time: new Date().toTimeString().slice(0, 5),
+                    productId: productId || null,
+                    productName: productName,
+                    source: source,
+                    amount: amount ? parseFloat(amount) : null,
+                    unit: 'г',
+                    preparation: preparation || '',
+                    liked: liked,
+                    isNewProduct: isNewProduct,
+                    notes: notes || '',
+                    hasReaction: false,
+                    reaction: null,
+                    createdAt: new Date().toISOString()
+                };
+                child.diary.push(entry);
+
+                // Если это новый продукт и есть productId — отмечаем как введённый
+                if (isNewProduct && productId && window.productStateService && typeof window.productStateService.markAsIntroduced === 'function') {
+                    window.productStateService.markAsIntroduced(childId, productId);
+                }
+
+                if (typeof window.saveState === 'function') window.saveState();
+                if (typeof window.closeModal === 'function') window.closeModal();
+
+                // Обновляем экран Diary, если он открыт
+                if (window.STATE?.ui?.screen === 'diary' && typeof window.showScreen === 'function') {
+                    window.showScreen('diary');
+                }
                 break;
 
             case 'select-diary-entry':
@@ -346,6 +428,35 @@
                 var modalRoot = document.getElementById('modal-root');
                 if (modalRoot) {
                     modalRoot.innerHTML = '<div class="modal-overlay active" style="align-items:center;justify-content:center;">' + modalContent + '</div>';
+                }
+                break;
+
+            // ===== НОВЫЕ: ИСКЛЮЧИТЬ / ВЕРНУТЬ ПРОДУКТ =====
+            case 'exclude-product':
+                if (productId && window.productStateService && typeof window.productStateService.setStatus === 'function') {
+                    var childId = window.STATE?.currentChildId;
+                    if (!childId) {
+                        if (typeof window.showToast === 'function') window.showToast('Выберите ребёнка', 'error');
+                        break;
+                    }
+                    window.productStateService.setStatus(childId, productId, 'parentExcluded');
+                    if (typeof window.saveState === 'function') window.saveState();
+                    if (typeof window.updateProductsList === 'function') window.updateProductsList();
+                    if (typeof window.closeModal === 'function') window.closeModal();
+                }
+                break;
+
+            case 'include-product':
+                if (productId && window.productStateService && typeof window.productStateService.setStatus === 'function') {
+                    var childId = window.STATE?.currentChildId;
+                    if (!childId) {
+                        if (typeof window.showToast === 'function') window.showToast('Выберите ребёнка', 'error');
+                        break;
+                    }
+                    window.productStateService.setStatus(childId, productId, 'notIntroduced');
+                    if (typeof window.saveState === 'function') window.saveState();
+                    if (typeof window.updateProductsList === 'function') window.updateProductsList();
+                    if (typeof window.closeModal === 'function') window.closeModal();
                 }
                 break;
 
