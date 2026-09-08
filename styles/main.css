@@ -2495,3 +2495,144 @@ h1, h2, h3, h4, h5, h6 {
         max-width: 120px;
     }
 }
+/* ============================================================
+   PASS 7 — Products Screen Composition (с !important)
+   ============================================================ */
+
+/* ----- 1. Общий экран ----- */
+.products-screen {
+    padding: 20px 16px 104px !important;
+}
+
+/* ----- 2. Header (главный визуальный якорь) ----- */
+.screen-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+}
+.screen-header h2 {
+    margin: 0 !important;
+    font-size: 31px !important;
+    line-height: 1.08 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.6px !important;
+    color: var(--kenora-text) !important;
+}
+.product-count {
+    flex: 0 0 auto !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 500 !important;
+    color: var(--kenora-text-secondary) !important;
+    background: rgba(255,255,255,.34) !important;
+    border: 1px solid rgba(255,255,255,.42) !important;
+    border-radius: 14px !important;
+    padding: 6px 10px !important;
+    box-shadow: none !important;
+}
+
+/* ----- 3. Поиск (часть интерфейса) ----- */
+.products-search {
+    margin-bottom: 20px !important;
+}
+.products-search input {
+    width: 100% !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
+    border-radius: 24px !important;
+    background: rgba(255,250,245,.62) !important;
+    border: 1px solid rgba(255,255,255,.58) !important;
+    box-shadow: 0 4px 18px rgba(61,51,42,.035) !important;
+    backdrop-filter: blur(14px) saturate(1.05) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(1.05) !important;
+}
+.products-search input::placeholder {
+    color: var(--kenora-text-muted) !important;
+    opacity: .9 !important;
+}
+
+/* ----- 4. Категории (лёгкая горизонтальная навигация) ----- */
+.categories-kenora {
+    display: flex !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    margin-bottom: 22px !important;
+    padding: 2px 2px 5px !important;
+    scrollbar-width: none !important;
+}
+.categories-kenora::-webkit-scrollbar {
+    display: none !important;
+}
+.category-kenora {
+    flex: 0 0 auto !important;
+    padding: 5px 11px 7px !important;
+    border-radius: 24px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+}
+.category-kenora .cat-icon {
+    width: 34px !important;
+    height: 34px !important;
+}
+.category-kenora .cat-label {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    font-weight: 450 !important;
+    color: var(--kenora-text-secondary) !important;
+}
+.category-kenora.active {
+    background: rgba(181,201,176,.14) !important;
+    border-color: rgba(255,255,255,.36) !important;
+    backdrop-filter: blur(10px) saturate(1.05) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(1.05) !important;
+}
+
+/* ----- 5. Список (только внешние параметры, карточки не трогаем) ----- */
+.products-list {
+    width: 100% !important;
+    gap: 14px !important;
+}
+
+/* ----- 6. Floating Add (функциональный акцент) ----- */
+.floating-add {
+    background: rgba(181,201,176,.78) !important;
+    border: 1px solid rgba(255,255,255,.48) !important;
+    box-shadow: 0 8px 26px rgba(61,51,42,.07), 0 2px 8px rgba(61,51,42,.035) !important;
+    backdrop-filter: blur(16px) saturate(1.08) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.08) !important;
+    color: var(--kenora-text) !important;
+    font-weight: 600 !important;
+}
+
+/* ----- 7. Нижняя навигация (продолжение фона) ----- */
+.bottom-navigation {
+    background: rgba(255,250,245,.64) !important;
+    border-top: 1px solid rgba(255,255,255,.42) !important;
+    box-shadow: 0 -4px 20px rgba(61,51,42,.035) !important;
+    backdrop-filter: blur(22px) saturate(1.08) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(1.08) !important;
+}
+.bottom-navigation .nav-item.active {
+    background: rgba(181,201,176,.13) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* ----- 8. Мобильные размеры (до 400px) ----- */
+@media (max-width: 400px) {
+    .products-screen {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+    .screen-header h2 {
+        font-size: 29px !important;
+    }
+    .products-search input {
+        height: 46px !important;
+    }
+    .categories-kenora {
+        margin-bottom: 19px !important;
+    }
+}
