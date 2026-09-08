@@ -1,5 +1,5 @@
 // ============================================================
-// handlers.js — централизованный обработчик событий
+// handlers.js – централизованный обработчик событий
 // ============================================================
 
 (function() {
@@ -8,7 +8,11 @@
     // ===== БЕЗОПАСНЫЙ ВЫЗОВ ФУНКЦИЙ =====
     function safeCall(fn, fallback) {
         if (typeof fn === 'function') {
-            try { return fn(); } catch (e) { console.warn('Ошибка вызова:', e); }
+            try {
+                return fn();
+            } catch (e) {
+                console.warn('Ошибка вызова:', e);
+            }
         }
         if (typeof fallback === 'function') return fallback();
         return null;
@@ -16,7 +20,11 @@
 
     function safeCallWith(fn, arg, fallback) {
         if (typeof fn === 'function') {
-            try { return fn(arg); } catch (e) { console.warn('Ошибка вызова:', e); }
+            try {
+                return fn(arg);
+            } catch (e) {
+                console.warn('Ошибка вызова:', e);
+            }
         }
         if (typeof fallback === 'function') return fallback(arg);
         return null;
@@ -39,23 +47,25 @@
 
         // ===== НАВИГАЦИЯ =====
         if (action === 'navigate' && screen) {
-    if (typeof window.navigateTo === 'function') {
-        window.navigateTo(screen);
-    } else if (typeof window.renderScreen === 'function') {
-        window.renderScreen(screen);
-    } else if (typeof window.showScreen === 'function') {
-        window.showScreen(screen);
-        // Сохраняем состояние после переключения экрана
-        if (typeof window.saveState === 'function') {
-            window.saveState();
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo(screen);
+            } else if (typeof window.renderScreen === 'function') {
+                window.renderScreen(screen);
+            } else if (typeof window.showScreen === 'function') {
+                window.showScreen(screen);
+                // Сохраняем состояние после переключения экрана
+                if (typeof window.saveState === 'function') {
+                    window.saveState();
+                }
+            } else {
+                console.warn('Неизвестная функция навигации, screen:', screen);
+            }
+            return;
         }
-    } else {
-        console.warn('Неизвестная функция навигации, screen:', screen);
-    }
-    return;
-}
+
         // ===== ОСТАЛЬНЫЕ ДЕЙСТВИЯ =====
         switch (action) {
+
             // ===== ПРОДУКТЫ =====
             case 'select-product':
                 if (productId && typeof window.showProductDetailModal === 'function') {
@@ -184,7 +194,9 @@
                     if (typeof window.showToast === 'function') window.showToast('Выберите ребёнка', 'error');
                     break;
                 }
-                var child = window.STATE.children.find(function(c) { return c.id === childId; });
+                var child = window.STATE.children.find(function(c) {
+                    return c.id === childId;
+                });
                 if (!child) break;
                 if (!Array.isArray(child.diary)) child.diary = [];
 
@@ -412,25 +424,15 @@
                     }
                     break;
                 }
-                var modalContent = '<div class="modal-sheet" style="max-width:400px;margin:0 auto;background:var(--kenora-white);border-radius:var(--kenora-radius-xl) var(--kenora-radius-xl) 0 0;">';
-                modalContent += '<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--kenora-border);">';
-                modalContent += '<h2 style="font-size:20px;font-weight:600;margin:0;color:var(--kenora-text);">Введённые продукты</h2>';
-                modalContent += '<button class="btn-close-modal" data-action="close-modal" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--kenora-text-secondary);padding:4px 8px;">×</button>';
-                modalContent += '</div>';
-                modalContent += '<div style="padding:16px 20px;max-height:50vh;overflow-y:auto;">';
+                var modalContent = '<div class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Введённые продукты</h2><button class="modal-close" data-action="close-modal">×</button></div><div class="modal-body"><div class="introduced-list">';
                 introducedProducts.forEach(function(p) {
                     var emoji = p.emoji || '🍽️';
-                    modalContent += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--kenora-border);">';
-                    modalContent += '<span style="font-size:24px;">' + emoji + '</span>';
-                    modalContent += '<span style="font-weight:600;color:var(--kenora-text);">' + p.name + '</span>';
-                    modalContent += '</div>';
+                    modalContent += '<div class="introduced-item"><span class="ii-emoji">' + emoji + '</span><span class="ii-name">' + p.name + '</span></div>';
                 });
-                modalContent += '</div>';
-                modalContent += '</div>';
-
+                modalContent += '</div></div></div></div>';
                 var modalRoot = document.getElementById('modal-root');
                 if (modalRoot) {
-                    modalRoot.innerHTML = '<div class="modal-overlay active" style="align-items:center;justify-content:center;">' + modalContent + '</div>';
+                    modalRoot.innerHTML = modalContent;
                 }
                 break;
 
