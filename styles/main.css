@@ -2347,3 +2347,30 @@ h1, h2, h3, h4, h5, h6 {
  #app::after {
      pointer-events: none;
  }
+(function() {
+    const css = `
+/* PASS 6 — Content Depth (проверка) */
+.products-screen {
+    padding-top: 24px !important;
+}
+.products-search input {
+    box-shadow: 0 6px 24px rgba(61, 51, 42, 0.06), 0 2px 8px rgba(61, 51, 42, 0.04) !important;
+}
+.categories-kenora {
+    margin-bottom: 24px !important;
+}
+.category-kenora.active {
+    background: rgba(181, 201, 176, 0.18) !important;
+    box-shadow: 0 2px 8px rgba(181, 201, 176, 0.10) !important;
+}
+.product-card {
+    box-shadow: 0 12px 36px rgba(61, 51, 42, 0.08), 0 4px 12px rgba(61, 51, 42, 0.04) !important;
+}
+    `;
+    const style = document.createElement('style');
+    style.id = 'pass6-test-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+    console.log('✅ PASS 6 стили применены (глубина контента).');
+    console.log('❌ Для удаления выполните: document.getElementById("pass6-test-style").remove();');
+})();
