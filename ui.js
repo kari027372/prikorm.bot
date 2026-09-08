@@ -77,7 +77,7 @@ function buildApp() {
     Object.values(UI.screens).forEach(screen =>
         document.getElementById("app-content").appendChild(screen)
     );
-    showScreen(STATE?.ui?.screen || "home");
+    // showScreen(STATE?.ui?.screen || "home"); // УДАЛЕН (экран показывает initApp)
     return UI.app;
 }
 
@@ -545,8 +545,18 @@ function showToast(message, type = "default") {
     UI.toastTimer = setTimeout(() => { root.innerHTML = ""; }, 3000);
 }
 
+/* ============================================================
+   ОСНОВНАЯ showScreen (с поддержкой Products 2.0)
+   ============================================================ */
 function showScreen(screenName) {
-    if (!UI.screens || !UI.screens[screenName]) screenName = "home";
+    // Products не в UI.screens, но должен работать через screens/products.js
+    const isProductsScreen = screenName === "products";
+    if (
+        (!UI.screens || !UI.screens[screenName]) &&
+        !isProductsScreen
+    ) {
+        screenName = "home";
+    }
     Object.entries(UI.screens).forEach(([name, element]) => {
         element.classList.toggle("active", name === screenName);
     });
@@ -555,12 +565,11 @@ function showScreen(screenName) {
     });
     if (STATE?.ui) STATE.ui.screen = screenName;
     if (typeof saveState === "function") saveState();
+
+    // Единственный вызов render перед обновлением bottom-nav
     if (typeof render === "function") render(screenName);
 
-    // === НОВОЕ: обновление нижней навигации через renderBottomNav ===
-    if (typeof render === "function") render(screenName);
-
-    // === НОВОЕ: обновление нижней навигации через renderBottomNav ===
+    // Обновление нижней навигации
     const bottomNav = document.getElementById("bottom-nav");
     if (bottomNav && typeof window.renderBottomNav === "function") {
         bottomNav.innerHTML = window.renderBottomNav(screenName);
@@ -584,9 +593,11 @@ function updateProfileUI() {
     });
 }
 
+/* ===== closeModal (объединённая версия) ===== */
 function closeModal() {
     const root = document.getElementById("modal-root");
     if (root) root.innerHTML = "";
+    document.body.classList.remove("modal-open");
     UI.modal = null;
 }
 
@@ -720,6 +731,54 @@ function getDiary() {
 }
 
 /* ============================================================
+   НОВАЯ ФУНКЦИЯ: showProductMenu — меню действий с продуктом
+   ============================================================ */
+window.showProductMenu = function(productId) {
+    var product = (window.PRODUCTS || []).find(function(p) { return p.id === productId; });
+    if (!product) {
+        if (typeof window.showToast === 'function') {
+            window.showToast('Продукт не найден', 'error');
+        }
+        return;
+    }
+
+    var childId = window.STATE?.currentChildId;
+    var status = childId ? window.getProductStatusForChild(productId, childId) : null;
+    var isIntroduced = (status === 'introduced');
+    var isExcluded = (status === 'parentExcluded');
+
+    var menuHtml = `
+        <div class="modal-sheet" style="max-width:400px;margin:0 auto;background:var(--kenora-white);border-radius:var(--kenora-radius-xl) var(--kenora-radius-xl) 0 0;">
+            <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--kenora-border);">
+                <h2 style="font-size:20px;font-weight:600;margin:0;color:var(--kenora-text);">${escapeHTML(product.name)}</h2>
+                <button class="btn-close-modal" data-action="close-modal" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--kenora-text-secondary);padding:4px 8px;">×</button>
+            </div>
+            <div class="modal-body" style="padding:16px 20px;display:flex;flex-direction:column;gap:8px;">
+                <button class="btn-primary" data-action="select-product" data-product-id="${productId}" style="width:100%;text-align:center;">📖 Посмотреть подробности</button>
+    `;
+    if (!isIntroduced && !isExcluded) {
+        menuHtml += `<button class="btn-primary" data-action="add-product-intro" data-product-id="${productId}" style="width:100%;text-align:center;background:var(--kenora-primary);">✅ Отметить как введённый</button>`;
+    }
+    if (window.productStateService && typeof window.productStateService.setStatus === 'function') {
+        if (!isExcluded) {
+            menuHtml += `<button class="btn-secondary" data-action="exclude-product" data-product-id="${productId}" style="width:100%;text-align:center;">🚫 Исключить</button>`;
+        } else {
+            menuHtml += `<button class="btn-secondary" data-action="include-product" data-product-id="${productId}" style="width:100%;text-align:center;">↩️ Вернуть</button>`;
+        }
+    }
+    menuHtml += `</div></div>`;
+
+    if (typeof window.openModal === 'function') {
+        window.openModal(menuHtml);
+    } else {
+        var modalRoot = document.getElementById('modal-root');
+        if (modalRoot) {
+            modalRoot.innerHTML = '<div class="modal-overlay active" style="align-items:center;justify-content:center;">' + menuHtml + '</div>';
+        }
+    }
+};
+
+/* ============================================================
    ГЛОБАЛЬНЫЕ ФУНКЦИИ (экспорт)
    ============================================================ */
 window.UI = UI;
@@ -741,3 +800,4 @@ window.updateProductsList = updateProductsList;
 window.renderCategoryGrid = renderCategoryGrid;
 window.renderProductCard = renderProductCard;
 window.getDiary = getDiary;
+// window.showProductMenu уже определён выше как глобальный
