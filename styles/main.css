@@ -782,7 +782,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 0; /* Pass 2 */
 }
 .progress-number-kenora {
   font-size: 22px;
@@ -816,10 +816,10 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--kenora-radius-sm);
 }
 
-/* ===== ИЗМЕНЕНИЕ 1: категории — увеличен gap ===== */
+/* ----- Категории (editorial-стиль) ----- */
 .categories-kenora {
   display: flex;
-  gap: 12px; /* было 6px */
+  gap: 12px; /* Pass 1 */
   overflow-x: auto;
   padding: 4px 0 18px;
   scrollbar-width: none;
@@ -867,11 +867,11 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-/* ===== ИЗМЕНЕНИЕ 2: карточка продукта — более лёгкая тень ===== */
+/* ----- Карточка продукта (обновлённый визуал) ----- */
 .product-card {
   background: var(--kenora-white);
   border-radius: var(--kenora-radius-lg);
-  box-shadow: 0 2px 12px rgba(61, 51, 42, 0.04); /* было var(--kenora-shadow-soft) */
+  box-shadow: 0 2px 12px rgba(61, 51, 42, 0.04); /* Pass 1 */
   border: 1px solid var(--kenora-border-light);
   overflow: hidden;
   transition: transform 0.15s;
@@ -919,7 +919,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 14px;
 }
 .product-card-body {
-  padding: 12px 14px;
+  padding: 14px 16px; /* Pass 2 */
 }
 .product-meta {
   display: flex;
@@ -1013,7 +1013,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* ===== Products Screen (старые стили, адаптированы) ===== */
+/* ===== Products Screen (старые стили, адаптираны) ===== */
 .products-screen {
   padding: 16px;
   padding-bottom: 80px;
@@ -1281,7 +1281,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ===== Переключатели и фильтры (адаптированы) ===== */
 .suitable-toggle {
-  margin-bottom: 16px;
+  margin-bottom: 0; /* Pass 2 */
   display: flex;
   justify-content: center;
 }
@@ -1306,24 +1306,24 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(0.96);
 }
 
-/* ===== ИЗМЕНЕНИЕ 3: фильтр-триггер — увеличен padding, более лёгкая граница, тень ===== */
+/* ===== ИЗМЕНЕНИЕ 3: фильтр-триггер ===== */
 .filter-trigger {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 20px; /* было 8px 16px */
+  padding: 8px 20px; /* Pass 1 */
   background: var(--kenora-white);
-  border: 1px solid var(--kenora-border-light); /* было var(--kenora-border) */
-  border-radius: var(--kenora-radius-pill); /* было 50px */
-  box-shadow: var(--kenora-shadow-soft); /* ДОБАВЛЕНО */
+  border: 1px solid var(--kenora-border-light);
+  border-radius: var(--kenora-radius-pill);
+  box-shadow: var(--kenora-shadow-soft);
   font-size: 15px;
   font-weight: 700;
   color: var(--kenora-text-secondary);
   cursor: pointer;
   transition: all 0.2s;
   width: fit-content;
-  margin-top: 12px;
+  margin-top: 0; /* Pass 2 */
 }
 .filter-trigger:active {
   transform: scale(0.96);
@@ -1360,7 +1360,7 @@ h1, h2, h3, h4, h5, h6 {
   }
   .filter-trigger {
     font-size: 14px;
-    padding: 6px 14px;
+    /* padding удалён, чтобы сохранилось 8px 20px */
   }
   /* legacy .products-list удалён */
   .product-emoji {
@@ -1371,4 +1371,36 @@ h1, h2, h3, h4, h5, h6 {
   .products-list {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===== Pass 2: увеличен воздух после Header ===== */
+.products-header {
+  padding-bottom: 8px !important;
+}
+
+/* ===== Pass 2: плавающая кнопка «Добавить в дневник» ===== */
+.floating-add {
+  position: fixed;
+  right: 16px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: var(--kenora-primary);
+  color: var(--kenora-white);
+  border: none;
+  border-radius: var(--kenora-radius-pill);
+  box-shadow: var(--kenora-shadow);
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 90;
+  min-height: 44px;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.floating-add:active {
+  transform: scale(0.96);
 }
