@@ -7,66 +7,30 @@
 .products-screen {
     padding: 20px 16px 104px;
     position: relative;
-    overflow: hidden; /* чтобы псевдоэлементы не вылезали за границы */
+    overflow: hidden;
 }
 
-/* ----- 2. Атмосферный фон (три размытые органические формы) ----- */
+/* ----- 2. Атмосферный фон (три размытых пятна) ----- */
+.products-screen::before {
+    background:
+        radial-gradient(circle at 30% 20%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.25) 40%, transparent 70%),
+        radial-gradient(circle at 80% 70%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.15) 30%, transparent 60%),
+        radial-gradient(circle at 15% 50%, var(--kenora-accent) 0%, rgba(245, 217, 200, 0.12) 35%, transparent 65%);
+    filter: blur(140px);
+    opacity: 0.5;
+}
+.products-screen::after {
+    background: radial-gradient(circle at 70% 80%, var(--kenora-accent) 0%, rgba(245, 217, 200, 0.2) 50%, transparent 70%);
+    filter: blur(120px);
+    opacity: 0.4;
+}
 .products-screen::before,
-.products-screen::after,
-.products-screen .bg-shape {
+.products-screen::after {
     content: '';
     position: absolute;
     border-radius: 50%;
     pointer-events: none;
     z-index: 0;
-}
-
-/* Форма 1: керамическая миска (sage) */
-.products-screen::before {
-    width: 600px;
-    height: 600px;
-    top: -180px;
-    right: -200px;
-    background: radial-gradient(circle at 30% 20%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.25) 40%, transparent 70%);
-    filter: blur(140px);
-    opacity: 0.5;
-}
-
-/* Форма 2: ложка (peach) */
-.products-screen::after {
-    width: 350px;
-    height: 350px;
-    bottom: -80px;
-    left: -120px;
-    background: radial-gradient(circle at 70% 80%, var(--kenora-accent) 0%, rgba(245, 217, 200, 0.2) 50%, transparent 70%);
-    filter: blur(120px);
-    opacity: 0.4;
-}
-
-/* Форма 3: органический элемент (лист/овощ) — добавляем через дополнительный псевдоэлемент, но у нас уже есть ::before и ::after,
-   поэтому используем отдельный элемент, который создадим через JS? Нет, лучше использовать дополнительный :before на другом уровне.
-   Поскольку мы можем использовать только два псевдоэлемента, можно добавить ещё один слой через box-shadow или создать отдельный элемент,
-   но мы не можем менять HTML. Поэтому сделаем форму через радиальный градиент на самом .products-screen с использованием background:
-   но тогда он будет под контентом. Можно использовать псевдоэлемент .products-screen::before и ::after, а третью форму добавить через
-   дополнительный псевдоэлемент на .products-screen .products-list, но это может быть сложно. Проще: добавим третью форму через
-   ::before на .products-screen .products-list (список продуктов) — он тоже находится внутри .products-screen, и его псевдоэлемент будет
-   позади карточек. Но это может нарушить иерархию. Альтернатива: использовать два псевдоэлемента, но сделать один из них более сложным
-   с несколькими радиальными градиентами, чтобы имитировать несколько форм. Давайте так и сделаем: в ::before объединим две формы (миска + лист)
-   с помощью нескольких радиальных градиентов. Это безопасно. */
-.products-screen::before {
-    background:
-        radial-gradient(circle at 30% 20%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.25) 40%, transparent 70%),
-        radial-gradient(circle at 80% 70%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.15) 30%, transparent 60%);
-    /* первая — миска, вторая — лист/органическая форма */
-    filter: blur(140px);
-    opacity: 0.5;
-}
-
-/* Ложка остаётся в ::after */
-.products-screen::after {
-    background: radial-gradient(circle at 70% 80%, var(--kenora-accent) 0%, rgba(245, 217, 200, 0.2) 50%, transparent 70%);
-    filter: blur(120px);
-    opacity: 0.4;
 }
 
 /* Контент поверх фона */
@@ -80,25 +44,25 @@
     z-index: 1;
 }
 
-/* ----- 3. Карточка продукта (матовое светлое стекло, отдельное от фона) ----- */
+/* ----- 3. Карточка продукта (матовое светлое стекло, парящая тень) ----- */
 .products-screen .product-card {
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
-    background: rgba(255, 248, 242, 0.78); /* более плотный ivory, чтобы выделяться */
+    background: rgba(255, 248, 242, 0.78);
     backdrop-filter: blur(16px) saturate(1.05);
     -webkit-backdrop-filter: blur(16px) saturate(1.05);
     border: 0.5px solid rgba(255, 255, 255, 0.7);
     border-radius: 24px;
-    box-shadow: 0 6px 24px rgba(61, 51, 42, 0.05), 0 1px 4px rgba(61, 51, 42, 0.02);
+    box-shadow: 0 8px 32px rgba(61, 51, 42, 0.1), 0 2px 8px rgba(61, 51, 42, 0.04);
     transition: transform .18s ease, box-shadow .18s ease;
     z-index: 1;
 }
 .products-screen .product-card:active {
     transform: scale(0.99);
-    box-shadow: 0 4px 16px rgba(61, 51, 42, 0.03);
+    box-shadow: 0 4px 20px rgba(61, 51, 42, 0.06);
 }
 
 /* ----- 4. Emoji — более выраженный frosted-glass (отдельный объект) ----- */
