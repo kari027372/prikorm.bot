@@ -669,6 +669,7 @@
     window.renderProducts = renderProducts;
     window.openProductFiltersModal = openProductFiltersModal;
     window.updateChipsActiveState = updateChipsActiveState; // ДОБАВЛЕН ЭКСПОРТ
+    window.getProductStatusForChild = getProductStatusForChild; // ДОБАВЛЕНО
 
     console.log('✅ products.js загружен (исправленный, non-module)');
 })();
