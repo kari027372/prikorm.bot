@@ -1589,3 +1589,20 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 120px;
   }
 }
+/* ============================================================
+   FIX: SVG-иконки категорий (размеры, цвет, видимость)
+   ============================================================ */
+.products-screen .category-kenora .cat-icon svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+    stroke: var(--kenora-text-muted);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.2s;
+}
+.products-screen .category-kenora.active .cat-icon svg {
+    stroke: var(--kenora-primary);
+}
