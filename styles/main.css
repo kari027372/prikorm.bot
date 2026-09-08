@@ -2636,3 +2636,131 @@ h1, h2, h3, h4, h5, h6 {
         margin-bottom: 19px !important;
     }
 }
+/* ============================================================
+   PASS 8 — Typography & Micro-details
+   Полировка иерархии, состояний, анимаций и accessibility.
+   ============================================================ */
+
+/* ----- 1. Типографическая иерархия ----- */
+.screen-header h2 {
+    font-weight: 700;
+    letter-spacing: -0.6px;
+}
+
+.product-card .product-name {
+    font-weight: 650;
+    letter-spacing: -0.2px;
+}
+
+.product-category,
+.product-age {
+    color: var(--kenora-text-secondary);
+    font-weight: 450;
+}
+
+/* ----- 2. Мягкий разделитель между категорией и возрастом (если идут рядом) ----- */
+.product-category + .product-age::before {
+    content: "·";
+    margin-right: 6px;
+    color: var(--kenora-text-muted);
+}
+
+/* ----- 3. Кнопка действия (спокойная) ----- */
+.product-actions .btn-primary {
+    min-height: 40px;
+    border-radius: 15px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.05px;
+    transition:
+        transform .16s ease,
+        background-color .16s ease,
+        box-shadow .16s ease;
+}
+.product-actions .btn-primary:active {
+    transform: scale(.98);
+}
+
+/* ----- 4. Кнопка ⋯ (secondary control) ----- */
+.product-actions .btn-icon {
+    transition:
+        transform .16s ease,
+        background-color .16s ease;
+}
+.product-actions .btn-icon:active {
+    transform: scale(.94);
+}
+
+/* ----- 5. Карточка (лёгкая реакция) ----- */
+.product-card {
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease;
+}
+.product-card:active {
+    transform: scale(.992);
+}
+
+/* ----- 6. Warning badge (не главное пятно) ----- */
+.product-card-header .badge {
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 11px;
+    padding: 4px 8px;
+}
+
+/* ----- 7. Возрастные бейджи (информационные) ----- */
+.badge.age-ok,
+.badge.age-not {
+    font-weight: 500;
+}
+
+/* ----- 8. Hover только для устройств с мышью ----- */
+@media (hover: hover) and (pointer: fine) {
+    .product-actions .btn-primary:hover {
+        box-shadow: 0 4px 14px rgba(61,51,42,.06);
+    }
+    .product-actions .btn-icon:hover {
+        background: rgba(255,255,255,.42);
+    }
+    .category-kenora:hover {
+        background: rgba(255,255,255,.20);
+    }
+}
+
+/* ----- 9. Аккуратный focus для accessibility ----- */
+.products-search input:focus-visible,
+.product-actions button:focus-visible,
+.category-kenora:focus-visible {
+    outline: 2px solid rgba(143,188,181,.45);
+    outline-offset: 2px;
+}
+
+/* ----- 10. Поиск при фокусе (плавный) ----- */
+.products-search input:focus {
+    border-color: rgba(143,188,181,.30);
+    box-shadow:
+        0 4px 18px rgba(61,51,42,.035),
+        0 0 0 3px rgba(143,188,181,.07);
+}
+.products-search input {
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+/* ----- 11. Активная категория (плавный переход) ----- */
+.category-kenora.active {
+    transition:
+        background-color .18s ease,
+        border-color .18s ease;
+}
+
+/* ----- 12. Уважение к системным настройкам анимации ----- */
+@media (prefers-reduced-motion: reduce) {
+    .product-card,
+    .product-actions .btn-primary,
+    .product-actions .btn-icon,
+    .category-kenora,
+    .products-search input {
+        transition: none;
+    }
+}
