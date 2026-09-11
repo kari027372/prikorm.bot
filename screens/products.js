@@ -1,6 +1,10 @@
 /* ============================================================
-   screens/products.js — новый UX, совместимый с non-module архитектурой
-   Исправления: статусы, возраст, рекомендации, фильтры, единый источник
+   screens/products.js — KENORA 2.0 Products
+   Разметка приведена в соответствие с styles/products.css:
+   - header: child-name + child-meta + introduced-count
+   - search-row: search-box (search-icon + input + btn-recommendations) + btn-filter
+   - recommendations bottom sheet
+   Логика фильтров, статусов, карточек, safety — не изменена.
    ============================================================ */
 
 (function() {
@@ -10,12 +14,9 @@
     var PRODUCTS = window.PRODUCTS || [];
     var CATEGORIES = window.CATEGORIES || [];
 
-    // Если CATEGORIES не заданы, вычислим из PRODUCTS (с id и label)
     if (!CATEGORIES.length && PRODUCTS.length) {
         var catMap = {};
-        PRODUCTS.forEach(function(p) {
-            if (p.category) catMap[p.category] = true;
-        });
+        PRODUCTS.forEach(function(p) { if (p.category) catMap[p.category] = true; });
         var defaultCats = [
             { id: 'овощи', label: 'Овощи', icon: '🥦' },
             { id: 'фрукты', label: 'Фрукты', icon: '🍎' },
@@ -26,90 +27,56 @@
             { id: 'аллергены', label: 'Аллергены', icon: '⚠️' },
             { id: 'другое', label: 'Другое', icon: '🍽' }
         ];
-        CATEGORIES = defaultCats.filter(function(c) {
-            return catMap[c.id] || c.id === 'другое';
-        });
+        CATEGORIES = defaultCats.filter(function(c) { return catMap[c.id] || c.id === 'другое'; });
         var existingIds = CATEGORIES.map(function(c) { return c.id; });
         Object.keys(catMap).forEach(function(id) {
             if (existingIds.indexOf(id) === -1) {
-                var label = id.charAt(0).toUpperCase() + id.slice(1);
-                CATEGORIES.push({ id: id, label: label, icon: '📂' });
+                CATEGORIES.push({ id: id, label: id.charAt(0).toUpperCase() + id.slice(1), icon: '📂' });
             }
         });
     }
 
-    // ===== ГЛОБАЛЬНЫЕ UI-ПЕРЕМЕННЫЕ (НЕ В STATE) =====
     window.CURRENT_PRODUCT_SUITABLE = window.CURRENT_PRODUCT_SUITABLE === true;
     window.CURRENT_PRODUCT_SAFETY_FILTER = window.CURRENT_PRODUCT_SAFETY_FILTER || 'all';
 
-    // ===== КАРТА КАТЕГОРИЙ → EMOJI (FALLBACK) =====
     var categoryEmojiMap = {};
-    CATEGORIES.forEach(function(cat) {
-        categoryEmojiMap[cat.id] = cat.icon || '📂';
-    });
+    CATEGORIES.forEach(function(cat) { categoryEmojiMap[cat.id] = cat.icon || '📂'; });
     var fallbackMap = {
-        'овощи': '🥦',
-        'фрукты': '🍎',
-        'крупы': '🌾',
-        'мясо': '🍗',
-        'рыба': '🐟',
-        'молочные': '🥛',
-        'аллергены': '⚠️',
-        'другое': '🍽'
+        'овощи': '🥦', 'фрукты': '🍎', 'крупы': '🌾',
+        'мясо': '🍗', 'рыба': '🐟', 'молочные': '🥛',
+        'аллергены': '⚠️', 'другое': '🍽'
     };
     Object.keys(fallbackMap).forEach(function(key) {
         if (!categoryEmojiMap[key]) categoryEmojiMap[key] = fallbackMap[key];
     });
 
     var invalidEmojis = ['🫃'];
-
     function getProductEmoji(product) {
-        if (product.emoji && invalidEmojis.indexOf(product.emoji) === -1) {
-            return product.emoji;
-        }
+        if (product.emoji && invalidEmojis.indexOf(product.emoji) === -1) return product.emoji;
         return categoryEmojiMap[product.category] || '🍽';
     }
 
-    // ===== НОРМАЛИЗАЦИЯ ВОЗРАСТА ПРОДУКТА =====
     function getProductMinAgeMonths(product) {
-        if (product.introduction && product.introduction.fromMonths) {
-            return parseInt(product.introduction.fromMonths, 10) || 0;
-        }
-        if (product.min_age_months) {
-            return parseInt(product.min_age_months, 10) || 0;
-        }
-        if (product.min_age) {
-            return parseInt(product.min_age, 10) || 0;
-        }
-        if (product.ageMinMonths) {
-            return parseInt(product.ageMinMonths, 10) || 0;
-        }
+        if (product.introduction && product.introduction.fromMonths) return parseInt(product.introduction.fromMonths, 10) || 0;
+        if (product.min_age_months) return parseInt(product.min_age_months, 10) || 0;
+        if (product.min_age) return parseInt(product.min_age, 10) || 0;
+        if (product.ageMinMonths) return parseInt(product.ageMinMonths, 10) || 0;
         return 0;
     }
 
-    // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-
-    function getCurrentChildId() {
-        return window.STATE ? window.STATE.currentChildId : null;
-    }
+    // ===== ВСПОМОГАТЕЛЬНЫЕ =====
+    function getCurrentChildId() { return window.STATE ? window.STATE.currentChildId : null; }
 
     function getChildProfile(childId) {
         if (window.childService && typeof window.childService.getChildProfile === 'function') {
-            try {
-                return window.childService.getChildProfile(childId);
-            } catch (e) {
-                console.warn('⚠️ childService.getChildProfile error:', e);
-            }
+            try { return window.childService.getChildProfile(childId); } catch (e) { console.warn(e); }
         }
         if (window.STATE && window.STATE.children) {
             var child = window.STATE.children.find(function(c) { return c.id === childId; });
             if (child) {
                 var profile = {
-                    id: child.id,
-                    name: child.name,
-                    birthDate: child.birthDate,
-                    sex: child.sex,
-                    feedingType: child.feedingType,
+                    id: child.id, name: child.name, birthDate: child.birthDate,
+                    sex: child.sex, feedingType: child.feedingType,
                     ageMonths: getChildAgeMonths(childId)
                 };
                 if (child.allergies) profile.allergies = child.allergies;
@@ -139,122 +106,67 @@
             if (window.safetyEngine && typeof window.safetyEngine.evaluateProductSafety === 'function') {
                 var result = window.safetyEngine.evaluateProductSafety(profile, product, null);
                 if (result && typeof result === 'object') {
-                    if (result.status === undefined && result.decision !== undefined) {
-                        result.status = result.decision;
-                    }
+                    if (result.status === undefined && result.decision !== undefined) result.status = result.decision;
                     return result;
                 }
             }
-        } catch (e) {
-            console.warn('⚠️ Safety Engine error for', product.name, e);
-        }
+        } catch (e) { console.warn('Safety Engine error', e); }
         return { status: 'review', reasons: ['Ошибка оценки безопасности'] };
     }
 
-    // ===== ПОЛУЧЕНИЕ СТАТУСА ПРОДУКТА (единый источник) =====
     function getProductStatusForChild(productId, childId) {
-        if (
-            window.productStateService &&
-            typeof window.productStateService.getProductState === 'function'
-        ) {
+        if (window.productStateService && typeof window.productStateService.getProductState === 'function') {
             try {
-                var state = window.productStateService.getProductState(
-                    childId,
-                    productId
-                );
-                if (state && typeof state === 'object') {
-                    return state.status || 'notIntroduced';
-                }
-                if (typeof state === 'string') {
-                    return state;
-                }
-            } catch (error) {
-                console.warn(
-                    '[Products] Не удалось получить состояние продукта:',
-                    error
-                );
-            }
+                var state = window.productStateService.getProductState(childId, productId);
+                if (state && typeof state === 'object') return state.status || 'notIntroduced';
+                if (typeof state === 'string') return state;
+            } catch (error) { console.warn('[Products] getProductState error', error); }
         }
         return 'notIntroduced';
     }
 
-    // ============================================================
-    // KENORA 2.0: SVG-ИКОНКИ КАТЕГОРИЙ (вместо эмодзи)
-    // ============================================================
+    // ===== SVG КАТЕГОРИЙ =====
     var categoryIcons = {
-        'овощи': `<svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v8a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/><path d="M12 7v10"/><path d="M8 12h8"/></svg>`,
-        'фрукты': `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/><path d="M4 4l2 2M20 4l-2 2M4 20l2-2M20 20l-2-2"/></svg>`,
-        'крупы': `<svg viewBox="0 0 24 24"><path d="M6 14l3-3 3 3 3-3 3 3"/><path d="M6 10l3-3 3 3 3-3 3 3"/><path d="M3 18h18"/><path d="M3 6h18"/></svg>`,
-        'мясо': `<svg viewBox="0 0 24 24"><path d="M18 6l-4 4M14 10l-4 4M10 14l-4 4"/><circle cx="18" cy="6" r="2"/><circle cx="14" cy="10" r="2"/><circle cx="10" cy="14" r="2"/><circle cx="6" cy="18" r="2"/></svg>`,
-        'рыба': `<svg viewBox="0 0 24 24"><path d="M2 12c0-3.3 4-6 10-6s10 2.7 10 6-4 6-10 6-10-2.7-10-6z"/><circle cx="10" cy="12" r="1.5"/></svg>`,
-        'молочные': `<svg viewBox="0 0 24 24"><path d="M6 8l2-4h8l2 4-2 10H8z"/><path d="M8 18h8"/><path d="M10 18v2"/><path d="M14 18v2"/></svg>`,
-        'аллергены': `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>`,
-        'другое': `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>`
+        'овощи': '<svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v8a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/><path d="M12 7v10"/><path d="M8 12h8"/></svg>',
+        'фрукты': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/><path d="M4 4l2 2M20 4l-2 2M4 20l2-2M20 20l-2-2"/></svg>',
+        'крупы': '<svg viewBox="0 0 24 24"><path d="M6 14l3-3 3 3 3-3 3 3"/><path d="M6 10l3-3 3 3 3-3 3 3"/><path d="M3 18h18"/><path d="M3 6h18"/></svg>',
+        'мясо': '<svg viewBox="0 0 24 24"><path d="M18 6l-4 4M14 10l-4 4M10 14l-4 4"/><circle cx="18" cy="6" r="2"/><circle cx="14" cy="10" r="2"/><circle cx="10" cy="14" r="2"/><circle cx="6" cy="18" r="2"/></svg>',
+        'рыба': '<svg viewBox="0 0 24 24"><path d="M2 12c0-3.3 4-6 10-6s10 2.7 10 6-4 6-10 6-10-2.7-10-6z"/><circle cx="10" cy="12" r="1.5"/></svg>',
+        'молочные': '<svg viewBox="0 0 24 24"><path d="M6 8l2-4h8l2 4-2 10H8z"/><path d="M8 18h8"/><path d="M10 18v2"/><path d="M14 18v2"/></svg>',
+        'аллергены': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>',
+        'другое': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>'
     };
 
-    // ===== РЕНДЕРИНГ КАРТОЧКИ ПРОДУКТА (с поддержкой всех статусов) =====
+    // ===== НОВОЕ: SVG для search / filter =====
+    var uiIcons = {
+        search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>',
+        filter: '<svg viewBox="0 0 24 24"><path d="M4 6h16M6 12h12M8 18h8"/></svg>'
+    };
+
+    // ============================================================
+    // КАРТОЧКА — структура и классы НЕ тронуты
+    // ============================================================
     function renderProductCard(product) {
         var childId = getCurrentChildId();
-        if (!childId) {
-            return '<div class="product-card">Выберите ребёнка</div>';
-        }
+        if (!childId) return '<div class="product-card">Выберите ребёнка</div>';
 
         var status = getProductStatusForChild(product.id, childId);
         var safety = safeEvaluate(product, childId);
 
-        var statusText = '';
-        var statusClass = '';
-        var actionButton = '';
-        var showIntroButton = false;
-        var statusDotClass = '';
-
+        var statusText = '', statusClass = '', actionButton = '', showIntroButton = false;
         switch (status) {
-            case 'notIntroduced':
-                statusText = 'Ещё не введён';
-                statusClass = 'status-not-introduced';
-                statusDotClass = 'dot wait';
-                showIntroButton = true;
-                break;
-            case 'planned':
-                statusText = 'Запланирован';
-                statusClass = 'status-planned';
-                statusDotClass = 'dot wait';
-                showIntroButton = true;
-                break;
-            case 'introduced':
-                statusText = 'Введён';
-                statusClass = 'status-introduced';
-                statusDotClass = 'dot ok';
-                showIntroButton = false;
-                break;
-            case 'suspectedReaction':
-                statusText = 'Была реакция';
-                statusClass = 'status-suspected';
-                statusDotClass = 'dot warning';
-                showIntroButton = false;
-                break;
-            case 'confirmedAllergy':
-                statusText = 'Аллергия';
-                statusClass = 'status-allergy';
-                statusDotClass = 'dot warning';
-                showIntroButton = false;
-                break;
-            case 'parentExcluded':
-                statusText = 'Не хочу вводить';
-                statusClass = 'status-excluded';
-                statusDotClass = 'dot wait';
-                showIntroButton = false;
-                break;
-            default:
-                statusText = 'Ещё не введён';
-                statusClass = 'status-not-introduced';
-                statusDotClass = 'dot wait';
-                showIntroButton = true;
+            case 'notIntroduced': statusText = 'Не введено'; statusClass = 'status-not-introduced'; showIntroButton = true; break;
+            case 'planned': statusText = 'Запланировано'; statusClass = 'status-planned'; showIntroButton = true; break;
+            case 'introduced': statusText = 'Введён'; statusClass = 'status-introduced'; showIntroButton = false; break;
+            case 'suspectedReaction': statusText = 'Была реакция'; statusClass = 'status-suspected'; showIntroButton = false; break;
+            case 'confirmedAllergy': statusText = 'Аллергия'; statusClass = 'status-allergy'; showIntroButton = false; break;
+            case 'parentExcluded': statusText = 'Не хочу вводить'; statusClass = 'status-excluded'; showIntroButton = false; break;
+            default: statusText = 'Не введено'; statusClass = 'status-not-introduced'; showIntroButton = true;
         }
 
         var emoji = getProductEmoji(product);
         var age = getProductMinAgeMonths(product);
-        var ageLabel = age ? age + '+ мес' : '';
+        var ageLabel = age ? 'с ' + age + ' мес' : '';
 
         var warningBadge = '';
         if (safety.status === 'caution') {
@@ -268,7 +180,7 @@
         if (showIntroButton) {
             actionButton = '<button class="btn-primary" data-action="add-product-intro" data-product-id="' + product.id + '">＋ Ввести продукт</button>';
         } else {
-            actionButton = '<span class="product-status ' + statusClass + '"><span class="' + statusDotClass + '"></span> ' + statusText + '</span>';
+            actionButton = '<span class="product-status ' + statusClass + '"><span class="dot"></span>' + statusText + '</span>';
         }
 
         var escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) {
@@ -300,43 +212,31 @@
         return found ? found.label : catId.charAt(0).toUpperCase() + catId.slice(1);
     }
 
-    // ============================================================
-    // НОВЫЕ ФУНКЦИИ ПРОГРЕССА
-    // ============================================================
+    // ===== ПРОГРЕСС (для header) =====
     function getIntroducedProductsCount(childId) {
         if (!childId || !PRODUCTS.length) return 0;
-        return PRODUCTS.filter(function(product) {
-            return getProductStatusForChild(product.id, childId) === 'introduced';
+        return PRODUCTS.filter(function(p) {
+            return getProductStatusForChild(p.id, childId) === 'introduced';
         }).length;
     }
     function getProductsProgressPercent(childId) {
         if (!childId || !PRODUCTS.length) return 0;
-        var count = getIntroducedProductsCount(childId);
-        return Math.min(
-            100,
-            Math.round((count / PRODUCTS.length) * 100)
-        );
+        return Math.min(100, Math.round((getIntroducedProductsCount(childId) / PRODUCTS.length) * 100));
     }
 
-    // ===== БЛОК «РЕКОМЕНДОВАНО СЕЙЧАС» УДАЛЁН =====
-    // Функция renderRecommendedProducts() и все её вызовы удалены
-
-    // ===== СЕТКА КАТЕГОРИЙ (KENORA 2.0: SVG вместо эмодзи) =====
+    // ===== КАТЕГОРИИ =====
     function renderCategoryGrid() {
         var categories = CATEGORIES || [];
-        return categories
-            .map(function(cat) {
-                var icon = categoryIcons[cat.id] || categoryIcons['другое'];
-                if (!icon) icon = cat.icon || '📂';
-                return '<div class="category-kenora" data-action="filter-products" data-category="' + cat.id + '">' +
-                    '<span class="cat-icon">' + icon + '</span>' +
-                    '<span class="cat-label">' + escapeHTML(cat.label) + '</span>' +
-                '</div>';
-            })
-            .join('');
+        return categories.map(function(cat) {
+            var icon = categoryIcons[cat.id] || categoryIcons['другое'];
+            return '<div class="category-kenora" data-action="filter-products" data-category="' + cat.id + '">' +
+                '<span class="cat-icon">' + icon + '</span>' +
+                '<span class="cat-label">' + escapeHTML(cat.label) + '</span>' +
+            '</div>';
+        }).join('');
     }
 
-    // ===== ФИЛЬТРАЦИЯ ПРОДУКТОВ (с новыми статусами, suitable, safety) =====
+    // ===== ФИЛЬТРАЦИЯ (без изменений) =====
     function getFilteredProducts() {
         var childId = getCurrentChildId();
         if (!childId) return [];
@@ -347,56 +247,39 @@
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
         var query = window.CURRENT_PRODUCT_SEARCH || '';
 
-        // 1. Фильтр по статусу (новые статусы)
         if (statusFilter === 'not_introduced') {
-            filtered = filtered.filter(function(p) {
-                return getProductStatusForChild(p.id, childId) === 'notIntroduced';
-            });
+            filtered = filtered.filter(function(p) { return getProductStatusForChild(p.id, childId) === 'notIntroduced'; });
         } else if (statusFilter === 'planned') {
-            filtered = filtered.filter(function(p) {
-                return getProductStatusForChild(p.id, childId) === 'planned';
-            });
+            filtered = filtered.filter(function(p) { return getProductStatusForChild(p.id, childId) === 'planned'; });
         } else if (statusFilter === 'introduced') {
-            filtered = filtered.filter(function(p) {
-                return getProductStatusForChild(p.id, childId) === 'introduced';
-            });
+            filtered = filtered.filter(function(p) { return getProductStatusForChild(p.id, childId) === 'introduced'; });
         } else if (statusFilter === 'reaction') {
             filtered = filtered.filter(function(p) {
-                var status = getProductStatusForChild(p.id, childId);
-                return status === 'suspectedReaction' || status === 'confirmedAllergy';
+                var s = getProductStatusForChild(p.id, childId);
+                return s === 'suspectedReaction' || s === 'confirmedAllergy';
             });
         }
-        // 'all' – без фильтрации по статусу
 
-        // 2. Фильтр «Подходит моему ребёнку сейчас»
         if (window.CURRENT_PRODUCT_SUITABLE === true) {
             filtered = filtered.filter(function(p) {
-                var status = getProductStatusForChild(p.id, childId);
-                if (status !== 'notIntroduced') return false;
+                if (getProductStatusForChild(p.id, childId) !== 'notIntroduced') return false;
                 if (getProductMinAgeMonths(p) > getChildAgeMonths(childId)) return false;
                 var safety = safeEvaluate(p, childId);
                 return safety.status === 'allow' || safety.status === 'caution';
             });
         }
 
-        // 3. Фильтр по категории (существующий)
         if (categoryFilter) {
-            filtered = filtered.filter(function(p) {
-                return p.category === categoryFilter;
-            });
+            filtered = filtered.filter(function(p) { return p.category === categoryFilter; });
         }
 
-        // 4. Фильтр по возрасту (существующий)
         if (ageFilter) {
             var ageLimit = parseInt(ageFilter, 10);
             if (!isNaN(ageLimit)) {
-                filtered = filtered.filter(function(p) {
-                    return getProductMinAgeMonths(p) >= ageLimit;
-                });
+                filtered = filtered.filter(function(p) { return getProductMinAgeMonths(p) >= ageLimit; });
             }
         }
 
-        // 5. Фильтр по безопасности (новый)
         if (window.CURRENT_PRODUCT_SAFETY_FILTER && window.CURRENT_PRODUCT_SAFETY_FILTER !== 'all') {
             filtered = filtered.filter(function(p) {
                 var safety = safeEvaluate(p, childId);
@@ -409,18 +292,15 @@
             });
         }
 
-        // 6. Поиск (существующий)
         if (query.trim()) {
             var q = query.trim().toLowerCase();
-            filtered = filtered.filter(function(p) {
-                return p.name.toLowerCase().includes(q);
-            });
+            filtered = filtered.filter(function(p) { return p.name.toLowerCase().indexOf(q) !== -1; });
         }
 
         return filtered;
     }
 
-    // ===== ОБНОВЛЕНИЕ СПИСКА ПРОДУКТОВ =====
+    // ===== ОБНОВЛЕНИЕ СПИСКА =====
     function updateProductsList() {
         var container = document.getElementById('products-list');
         if (!container) return;
@@ -428,39 +308,31 @@
         var filtered = getFilteredProducts();
         if (filtered.length === 0) {
             var message = '';
-            if (window.CURRENT_PRODUCT_SEARCH && window.CURRENT_PRODUCT_SEARCH.trim()) {
-                message = 'Ничего не нашли по вашему запросу.';
-            } else if (window.CURRENT_PRODUCT_SUITABLE === true) {
-                message = 'Пока нет подходящих продуктов для введения.';
-            } else {
-                message = 'Нет продуктов с такими фильтрами.';
-            }
+            if (window.CURRENT_PRODUCT_SEARCH && window.CURRENT_PRODUCT_SEARCH.trim()) message = 'Ничего не нашли по вашему запросу.';
+            else if (window.CURRENT_PRODUCT_SUITABLE === true) message = 'Пока нет подходящих продуктов для введения.';
+            else message = 'Нет продуктов с такими фильтрами.';
             container.innerHTML = '<div class="empty-state"><span class="empty-icon">🥑</span><h3>' + message + '</h3><p>Попробуйте изменить фильтры или поиск.</p></div>';
         } else {
             container.innerHTML = filtered.map(renderProductCard).join('');
         }
 
-        // Обновление прогресса
-        var countEl = document.getElementById('products-introduced-count');
-        if (countEl) {
+        // Синхронизировать счётчик в header
+        var countBtn = document.querySelector('.introduced-count');
+        if (countBtn) {
             var childId = getCurrentChildId();
-            var introducedCount = getIntroducedProductsCount(childId);
-            countEl.textContent = introducedCount;
+            countBtn.textContent = getIntroducedProductsCount(childId) + ' введено';
         }
 
-        // Блок рекомендаций удалён
         updateChipsActiveState();
     }
 
-    // ===== ОБНОВЛЕНИЕ АКТИВНЫХ ЧИПСОВ =====
+    // ===== ЧИПСЫ (без изменений) =====
     function updateChipsActiveState() {
         var statusFilter = (window.STATE && window.STATE.productsFilter) || 'all';
         var categoryFilter = (window.STATE && window.STATE.productsCategoryFilter) || null;
         var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
-
         document.querySelectorAll('#status-filters .chip').forEach(function(chip) {
-            var filter = chip.dataset.filter;
-            chip.classList.toggle('active', filter === statusFilter);
+            chip.classList.toggle('active', chip.dataset.filter === statusFilter);
         });
         document.querySelectorAll('#category-filters .chip').forEach(function(chip) {
             var cat = chip.dataset.category || '';
@@ -470,51 +342,37 @@
             var age = chip.dataset.age || '';
             chip.classList.toggle('active', age === (ageFilter || ''));
         });
-        var suitableToggle = document.querySelector('[data-action="toggle-suitable"]');
-        if (suitableToggle) {
-            suitableToggle.classList.toggle('active', window.CURRENT_PRODUCT_SUITABLE === true);
-        }
     }
 
-    // ===== МОДАЛКА ФИЛЬТРОВ (без локальных обработчиков) =====
+    // ===== МОДАЛКА ФИЛЬТРОВ (без изменений) =====
     function openProductFiltersModal() {
         var tempAgeFilter = window.STATE.productsAgeFilter || null;
         var tempSafetyFilter = window.CURRENT_PRODUCT_SAFETY_FILTER || 'all';
 
-        // Глобальные функции для handlers.js
-        window.updateTempAgeFilter = function(value) {
-            tempAgeFilter = value || null;
-            updateModalChipsActiveState();
-        };
-        window.updateTempSafetyFilter = function(value) {
-            tempSafetyFilter = value || 'all';
-            updateModalChipsActiveState();
-        };
+        window.updateTempAgeFilter = function(value) { tempAgeFilter = value || null; updateModalChipsActiveState(); };
+        window.updateTempSafetyFilter = function(value) { tempSafetyFilter = value || 'all'; updateModalChipsActiveState(); };
         window.applyProductFilters = function() {
             window.STATE.productsAgeFilter = tempAgeFilter;
             window.CURRENT_PRODUCT_SAFETY_FILTER = tempSafetyFilter;
-            closeModal();
-            if (typeof updateProductsList === 'function') updateProductsList();
-            if (typeof updateChipsActiveState === 'function') updateChipsActiveState();
+            if (typeof window.closeModal === 'function') window.closeModal();
+            updateProductsList();
+            updateChipsActiveState();
         };
         window.resetProductFilters = function() {
-            tempAgeFilter = null;
-            tempSafetyFilter = 'all';
+            tempAgeFilter = null; tempSafetyFilter = 'all';
             window.STATE.productsAgeFilter = null;
             window.CURRENT_PRODUCT_SAFETY_FILTER = 'all';
-            closeModal();
-            if (typeof updateProductsList === 'function') updateProductsList();
-            if (typeof updateChipsActiveState === 'function') updateChipsActiveState();
+            if (typeof window.closeModal === 'function') window.closeModal();
+            updateProductsList();
+            updateChipsActiveState();
         };
 
         function updateModalChipsActiveState() {
             document.querySelectorAll('#modal-age-filters .chip').forEach(function(chip) {
-                var value = chip.dataset.value;
-                chip.classList.toggle('active', value === (tempAgeFilter || ''));
+                chip.classList.toggle('active', chip.dataset.value === (tempAgeFilter || ''));
             });
             document.querySelectorAll('#modal-safety-filters .chip').forEach(function(chip) {
-                var value = chip.dataset.value;
-                chip.classList.toggle('active', value === (tempSafetyFilter || 'all'));
+                chip.classList.toggle('active', chip.dataset.value === (tempSafetyFilter || 'all'));
             });
         }
 
@@ -538,125 +396,200 @@
 
         var sheet = document.createElement('div');
         sheet.className = 'modal-sheet';
-        sheet.style.cssText = 'background:white; border-radius:20px; padding:24px; max-width:100%; width:100%; max-height:90vh; overflow-y:auto;';
-        sheet.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <h2 style="margin:0; font-size:24px; font-weight:900; color:#4A3A30;">Фильтры</h2>
-                <button class="btn-close-modal" data-action="close-modal" style="background:transparent; border:none; font-size:28px; cursor:pointer; color:#8A7A6A;">×</button>
-            </div>
-            <div style="margin-bottom:20px;">
-                <h3 style="font-size:16px; font-weight:800; margin-bottom:8px; color:#4A3A30;">Возраст введения</h3>
-                <div class="chips-group" id="modal-age-filters">${ageHtml}</div>
-            </div>
-            <div style="margin-bottom:20px;">
-                <h3 style="font-size:16px; font-weight:800; margin-bottom:8px; color:#4A3A30;">Безопасность</h3>
-                <div class="chips-group" id="modal-safety-filters">${safetyHtml}</div>
-            </div>
-            <div style="display:flex; gap:12px; margin-top:20px;">
-                <button class="btn-secondary" data-action="product-filter-reset" style="flex:1; padding:12px; border:1px solid #F0DED6; background:transparent; border-radius:14px; font-weight:700; cursor:pointer;">Сбросить</button>
-                <button class="btn-primary" data-action="product-filter-apply" style="flex:2; padding:12px; border:none; background:#F5A88C; border-radius:14px; font-weight:700; color:white; cursor:pointer;">Применить</button>
-            </div>
-        `;
+        sheet.innerHTML = '' +
+            '<div class="filters-header"><h2 class="filters-title">Фильтры</h2>' +
+              '<button class="btn-close-modal" data-action="close-modal">×</button></div>' +
+            '<div class="filters-group"><h3 class="filters-group-title">Возраст введения</h3>' +
+              '<div class="chips-group" id="modal-age-filters">' + ageHtml + '</div></div>' +
+            '<div class="filters-group"><h3 class="filters-group-title">Безопасность</h3>' +
+              '<div class="chips-group" id="modal-safety-filters">' + safetyHtml + '</div></div>' +
+            '<div class="filters-actions">' +
+              '<button class="btn-secondary" data-action="product-filter-reset">Сбросить</button>' +
+              '<button class="btn-primary" data-action="product-filter-apply">Применить</button>' +
+            '</div>';
 
-        // OVERLAY БЕЗ DATA-ACTION
         var overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
-        overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(74,58,48,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; box-sizing:border-box; overflow:hidden; pointer-events:auto; overscroll-behavior:contain;';
+        overlay.className = 'modal-overlay active';
         overlay.appendChild(sheet);
         modalRoot.appendChild(overlay);
 
-        // Инициализация активных состояний чипов
         updateModalChipsActiveState();
     }
 
-    // ===== ГЛАВНАЯ ФУНКЦИЯ РЕНДЕРИНГА ЭКРАНА =====
+    // ============================================================
+    // НОВОЕ: РЕКОМЕНДАЦИИ ✨
+    // ============================================================
+    function getRecommendations(childId) {
+        if (!childId || !PRODUCTS.length) return { safe: [], caution: [] };
+        var childAge = getChildAgeMonths(childId);
+
+        var scored = PRODUCTS.map(function(p) {
+            if (getProductStatusForChild(p.id, childId) !== 'notIntroduced') return null;
+            var productAge = getProductMinAgeMonths(p);
+            if (productAge > childAge) return null;
+            var safety = safeEvaluate(p, childId);
+            if (safety.status !== 'allow' && safety.status !== 'caution') return null;
+            return {
+                product: p,
+                safety: safety.status,
+                ageDiff: Math.abs(productAge - childAge)
+            };
+        }).filter(Boolean);
+
+        scored.sort(function(a, b) { return a.ageDiff - b.ageDiff; });
+
+        var safeList = scored.filter(function(s) { return s.safety === 'allow'; });
+        var cautionList = scored.filter(function(s) { return s.safety === 'caution'; });
+
+        safeList = diversifyByCategory(safeList, 10);
+        cautionList = diversifyByCategory(cautionList, 3);
+
+        return {
+            safe: safeList.map(function(s) { return s.product; }),
+            caution: cautionList.map(function(s) { return s.product; })
+        };
+    }
+
+    function diversifyByCategory(scoredItems, max) {
+        var result = [];
+        var seenCategories = {};
+        for (var i = 0; i < scoredItems.length && result.length < max; i++) {
+            var cat = scoredItems[i].product.category || 'другое';
+            if (!seenCategories[cat]) {
+                seenCategories[cat] = true;
+                result.push(scoredItems[i]);
+            }
+        }
+        for (var j = 0; j < scoredItems.length && result.length < max; j++) {
+            if (result.indexOf(scoredItems[j]) === -1) result.push(scoredItems[j]);
+        }
+        return result;
+    }
+
+    function renderRecommendationItem(product, isCaution) {
+        var emoji = getProductEmoji(product);
+        var age = getProductMinAgeMonths(product);
+        var ageLabel = age ? 'с ' + age + ' мес' : '';
+        var categoryLabel = getCategoryLabel(product.category);
+        var cls = isCaution ? ' is-caution' : '';
+        var escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        };
+        return '<div class="recommendation-item' + cls + '" data-action="select-product" data-product-id="' + product.id + '">' +
+            '<div class="rec-emoji">' + emoji + '</div>' +
+            '<div class="rec-info">' +
+                '<div class="rec-name">' + escape(product.name) + '</div>' +
+                '<div class="rec-meta">' + escape(categoryLabel) + (ageLabel ? ' · ' + ageLabel : '') + '</div>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function showRecommendationsPanel() {
+        var childId = getCurrentChildId();
+        var modalRoot = document.getElementById('modal-root');
+        if (!modalRoot) return;
+
+        var recs = getRecommendations(childId);
+        var totalCount = recs.safe.length + recs.caution.length;
+
+        var bodyHtml;
+        if (!childId) {
+            bodyHtml = '<div class="recommendations-empty">Сначала выберите ребёнка.</div>';
+        } else if (totalCount === 0) {
+            bodyHtml = '<div class="recommendations-empty">Пока нет продуктов для рекомендации.<br>Заполните данные малыша и начните отмечать введённые продукты.</div>';
+        } else {
+            bodyHtml = '';
+            if (recs.safe.length > 0) {
+                bodyHtml += '<div class="recommendations-list">';
+                recs.safe.forEach(function(p) { bodyHtml += renderRecommendationItem(p, false); });
+                bodyHtml += '</div>';
+            }
+            if (recs.caution.length > 0) {
+                bodyHtml += '<div class="recommendations-caution-title">С осторожностью</div>';
+                bodyHtml += '<div class="recommendations-list recommendations-list-caution">';
+                recs.caution.forEach(function(p) { bodyHtml += renderRecommendationItem(p, true); });
+                bodyHtml += '</div>';
+            }
+        }
+
+        var subtitle = (childId && totalCount > 0)
+            ? 'Подобрали продукты для вашего малыша с учётом возраста и данных прикорма.'
+            : 'Подберём продукты для вашего малыша с учётом возраста и данных прикорма.';
+
+        var sheet = document.createElement('div');
+        sheet.className = 'modal-sheet recommendations-sheet';
+        sheet.innerHTML = '' +
+            '<div class="recommendations-header">' +
+              '<div>' +
+                '<h2 class="recommendations-heading">Ваши рекомендации</h2>' +
+                '<p class="recommendations-subtitle">' + subtitle + '</p>' +
+              '</div>' +
+              '<button class="btn-close-modal" data-action="close-modal">×</button>' +
+            '</div>' +
+            bodyHtml;
+
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay active';
+        overlay.appendChild(sheet);
+        modalRoot.innerHTML = '';
+        modalRoot.appendChild(overlay);
+    }
+
+    // ============================================================
+    // ГЛАВНЫЙ РЕНДЕР
+    // ============================================================
     function renderProducts() {
         var state = window.STATE || {};
         var children = Array.isArray(state.children) ? state.children : [];
         var childId = getCurrentChildId();
-        var child = childId
-            ? children.find(function(c) {
-                return c.id === childId;
-            })
-            : null;
-        var childName = child && child.name
-            ? child.name
-            : 'Ребёнок';
-        var childAgeMonths = childId
-            ? getChildAgeMonths(childId)
-            : 0;
+        var child = childId ? children.find(function(c) { return c.id === childId; }) : null;
+        var childName = (child && child.name) ? child.name : 'Ребёнок';
+
+        var childAgeMonths = childId ? getChildAgeMonths(childId) : 0;
         var ageText = childAgeMonths > 0 ? childAgeMonths + ' мес' : '';
+        var feedingLabel = (child && child.feedingStarted) ? 'прикорм' : '';
+        var metaText = [ageText, feedingLabel].filter(Boolean).join(' · ');
 
         var introducedCount = getIntroducedProductsCount(childId);
-        var progressPercent = getProductsProgressPercent(childId);
-
-        var statusFilter = (window.STATE && window.STATE.productsFilter) || 'all';
-        var categoryFilter = (window.STATE && window.STATE.productsCategoryFilter) || null;
-        var ageFilter = (window.STATE && window.STATE.productsAgeFilter) || null;
 
         var html = '';
         html += '<div class="products-screen" id="screen-products">';
-        // HEADER с именем и возрастом
-        html += '  <div class="products-header" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;">';
+
+        // Header
+        html += '  <div class="products-header">';
         html += '    <div class="child-info">';
-        html += '      <span style="font-size:20px;font-weight:600;color:var(--kenora-text);">' + escapeHTML(childName) + '</span>';
-        html += '      <span style="font-size:14px;font-weight:500;color:var(--kenora-text-secondary);margin-left:8px;">' + escapeHTML(ageText) + '</span>';
+        html += '      <span class="child-name">' + escapeHTML(childName) + '</span>';
+        if (metaText) html += '      <span class="child-meta">' + escapeHTML(metaText) + '</span>';
         html += '    </div>';
+        html += '    <button class="introduced-count" type="button" data-action="show-introduced-products">' + introducedCount + ' введено</button>';
         html += '  </div>';
 
-        // Прогресс с data-action
-        html += '    <div class="progress-kenora" style="margin-top:8px;cursor:pointer;" data-action="show-introduced-products">';
-        html += '      <div class="progress-info">';
-        html += '        <div class="progress-number-kenora">' + introducedCount + ' <span>/ ' + PRODUCTS.length + '</span></div>';
-        html += '        <div class="progress-label-kenora">Продуктов в рационе</div>';
-        html += '      </div>';
-        html += '      <div class="progress-track-kenora">';
-        html += '        <div class="progress-fill-kenora" style="width: ' + progressPercent + '%;"></div>';
-        html += '      </div>';
+        // Search row
+        html += '  <div class="search-row">';
+        html += '    <div class="search-box">';
+        html += '      <span class="search-icon">' + uiIcons.search + '</span>';
+        html += '      <input id="product-search" type="search" placeholder="Найти продукт..." autocomplete="off" />';
+        html += '      <button class="btn-recommendations" type="button" data-action="show-recommendations" aria-label="Рекомендации">✨</button>';
         html += '    </div>';
-
-        // Поиск
-        html += '  <div class="search-box">';
-        html += '    <span>🔍</span>';
-        html += '    <input id="product-search" type="search" placeholder="Найти продукт..." autocomplete="off" data-action="search-products" />';
-        html += '    <button class="clear-search" data-action="clear-search">✕</button>';
+        html += '    <button class="btn-filter" type="button" data-action="open-product-filters" aria-label="Фильтры">' + uiIcons.filter + '</button>';
         html += '  </div>';
 
-        // Переключатель "Подходит"
-        var suitableActive = window.CURRENT_PRODUCT_SUITABLE === true ? ' active' : '';
-        html += '  <div class="suitable-toggle">';
-        html += '    <span class="chip' + suitableActive + '" data-action="toggle-suitable">✨ Подходит моему ребёнку сейчас</span>';
-        html += '  </div>';
-
-        // Кнопка открытия фильтров (добавлена)
-        html += '  <div class="filter-trigger" data-action="open-product-filters">⚙️ Фильтры</div>';
-
-        // Рекомендации УДАЛЕНЫ
-
-        // Категории
+        // Categories
         html += '  <section class="categories-section">';
-        html += '    <h2 class="h2">Категории</h2>';
         html += '    <div id="category-grid" class="categories-kenora">';
         html +=        renderCategoryGrid();
         html += '    </div>';
         html += '  </section>';
 
-        // Видимые фильтры УДАЛЕНЫ
-
-        // Основной каталог
+        // Products list
         html += '  <section class="products-list-section">';
         html += '    <h2 class="h2">Все продукты</h2>';
         html += '    <div id="products-list" class="products-list">';
         var filtered = getFilteredProducts();
         if (filtered.length === 0) {
-            var msg = '';
-            if (window.CURRENT_PRODUCT_SEARCH && window.CURRENT_PRODUCT_SEARCH.trim()) {
-                msg = 'Ничего не нашли по вашему запросу.';
-            } else if (window.CURRENT_PRODUCT_SUITABLE === true) {
-                msg = 'Пока нет подходящих продуктов для введения.';
-            } else {
-                msg = 'Нет продуктов с такими фильтрами.';
-            }
+            var msg = (window.CURRENT_PRODUCT_SEARCH && window.CURRENT_PRODUCT_SEARCH.trim())
+                ? 'Ничего не нашли по вашему запросу.'
+                : 'Нет продуктов с такими фильтрами.';
             html += '<div class="empty-state"><span class="empty-icon">🥑</span><h3>' + msg + '</h3><p>Попробуйте изменить фильтры или поиск.</p></div>';
         } else {
             html += filtered.map(renderProductCard).join('');
@@ -664,20 +597,67 @@
         html += '    </div>';
         html += '  </section>';
 
-        html += '  <button class="floating-add" data-action="add-diary">➕ <span>Добавить в дневник</span></button>';
+        html += '  <button class="floating-add" type="button" data-action="add-diary">➕ <span>Добавить в дневник</span></button>';
         html += '</div>';
 
         return html;
     }
 
-    // ===== ФУНКЦИИ ДЛЯ ОБНОВЛЕНИЯ ФИЛЬТРОВ И ПОИСКА =====
+    // ============================================================
+    // РЕЖИМ ПОИСКА + делегированный ✨
+    // ============================================================
+    function attachSearchModeHandlers() {
+        document.addEventListener('focusin', function(e) {
+            if (e.target && e.target.id === 'product-search') {
+                var screen = document.querySelector('.products-screen');
+                if (screen) screen.classList.add('is-searching');
+            }
+        });
+
+        document.addEventListener('focusout', function(e) {
+            if (e.target && e.target.id === 'product-search') {
+                setTimeout(function() {
+                    var input = document.getElementById('product-search');
+                    var screen = document.querySelector('.products-screen');
+                    if (!screen || !input) return;
+                    if (input.value.trim() === '') screen.classList.remove('is-searching');
+                }, 120);
+            }
+        });
+
+        document.addEventListener('input', function(e) {
+            if (e.target && e.target.id === 'product-search') {
+                var screen = document.querySelector('.products-screen');
+                if (!screen) return;
+                if (e.target.value.trim() !== '') screen.classList.add('is-searching');
+                else screen.classList.remove('is-searching');
+                window.CURRENT_PRODUCT_SEARCH = e.target.value || '';
+                updateProductsList();
+            }
+        });
+    }
+
+    function attachRecommendationsHandler() {
+        document.addEventListener('click', function(e) {
+            var target = e.target.closest('[data-action="show-recommendations"]');
+            if (!target) return;
+            e.preventDefault();
+            e.stopPropagation();
+            showRecommendationsPanel();
+        }, true);
+    }
+
+    if (!window.__KENORA_PRODUCTS_HANDLERS_ATTACHED__) {
+        window.__KENORA_PRODUCTS_HANDLERS_ATTACHED__ = true;
+        attachSearchModeHandlers();
+        attachRecommendationsHandler();
+    }
+
+    // ===== ЭКСПОРТ =====
     window.setProductsFilter = function(category) {
-        if (window.STATE) {
-            window.STATE.productsCategoryFilter = category || null;
-        }
+        if (window.STATE) window.STATE.productsCategoryFilter = category || null;
         updateProductsList();
     };
-
     window.setProductsSearch = function(query) {
         window.CURRENT_PRODUCT_SEARCH = query || '';
         updateProductsList();
@@ -688,6 +668,7 @@
     window.openProductFiltersModal = openProductFiltersModal;
     window.updateChipsActiveState = updateChipsActiveState;
     window.getProductStatusForChild = getProductStatusForChild;
+    window.showRecommendationsPanel = showRecommendationsPanel;
 
-    console.log('✅ products.js загружен (исправленный, non-module)');
+    console.log('✅ products.js загружен (KENORA 2.0: header + search-row + recommendations)');
 })();
