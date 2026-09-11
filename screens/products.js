@@ -125,18 +125,6 @@
         return 'notIntroduced';
     }
 
-    // ===== SVG КАТЕГОРИЙ =====
-    var categoryIcons = {
-        'овощи': '<svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v8a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/><path d="M12 7v10"/><path d="M8 12h8"/></svg>',
-        'фрукты': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/><path d="M4 4l2 2M20 4l-2 2M4 20l2-2M20 20l-2-2"/></svg>',
-        'крупы': '<svg viewBox="0 0 24 24"><path d="M6 14l3-3 3 3 3-3 3 3"/><path d="M6 10l3-3 3 3 3-3 3 3"/><path d="M3 18h18"/><path d="M3 6h18"/></svg>',
-        'мясо': '<svg viewBox="0 0 24 24"><path d="M18 6l-4 4M14 10l-4 4M10 14l-4 4"/><circle cx="18" cy="6" r="2"/><circle cx="14" cy="10" r="2"/><circle cx="10" cy="14" r="2"/><circle cx="6" cy="18" r="2"/></svg>',
-        'рыба': '<svg viewBox="0 0 24 24"><path d="M2 12c0-3.3 4-6 10-6s10 2.7 10 6-4 6-10 6-10-2.7-10-6z"/><circle cx="10" cy="12" r="1.5"/></svg>',
-        'молочные': '<svg viewBox="0 0 24 24"><path d="M6 8l2-4h8l2 4-2 10H8z"/><path d="M8 18h8"/><path d="M10 18v2"/><path d="M14 18v2"/></svg>',
-        'аллергены': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>',
-        'другое': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>'
-    };
-
     // ===== НОВОЕ: SVG для search / filter =====
     var uiIcons = {
         search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>',
@@ -225,12 +213,15 @@
     }
 
     // ===== КАТЕГОРИИ =====
+    // Правка PASS 2.1: эмодзи из categoryEmojiMap, active-класс из STATE.
     function renderCategoryGrid() {
         var categories = CATEGORIES || [];
+        var currentFilter = (window.STATE && window.STATE.productsCategoryFilter) || null;
         return categories.map(function(cat) {
-            var icon = categoryIcons[cat.id] || categoryIcons['другое'];
-            return '<div class="category-kenora" data-action="filter-products" data-category="' + cat.id + '">' +
-                '<span class="cat-icon">' + icon + '</span>' +
+            var emoji = categoryEmojiMap[cat.id] || cat.icon || '🍽';
+            var activeClass = (currentFilter === cat.id) ? ' active' : '';
+            return '<div class="category-kenora' + activeClass + '" data-action="filter-products" data-category="' + cat.id + '">' +
+                '<span class="cat-icon" aria-hidden="true">' + emoji + '</span>' +
                 '<span class="cat-label">' + escapeHTML(cat.label) + '</span>' +
             '</div>';
         }).join('');
@@ -300,6 +291,35 @@
         return filtered;
     }
 
+    // ===== Правка PASS 2.1: синхронизация active-состояния категорий =====
+    var __prevActiveCat = undefined;
+
+    function updateCategoryActiveState() {
+        var current = (window.STATE && window.STATE.productsCategoryFilter) || null;
+        document.querySelectorAll('.category-kenora').forEach(function(el) {
+            el.classList.toggle('active', el.dataset.category === current);
+        });
+        if (__prevActiveCat !== current) {
+            __prevActiveCat = current;
+            requestAnimationFrame(scrollActiveCategoryIntoView);
+        }
+    }
+
+    function scrollActiveCategoryIntoView() {
+        var active = document.querySelector('.category-kenora.active');
+        if (!active) return;
+        var container = active.parentElement;
+        if (!container) return;
+        var cRect = container.getBoundingClientRect();
+        var aRect = active.getBoundingClientRect();
+        if (aRect.left >= cRect.left && aRect.right <= cRect.right) return;
+        try {
+            active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        } catch (e) {
+            active.scrollIntoView(false);
+        }
+    }
+
     // ===== ОБНОВЛЕНИЕ СПИСКА =====
     function updateProductsList() {
         var container = document.getElementById('products-list');
@@ -324,6 +344,7 @@
         }
 
         updateChipsActiveState();
+        updateCategoryActiveState();  // ← Правка PASS 2.1
     }
 
     // ===== ЧИПСЫ (без изменений) =====
@@ -667,6 +688,7 @@
     window.renderProducts = renderProducts;
     window.openProductFiltersModal = openProductFiltersModal;
     window.updateChipsActiveState = updateChipsActiveState;
+    window.updateCategoryActiveState = updateCategoryActiveState;   // ← экспорт для внешних вызовов
     window.getProductStatusForChild = getProductStatusForChild;
     window.showRecommendationsPanel = showRecommendationsPanel;
 
