@@ -6,40 +6,55 @@
 /* ----- 1. Общий контейнер (основа для псевдоэлементов) ----- */
 .products-screen {
     padding: 20px 16px 104px;
+    padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* ----- 2. Атмосферный фон (три размытых пятна) ----- */
 .products-screen::before {
     background:
-        radial-gradient(circle at 30% 20%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.25) 40%, transparent 70%),
-        radial-gradient(circle at 80% 70%, var(--kenora-primary-light) 0%, rgba(181, 201, 176, 0.15) 30%, transparent 60%),
-        radial-gradient(circle at 15% 50%, var(--kenora-accent) 0%, rgba(245, 217, 200, 0.12) 35%, transparent 65%);
-    filter: blur(140px);
-    opacity: 0.5;
+        radial-gradient(ellipse 120% 55% at 50% -8%,
+            rgba(245, 217, 200, 0.70) 0%,
+            rgba(245, 217, 200, 0.32) 38%,
+            transparent 72%),
+        radial-gradient(ellipse 75% 50% at 92% 48%,
+            rgba(181, 201, 176, 0.55) 0%,
+            rgba(181, 201, 176, 0.20) 48%,
+            transparent 78%),
+        radial-gradient(ellipse 70% 45% at 8% 88%,
+            rgba(245, 217, 200, 0.55) 0%,
+            rgba(245, 217, 200, 0.20) 48%,
+            transparent 78%),
+        linear-gradient(180deg,
+            rgba(255, 250, 245, 0) 0%,
+            rgba(181, 201, 176, 0.10) 100%);
+    filter: none;
+    opacity: 1;
 }
 .products-screen::after {
-    background: radial-gradient(circle at 70% 80%, var(--kenora-accent) 0%, rgba(245, 217, 200, 0.2) 50%, transparent 70%);
-    filter: blur(120px);
-    opacity: 0.4;
+    background:
+        radial-gradient(ellipse 55% 30% at 30% 22%,
+            rgba(245, 217, 200, 0.32) 0%,
+            transparent 70%),
+        radial-gradient(ellipse 50% 25% at 68% 70%,
+            rgba(181, 201, 176, 0.28) 0%,
+            transparent 72%);
+    filter: none;
+    opacity: 1;
 }
 .products-screen::before,
 .products-screen::after {
     content: '';
     position: absolute;
-    border-radius: 50%;
+    inset: 0 -40px;
+    border-radius: 0;
     pointer-events: none;
     z-index: 0;
 }
 
 /* Контент поверх фона */
-.products-screen .products-header,
-.products-screen .search-box,
-.products-screen .suitable-toggle,
-.products-screen .filter-trigger,
-.products-screen .categories-kenora,
-.products-screen .products-list {
+.products-screen > * {
     position: relative;
     z-index: 1;
 }
@@ -51,12 +66,12 @@
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
-    background: rgba(255, 248, 242, 0.78);
-    backdrop-filter: blur(16px) saturate(1.05);
-    -webkit-backdrop-filter: blur(16px) saturate(1.05);
-    border: 0.5px solid rgba(255, 255, 255, 0.7);
+    background: rgba(255, 250, 245, 0.86);
+    backdrop-filter: blur(18px) saturate(1.06);
+    -webkit-backdrop-filter: blur(18px) saturate(1.06);
+    border: 0.5px solid rgba(255, 255, 255, 0.85);
     border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(61, 51, 42, 0.1), 0 2px 8px rgba(61, 51, 42, 0.04);
+    box-shadow: 0 14px 36px rgba(61, 51, 42, 0.10), 0 3px 10px rgba(61, 51, 42, 0.05), inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
     transition: transform .18s ease, box-shadow .18s ease;
     z-index: 1;
 }
@@ -67,10 +82,10 @@
 
 /* ----- 4. Emoji — более выраженный frosted-glass (отдельный объект) ----- */
 .products-screen .product-card .product-emoji {
-    width: 52px;
-    min-width: 52px;
-    height: 52px;
-    min-height: 52px;
+    width: 54px;
+    min-width: 54px;
+    height: 54px;
+    min-height: 54px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -78,22 +93,23 @@
     line-height: 1;
     border-radius: 18px;
     box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(20px) saturate(1.1);
-    -webkit-backdrop-filter: blur(20px) saturate(1.1);
-    border: 0.5px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 2px 12px rgba(61, 51, 42, 0.02);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(22px) saturate(1.12);
+    -webkit-backdrop-filter: blur(22px) saturate(1.12);
+    border: 0.5px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 4px 14px rgba(61, 51, 42, 0.06), inset 0 0.5px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* ----- 5. Внутренние элементы (чистый текст, без стекла) ----- */
 .products-screen .product-card .product-name {
     min-width: 0;
     margin: 0;
-    font-size: 17px;
+    font-size: 17.5px;
     line-height: 1.2;
-    font-weight: 650;
-    letter-spacing: -0.2px;
-    overflow-wrap: anywhere;
+    font-weight: 620;
+    letter-spacing: -0.15px;
+    overflow-wrap: normal;
+    word-break: normal;
     color: var(--kenora-text);
 }
 .products-screen .product-meta {
@@ -101,12 +117,12 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 2px;
+    margin-top: 0;
     min-height: 18px;
     font-size: 13px;
     line-height: 1.3;
     color: var(--kenora-text-secondary);
-    opacity: 0.9;
+    opacity: 1;
 }
 .products-screen .product-category,
 .products-screen .product-age {
@@ -156,6 +172,16 @@
     color: var(--kenora-text-secondary);
     box-shadow: none;
 }
+.products-screen .badge.badge-caution {
+    background: rgba(245, 217, 200, 0.14);
+    color: var(--kenora-text-secondary);
+    border: 0.5px solid rgba(245, 217, 200, 0.22);
+}
+.products-screen .badge.badge-review {
+    background: rgba(181, 201, 176, 0.14);
+    color: var(--kenora-primary-dark);
+    border: 0.5px solid rgba(181, 201, 176, 0.22);
+}
 .products-screen .badge.age-ok {
     background: rgba(181, 201, 176, 0.15);
     color: var(--kenora-primary-dark);
@@ -195,11 +221,9 @@
     font-size: 13px;
     font-weight: 500;
     line-height: 1.3;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(8px) saturate(1.04);
-    -webkit-backdrop-filter: blur(8px) saturate(1.04);
-    border: 0.5px solid rgba(255, 255, 255, 0.25);
-    color: var(--kenora-text-secondary);
+    background: rgba(181, 201, 176, 0.14);
+    border: 0.5px solid rgba(255, 255, 255, 0.35);
+    color: var(--kenora-primary-dark);
 }
 .products-screen .product-status .dot {
     display: inline-block;
@@ -212,7 +236,7 @@
     background: var(--kenora-primary);
 }
 .products-screen .product-status.status-introduced {
-    background: rgba(181, 201, 176, 0.12);
+    background: rgba(181, 201, 176, 0.18);
     color: var(--kenora-primary-dark);
 }
 .products-screen .product-status.status-suspected .dot {
@@ -258,13 +282,15 @@
     min-height: 44px;
     padding: 10px 18px;
     border-radius: 18px;
-    background: rgba(181, 201, 176, 0.2);
-    border: 0.5px solid rgba(255, 255, 255, 0.3);
-    color: var(--kenora-text);
+    background: rgba(181, 201, 176, 0.22);
+    border: 0.5px solid rgba(181, 201, 176, 0.28);
+    color: var(--kenora-primary-dark);
     font-size: 14px;
     font-weight: 600;
     letter-spacing: -0.05px;
-    box-shadow: 0 2px 12px rgba(181, 201, 176, 0.04);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
 }
 .products-screen .product-actions .btn-primary:active {
@@ -274,22 +300,23 @@
 
 /* ⋯ — лёгкий translucent control (может иметь небольшой glass) */
 .products-screen .product-actions .btn-icon {
-    flex: 0 0 42px;
-    width: 42px;
-    min-width: 42px;
-    height: 42px;
+    flex: 0 0 40px;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.28);
     backdrop-filter: blur(6px) saturate(1.03);
     -webkit-backdrop-filter: blur(6px) saturate(1.03);
-    border: 0.5px solid rgba(255, 255, 255, 0.25);
+    border: 0.5px solid rgba(255, 255, 255, 0.4);
     color: var(--kenora-text-secondary);
     font-size: 19px;
     line-height: 1;
+    box-shadow: none;
     transition: transform .16s ease, background-color .16s ease;
 }
 .products-screen .product-actions .btn-icon:active {
@@ -322,11 +349,13 @@
     border: 0.5px solid rgba(255, 255, 255, 0.4);
 }
 .products-screen .floating-add {
-    background: rgba(181, 201, 176, 0.6);
-    backdrop-filter: blur(12px) saturate(1.06);
-    -webkit-backdrop-filter: blur(12px) saturate(1.06);
-    border: 0.5px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 4px 20px rgba(61, 51, 42, 0.04);
+    background: rgba(181, 201, 176, 0.92);
+    color: #FFFFFF;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    box-shadow: 0 10px 26px rgba(61, 51, 42, 0.14), 0 2px 6px rgba(61, 51, 42, 0.06);
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ----- 7. Заголовок, категории, список (без изменений, но с z-index) ----- */
@@ -355,17 +384,23 @@
 
 .products-screen .categories-kenora {
     display: flex;
-    gap: 8px;
+    flex-wrap: nowrap;
+    gap: 10px;
     overflow-x: auto;
-    margin-bottom: 22px;
-    padding: 4px 0 18px;
+    overflow-y: hidden;
     scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding: 4px 20px 18px 0;
+    margin-bottom: 20px;
 }
 .products-screen .categories-kenora::-webkit-scrollbar {
     display: none;
 }
 .products-screen .category-kenora {
     flex-shrink: 0;
+    scroll-snap-align: start;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -374,7 +409,7 @@
     border-radius: 24px;
     background: transparent;
     border: 0.5px solid transparent;
-    min-width: 52px;
+    min-width: 56px;
     cursor: pointer;
     transition: background-color .18s ease, border-color .18s ease;
 }
@@ -390,7 +425,7 @@
     height: 24px;
     display: block;
     stroke: var(--kenora-text-muted);
-    stroke-width: 2;
+    stroke-width: 1.9;
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -435,18 +470,38 @@
     flex-direction: column;
     gap: 16px;
     width: 100%;
+    padding: 0 8px;
 }
 
 .products-screen .product-card-header {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-columns: 54px minmax(0, 1fr);
+    grid-template-areas:
+        "emoji name"
+        "emoji badge";
     align-items: center;
     column-gap: 14px;
-    padding: 16px 18px 10px;
+    row-gap: 4px;
+    padding: 15px 18px 8px;
     min-width: 0;
 }
+.products-screen .product-card-header .product-emoji {
+    grid-area: emoji;
+    align-self: center;
+}
+.products-screen .product-card-header .product-name {
+    grid-area: name;
+    align-self: end;
+}
+.products-screen .product-card-header .badge {
+    grid-area: badge;
+    align-self: start;
+    justify-self: start;
+    max-width: 100%;
+    text-align: left;
+}
 .products-screen .product-card-body {
-    padding: 4px 18px 16px;
+    padding: 4px 18px 15px;
     min-width: 0;
 }
 .products-screen .product-actions {
@@ -496,7 +551,7 @@
         font-size: 15px;
     }
     .products-screen .categories-kenora {
-        padding: 2px 0 14px;
+        padding: 2px 16px 14px 0;
         margin-bottom: 19px;
     }
     .products-screen .category-kenora {
@@ -518,23 +573,24 @@
         gap: 14px;
     }
     .products-screen .product-card-header {
-        grid-template-columns: 44px minmax(0, 1fr) auto;
+        grid-template-columns: 48px minmax(0, 1fr);
         column-gap: 10px;
-        padding: 14px 14px 8px;
+        padding: 14px 14px 6px;
     }
     .products-screen .product-card .product-emoji {
-        width: 44px;
-        min-width: 44px;
-        height: 44px;
-        min-height: 44px;
+        width: 48px;
+        min-width: 48px;
+        height: 48px;
+        min-height: 48px;
         font-size: 26px;
+        border-radius: 16px;
     }
     .products-screen .product-card-body {
         padding-left: 14px;
         padding-right: 14px;
     }
     .products-screen .product-card-header .badge {
-        max-width: 120px;
+        max-width: 100%;
     }
 }
 /* ============================================================
@@ -670,14 +726,15 @@
     justify-content: center;
     padding: 0;
     border-radius: 12px;
-    background: rgba(245, 217, 200, 0.35);
-    border: 0.5px solid rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(8px) saturate(1.06);
-    -webkit-backdrop-filter: blur(8px) saturate(1.06);
+    background: rgba(245, 217, 200, 0.42);
+    border: 0.5px solid rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px) saturate(1.08);
+    -webkit-backdrop-filter: blur(12px) saturate(1.08);
     color: var(--kenora-text);
     font-size: 16px;
     line-height: 1;
     cursor: pointer;
+    box-shadow: 0 2px 10px rgba(61, 51, 42, 0.04);
     transition: transform .16s ease, background-color .16s ease;
 }
 .products-screen .btn-recommendations::before {
