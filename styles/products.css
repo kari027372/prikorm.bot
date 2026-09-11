@@ -348,14 +348,53 @@
     -webkit-backdrop-filter: blur(8px) saturate(1.05);
     border: 0.5px solid rgba(255, 255, 255, 0.4);
 }
+
+/* ============================================================
+   FAB — компактный круг, правый нижний угол
+   ============================================================ */
 .products-screen .floating-add {
-    background: rgba(181, 201, 176, 0.92);
+    position: fixed;
+    right: 16px;
+    left: auto;
+    bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    width: 52px;
+    min-width: 52px;
+    max-width: 52px;
+    height: 52px;
+    min-height: 52px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+    font-weight: 500;
+    line-height: 1;
+    background: color-mix(in srgb, var(--kenora-primary) 90%, transparent);
     color: #FFFFFF;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: none;
-    box-shadow: 0 10px 26px rgba(61, 51, 42, 0.14), 0 2px 6px rgba(61, 51, 42, 0.06);
-    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    border: 0.5px solid rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px) saturate(1.05);
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    box-shadow:
+        0 6px 18px rgba(61, 51, 42, 0.16),
+        0 2px 5px rgba(61, 51, 42, 0.08);
+    z-index: 10;
+    overflow: hidden;
+    text-indent: -9999px;
+}
+.products-screen .floating-add::before {
+    content: '+';
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1;
+    text-indent: 0;
+    display: block;
+    color: #FFFFFF;
+}
+.products-screen .floating-add:active {
+    transform: scale(0.94);
+    background: color-mix(in srgb, var(--kenora-primary) 100%, transparent);
 }
 
 /* ----- 7. Заголовок, категории, список (без изменений, но с z-index) ----- */
@@ -382,78 +421,117 @@
     color: var(--kenora-text-secondary);
 }
 
+/* ============================================================
+   Categories — карусель с peek + fade, эмодзи из JS
+   ============================================================ */
+.products-screen .categories-section {
+    margin-bottom: 22px;
+}
+.products-screen .categories-section::before {
+    content: 'Категории';
+    display: block;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: var(--kenora-text-secondary);
+    margin-bottom: 8px;
+}
 .products-screen .categories-kenora {
     display: flex;
     flex-wrap: nowrap;
     gap: 10px;
     overflow-x: auto;
     overflow-y: hidden;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    padding: 4px 20px 18px 0;
-    margin-bottom: 20px;
+    padding: 0 44px 4px 0;
+    margin: 0;
+    -webkit-mask-image: linear-gradient(to right,
+        #000 0,
+        #000 calc(100% - 40px),
+        rgba(0, 0, 0, 0.35) calc(100% - 18px),
+        transparent 100%);
+    mask-image: linear-gradient(to right,
+        #000 0,
+        #000 calc(100% - 40px),
+        rgba(0, 0, 0, 0.35) calc(100% - 18px),
+        transparent 100%);
 }
 .products-screen .categories-kenora::-webkit-scrollbar {
     display: none;
 }
 .products-screen .category-kenora {
-    flex-shrink: 0;
-    scroll-snap-align: start;
+    flex: 0 0 64px;
+    width: 64px;
+    min-width: 64px;
+    height: 78px;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 6px 10px 8px;
-    border-radius: 24px;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 0;
     background: transparent;
     border: 0.5px solid transparent;
-    min-width: 56px;
+    border-radius: 16px;
+    scroll-snap-align: start;
     cursor: pointer;
-    transition: background-color .18s ease, border-color .18s ease;
+    transition: transform .16s ease;
+}
+.products-screen .category-kenora:active {
+    transform: scale(0.94);
 }
 .products-screen .category-kenora .cat-icon {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-.products-screen .category-kenora .cat-icon svg {
-    width: 24px;
-    height: 24px;
-    display: block;
-    stroke: var(--kenora-text-muted);
-    stroke-width: 1.9;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: stroke 0.2s;
+    border-radius: 14px;
+    background: transparent;
+    border: 0.5px solid transparent;
+    font-size: 26px;
+    line-height: 1;
+    transition: background-color .18s ease, border-color .18s ease,
+                box-shadow .18s ease, transform .18s ease;
 }
 .products-screen .category-kenora .cat-label {
     font-size: 11px;
-    line-height: 1.2;
-    font-weight: 450;
+    line-height: 14px;
+    font-weight: 500;
     color: var(--kenora-text-secondary);
-    transition: color 0.2s, font-weight 0.2s;
+    text-align: center;
+    max-width: 64px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color .18s ease, font-weight .18s ease;
 }
-.products-screen .category-kenora.active {
-    background: rgba(181, 201, 176, 0.15);
-    backdrop-filter: blur(8px) saturate(1.05);
-    -webkit-backdrop-filter: blur(8px) saturate(1.05);
-    border-color: rgba(181, 201, 176, 0.2);
-    border-radius: 24px;
-}
-.products-screen .category-kenora.active .cat-icon svg {
-    stroke: var(--kenora-primary);
+.products-screen .category-kenora.active .cat-icon {
+    background: rgba(181, 201, 176, 0.32);
+    border-color: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(12px) saturate(1.06);
+    -webkit-backdrop-filter: blur(12px) saturate(1.06);
+    box-shadow:
+        0 3px 12px rgba(61, 51, 42, 0.08),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
 }
 .products-screen .category-kenora.active .cat-label {
     color: var(--kenora-primary-dark);
-    font-weight: 500;
+    font-weight: 600;
 }
-.products-screen .category-kenora:hover {
-    background: rgba(255, 255, 255, 0.15);
+@media (hover: hover) and (pointer: fine) {
+    .products-screen .category-kenora:not(.active):hover .cat-icon {
+        transform: scale(1.03);
+    }
+    .products-screen .category-kenora:not(.active):hover .cat-label {
+        color: var(--kenora-text);
+    }
 }
 
 .products-screen .products-list-section .h2 {
@@ -550,24 +628,19 @@
         min-height: 44px;
         font-size: 15px;
     }
+    /* Категории на мобильном — только правый padding и mask */
     .products-screen .categories-kenora {
-        padding: 2px 16px 14px 0;
-        margin-bottom: 19px;
-    }
-    .products-screen .category-kenora {
-        padding: 4px 8px 6px;
-        min-width: 44px;
-    }
-    .products-screen .category-kenora .cat-icon {
-        width: 28px;
-        height: 28px;
-    }
-    .products-screen .category-kenora .cat-icon svg {
-        width: 20px;
-        height: 20px;
-    }
-    .products-screen .category-kenora .cat-label {
-        font-size: 10px;
+        padding: 0 40px 4px 0;
+        -webkit-mask-image: linear-gradient(to right,
+            #000 0,
+            #000 calc(100% - 36px),
+            rgba(0, 0, 0, 0.35) calc(100% - 16px),
+            transparent 100%);
+        mask-image: linear-gradient(to right,
+            #000 0,
+            #000 calc(100% - 36px),
+            rgba(0, 0, 0, 0.35) calc(100% - 16px),
+            transparent 100%);
     }
     .products-screen .products-list {
         gap: 14px;
