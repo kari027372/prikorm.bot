@@ -6,13 +6,39 @@
 /* ============================================================
    1. Общий контейнер
    ============================================================ */
+
+/* ----- Общий контейнер ----- */
 .products-screen {
     padding: 20px 16px 104px;
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
     padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
     position: relative;
     overflow: visible;
+    background: none;
 }
+
+/* ----- Атмосферный фон (фото, прибито к viewport) ----- */
+.products-screen::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: url("https://kari027372.github.io/prikorm.bot/IMG_6857.webp");
+    background-size: auto 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: #FBF4E8;
+}
+.products-screen::after {
+    content: none;
+}
+
+/* Контент поверх фона */
 .products-screen > * {
+    position: relative;
+    z-index: 1;
+}{
     position: relative;
     z-index: 1;
 }
