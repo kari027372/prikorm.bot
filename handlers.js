@@ -424,7 +424,7 @@
                     }
                     break;
                 }
-                var modalContent = '<div class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Введённые продукты</h2><button class="modal-close" data-action="close-modal">×</button></div><div class="modal-body"><div class="introduced-list">';
+                var modalContent = '<div class="modal-overlay active"><div class="modal-content"><div class="modal-header"><h2>Введённые продукты</h2><button class="modal-close" data-action="close-modal">×</button></div><div class="modal-body"><div class="introduced-list">';
                 introducedProducts.forEach(function(p) {
                     var emoji = p.emoji || '🍽️';
                     modalContent += '<div class="introduced-item"><span class="ii-emoji">' + emoji + '</span><span class="ii-name">' + p.name + '</span></div>';
