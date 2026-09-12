@@ -683,7 +683,7 @@ function openAddFoodModal(product = null) {
 
     // Убрали data-action="close-modal" с overlay, оставили только на крестике
     root.innerHTML = `
-        <div class="modal-overlay">
+        <div class="modal-overlay active">
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Новый приём пищи</h2>
