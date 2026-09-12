@@ -1200,10 +1200,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--kenora-text-secondary);
 }
 .products-screen .category-kenora.active {
-  background: rgba(181,201,176,.12);
-  border: 1px solid rgba(181,201,176,.14);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: transparent;
+  border-color: transparent;
+}
 }
 
 /* ----- Список продуктов ----- */
