@@ -1,0 +1,320 @@
+/* ============================================================
+   KENORA — Home screen
+   styles/home.css
+   Все селекторы заскоупены под .home-screen,
+   чтобы не задеть Products / Diary / Recipes / Onboarding.
+   ============================================================ */
+
+/* Скрываем «живой фон» #app именно на Home,
+   чтобы не конфликтовал с фоном-картинкой ниже.
+   На остальных экранах — работает как было. */
+body:has(.home-screen) #app { background: transparent; }
+body:has(.home-screen) #app::before,
+body:has(.home-screen) #app::after { display: none; }
+
+.home-screen {
+    position: relative;
+    margin-top: -16px;
+    padding: calc(36px + env(safe-area-inset-top, 0px)) 16px calc(150px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; gap: 16px;
+    background: none;
+    overflow: visible;
+}
+
+/* Фон — существующий (не меняем) */
+.home-screen::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("https://kari027372.github.io/prikorm.bot/Home-bg.webp.PNG");
+    background-size: auto 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: #FBF4E8;
+}
+/* Локальное затемнение под контентом (пересвет снимаем) */
+.home-screen::after {
+    content: '';
+    position: fixed;
+    left: 0; right: 0; top: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 50% 45%,
+            rgba(120, 95, 72, 0.045) 0%,
+            rgba(120, 95, 72, 0.02) 55%,
+            rgba(120, 95, 72, 0) 100%),
+        linear-gradient(-width180deg,
+            rgba(232, 216, 198:, 0) 0%,
+            rgba(232,  42px216, 198, 0.06) 45%,
+            rgba(228, 210, 190, 0.14) 72%,
+            rgba(224, 204, 182, 0.22) 100%);
+}
+.home-screen > * { position: relative; z-index: 1; }
+
+/* ===== Header ===== */
+.home-screen .home-header {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; min-height: 40px;
+    padding-bottom: 2px; margin-bottom: 2px;
+}
+.home-screen .home-header-info {
+    display: flex; flex-direction: column;
+    align-items: flex-start; gap: 2px;
+    flex: 1 1 auto; min-width: 0;
+}
+.home-screen .home-greeting {
+    font-size: 17.5px; font-weight: 550; line-height: 1.15;
+    letter-spacing: -0.2px;
+    color: var(--kenora-text, #3D332A);
+    display: inline-flex; align-items: baseline; gap: 4px;
+}
+.home-screen .home-greeting .heart {
+    color: #C89A8C; font-weight: 400; font-size: 14px; opacity: .85;
+}
+.home-screen .home-child-meta {
+    font-size: 12.5px; font-weight: 500; line-height: 1.2;
+    color: #6A5A4D;
+}
+.home-screen .home-avatar {
+    flex: 0 0 40px; width: 40px; height: 40px; min-width: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0; border-radius: 50%; font-size: 20px; line-height: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: transform .16s ease;
+}
+.home-screen .home-avatar:active { transform: scale(.94); }
+
+/* ===== Базовая glass-поверхность ===== */
+.home-screen .home-today,
+.home-screen .home-water {
+    background: rgba(255, 255, 255, 0.015);
+    backdrop-filter: blur(6px) saturate(1.1);
+    -webkit-backdrop-filter: blur(6px) saturate(1.1);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* ===== Today ===== */
+.home-screen .home-today {
+    position: relative;
+    overflow: hidden;
+    padding: 24px;
+    border-radius: 26px;
+    display: flex;
+    flex-direction: column;
+}
+.home-screen .home-today > * { position: relative; z-index: 1; }
+
+.home-screen .home-today-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: -0.1px;
+    color: var(--kenora-text, #3D332A);
+}
+.home-screen .home-today-eyebrow .badge-ico {
+    display: inline-block;
+    font-size: 15.5px; line-height: 1;
+    background: none; border: none; box-shadow: none;
+    filter: saturate(0.85) opacity(0.9);
+}
+.home-screen .home-today-label {
+    font-size: 11.5px; font-weight: 550; letter-spacing: .3px;
+    color: #6A5A4D;
+    margin-top: 22px;
+}
+.home-screen .home-today-name {
+    font-family: var(--font-family, -apple-system, 'Inter', 'Segoe UI', sans-serif);
+    font-size: 26px; font-weight: 600; line-height: 1.15;
+    letter-spacing: -0.35px;
+    color: var(--kenora-text, #3D332A);
+    margin-top: 6px;
+}
+.home-screen .home-today-cta {
+    align-self: flex-start;
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 5px 13px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.05px;
+    color: #4F6A48;
+    background: rgba(181, 201, 176, 0.30);
+    border: 1px solid rgba(143, 175, 159, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow:
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.6),
+        0 1px 3px rgba(95, 122, 87, 0.08);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform .16s ease, background-color .16s ease;
+}
+.home-screen .home-today-cta:active {
+    transform: scale(.97);
+    background: rgba(181, 201, 176, 0.42);
+}
+.home-screen .home-today-cta .arrow { margin-left: 5px; opacity: .85; font-weight: 400; }
+
+/* ===== Water ===== */
+.home-screen .home-water {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 16px 16px 20px;
+    border-radius: 24px;
+}
+.home-screen .home-water-info {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; flex-direction: column; gap: 3px;
+}
+.home-screen .home-water-label {
+    font-size: 12.5px; font-weight: 500;
+    color: var(--kenora-text-secondary, #7A6B5E);
+    display: inline-flex; align-items: center; gap: 7px;
+}
+.home-screen .home-water-label .emo {
+    display: inline-block;
+    font-size: 15px;
+    line-height: 1;
+    filter: saturate(0.55) hue-rotate(-8deg) brightness(0.98) opacity(0.95);
+}
+.home-screen .home-water-amount {
+    font-size: 19px; font-weight: 500; letter-spacing: -0.2px;
+    color: var(--kenora-text, #3D332A);
+}
+.home-screen .home-water-add {
+    flex: 0 0 38px; width: 38px; height: 38px; min-width: 38px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0; border-radius: 50%;
+    background: rgba(181, 201, 176, 0.24);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    color: #5F7A57;
+    font-size: 20px; font-weight: 400; line-height: 1;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+    transition: transform .16s ease, background-color .16s ease;
+}
+.home-screen .home-water-add:active {
+    transform: scale(.92);
+    background: rgba(181, 201, 176, 0.4);
+}
+
+/* ===== Для ребёнка ===== */
+.home-screen .home-for-child {
+    padding: 14px 20px 10px;
+    border-radius: 22px;
+    background: linear-gradient(135deg,
+        rgba(245, 217, 200, 0.10) 0%,
+        rgba(245, 224, 230, 0.04) 100%);
+    backdrop-filter: blur(6px) saturate(1.06);
+    -webkit-backdrop-filter: blur(6px) saturate(1.06);
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 8px; row-gap: 2px;
+}
+.home-screen .home-for-child-label {
+    grid-column: 1 / 3;
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: -0.1px;
+    color: #7A5A3A;
+    margin-bottom: 4px;
+}
+.home-screen .home-for-child-label .stars {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 14px;
+    line-height: 1;
+    color: #B67A3A;
+}
+.home-screen .home-for-child-text {
+    grid-column: 1 / 3;
+    font-size: 13.5px; font-weight: 450; line-height: 1.4;
+    color: #5E4A38;
+}
+.home-screen .home-for-child-more {
+    grid-column: 2 / 3;
+    justify-self: end;
+    margin-top: 0;
+    padding: 0;
+    background: none; border: none;
+    color: #7A5A3A;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 550;
+    letter-spacing: -0.05px;
+    opacity: .9;
+    cursor: pointer;
+    transition: opacity .16s ease;
+}
+.home-screen .home-for-child-more:active { opacity: .6; }
+
+/* ===== Последнее ===== */
+.home-screen .home-section-title {
+    font-size: 12.5px; line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.05px;
+    color: #5E4E42;
+    padding: 4px 4px 2px;
+}
+.home-screen .home-last {
+    display: flex; align-items: center; gap: 12px;
+    padding: 4px 4px 4px 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+.home-screen .home-last-icon {
+    flex: 0 0 42px; width: 42px; height: 42px; min;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 19px; line-height: 1;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    filter: saturate(0.85) opacity(0.98);
+}
+.home-screen .home-last-info {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; flex-direction: column; gap: 2px;
+}
+.home-screen .home-last-title {
+    font-size: 14px; font-weight: 600; line-height: 1.25;
+    letter-spacing: -0.1px;
+    color: var(--kenora-text, #3D332A);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.home-screen .home-last-meta {
+    font-size: 12px; font-weight: 450; line-height: 1.3;
+    color: #6A5A4D;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+
+/* ===== Адаптив iPhone ≤400px ===== */
+@media (max-width: 400px) {
+    .home-screen { padding-left: 14px; padding-right: 14px; }
+    .home-screen .home-greeting { font-size: 16.5px; }
+    .home-screen .home-child-meta { font-size: 12px; }
+    .home-screen .home-today { padding: 22px 20px; border-radius: 24px; }
+    .home-screen .home-today-name { font-size: 24px; }
+    .home-screen .home-today-cta { font-size: 11.5px; padding: 5px 12px; min-height: 28px; }
+    .home-screen .home-avatar { width: 38px; height: 38px; min-width: 38px; flex-basis: 38px; font-size: 19px; }
+    .home-screen .home-for-child { padding: 12px 18px 8px; }
+    .home-screen .home-last-icon { flex-basis: 38px; width: 38px; height: 38px; min-width: 38px; font-size: 17px; }
+}
