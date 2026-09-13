@@ -47,8 +47,78 @@ window.renderHome = function() {
     // Значения ниже НЕ пишутся в STATE / storage.
     // TODO: временные mock'и до подключения реальных данных.
 
-    // Имя ребёнка (без склонения — как в профиле)
+    // Имя ребёнка
     const childName = baby.name || 'Малыш';
+
+    // Склонение имени для «Для <имя>» (родительный падеж).
+    // Работает по общим правилам + небольшой список исключений.
+    // TODO: при необходимости дополнять список exceptions.
+    function inclineNameToGenitive(name, sex) {
+        if (!name) return name;
+        const key = name.toLowerCase();
+        const last = key.slice(-1);
+        const beforeLast = key.slice(-2, -1);
+
+        // Исключения и «нестандартные» имена — как мальчиков, так и девочек
+        const exceptions = {
+            // мужские на -а/-я, которые всё же склоняются
+            'никита': 'Никиты',
+            'илья':   'Ильи',
+            'кузьма': 'Кузьмы',
+            'фома':   'Фомы',
+            'лука':   'Луки',
+            'савва':  'Саввы',
+            'данила': 'Данилы',
+            // уменьшительные (унисекс по форме, но чаще мужские)
+            'саша':   'Саши',
+            'миша':   'Миши',
+            'гриша':  'Гриши',
+            'паша':   'Паши',
+            'лёша':   'Лёши',
+            'лёва':   'Лёвы',
+            'дима':   'Димы',
+            'ваня':   'Вани',
+            'вася':   'Васи',
+            'петя':   'Пети',
+            'коля':   'Коли',
+            'толя':   'Толи',
+            'вова':   'Вовы',
+            'слава':  'Славы',
+            'боря':   'Бори',
+            'гоша':   'Гоши',
+            'костя':  'Кости',
+            'сева':   'Севы',
+            'рома':   'Ромы',
+            // женские
+            'любовь': 'Любови',
+            'рахиль': 'Рахили',
+            'нинель': 'Нинели',
+            'марьям': 'Марьям',   // не склоняется
+            'марья':  'Марьи',
+        };
+        if (exceptions[key]) return exceptions[key];
+
+        // -а: после ж, ш, ч, щ, ц → -и, иначе → -ы
+        if (last === 'а') {
+            if ('жшчщц'.includes(beforeLast)) return name.slice(0, -1) + 'и';
+            return name.slice(0, -1) + 'ы';
+        }
+        // -я: обычно → -и (Аня → Ани, Софья → Софьи)
+        if (last === 'я') return name.slice(0, -1) + 'и';
+
+        // -ь: пол решает (Игорь → Игоря, Любовь → Любови)
+        if (last === 'ь') {
+            if (sex === 'female') return name.slice(0, -1) + 'и';
+            return name.slice(0, -1) + 'я';
+        }
+
+        // Прочие гласные (о, е, ё, у, ы, э, ю, и) — не склоняются
+        if ('оеёуыэюи'.includes(last)) return name;
+
+        // Согласная → +а (Кадим → Кадима, Иван → Ивана)
+        return name + 'а';
+    }
+    const childNameGenitive = inclineNameToGenitive(childName, baby.sex);
 
     // Приветствие по времени суток (имени родителя в STATE пока нет)
     const _hNow = new Date().getHours();
@@ -159,7 +229,7 @@ window.renderHome = function() {
 
             <!-- Для ребёнка -->
             <div class="home-for-child">
-                <div class="home-for-child-label"><span class="stars" aria-hidden="true">✦<br/>✦</span> Для ${childName}</div>
+                <div class="home-for-child-label"><span class="stars" aria-hidden="true">✦<br/>✦</span> Для ${childNameGenitive}</div>
                 <div class="home-for-child-text">${todayRecommendationText}</div>
                 <button class="home-for-child-more" type="button">Подробнее →</button>
             </div>
