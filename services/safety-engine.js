@@ -262,17 +262,39 @@
           childAllergies
         };
       } else {
-        // Только информационное предупреждение –
-        // не добавляем статус
-        reasons.push(
-          `Продукт является потенциальным аллергеном (${allergenTypes.join(', ')})`
-        );
+        // P0 «Не знаю»: «Не знаю» ≠ «нет аллергий».
+        // Если мама не уточнила аллергологический статус,
+        // продукт-аллерген не считается автоматически безопасным.
+        // Используем существующий промежуточный статус review
+        // (тот же, что применяется для suspectedReaction и labelChecks).
+        const hasUnknownAllergyStatus =
+          childAllergies.some(allergy => allergy === 'Не знаю');
 
-        details.allergy = {
-          status: 'informational',
-          types: allergenTypes,
-          childAllergies
-        };
+        if (hasUnknownAllergyStatus) {
+          statuses.push('review');
+
+          reasons.push(
+            'Аллергологический статус ребёнка не уточнён («Не знаю»). Рекомендуется консультация специалиста.'
+          );
+
+          details.allergy = {
+            status: 'unknown',
+            types: allergenTypes,
+            childAllergies
+          };
+        } else {
+          // Только информационное предупреждение –
+          // не добавляем статус
+          reasons.push(
+            `Продукт является потенциальным аллергеном (${allergenTypes.join(', ')})`
+          );
+
+          details.allergy = {
+            status: 'informational',
+            types: allergenTypes,
+            childAllergies
+          };
+        }
       }
     } else {
       details.allergy = {
@@ -404,7 +426,7 @@
               servingForm
                 .toLowerCase()
                 .includes(f.toLowerCase())
-          );
+            );
 
         if (isUnsafe) {
           statuses.push('block');
