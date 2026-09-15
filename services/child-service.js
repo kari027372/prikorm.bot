@@ -62,7 +62,7 @@
   }
 
   // ============================================================
-  // НОРМАЛИЗОВАННЫЙ ПРОФИЛЬ РЕБЁНКА (НОВОЕ)
+  // НОРМАЛИЗОВАННЫЙ ПРОФИЛЬ РЕБЁНКА
   // ============================================================
   function getChildProfile(childId) {
     const id = childId || window.STATE?.currentChildId;
@@ -81,8 +81,21 @@
     };
 
     // 2. Development
-    const gestationalWeeks = child.gestationalAgeWeeks ?? 40;
-    const gestationalDays = child.gestationalAgeDays ?? 0;
+    // P0.2: unknown ≠ no. Fallback 40 НЕ подставляем.
+    // number / числовая строка ("38") → number (38)
+    // null / undefined / '' / нечисловая строка → null (weeks) или 0 (days)
+
+    const gwRaw = child.gestationalAgeWeeks;
+    const gwNum = (gwRaw === null || gwRaw === undefined || gwRaw === '')
+      ? NaN
+      : Number(gwRaw);
+    const gestationalWeeks = Number.isFinite(gwNum) ? gwNum : null;
+
+    const gdRaw = child.gestationalAgeDays;
+    const gdNum = (gdRaw === null || gdRaw === undefined || gdRaw === '')
+      ? NaN
+      : Number(gdRaw);
+    const gestationalDays = Number.isFinite(gdNum) ? gdNum : 0;
 
     const ageInfo = child.birthDate
       ? window.feedingReadiness?.calculateAge(child.birthDate) || { months: 0, days: 0 }
@@ -150,20 +163,32 @@
       birthTermCategory: termCategory
     };
 
-    // 7. Product State (P0.4) — история реакций/статусов по продуктам
-    //    конкретного ребёнка. Источник — productStateService.
-    //    В health.allergies ничего не переносится.
+    // 7. Product State (P0.4)
+    // Источник — productStateService.
+    // getAllForChild() возвращает object map:
+    // { [productId]: { status, ... } }
+    // В health.allergies ничего не переносится.
+
     const productState = (window.productStateService &&
       typeof window.productStateService.getAllForChild === 'function')
-      ? (window.productStateService.getAllForChild(id) || [])
-      : [];
+      ? (window.productStateService.getAllForChild(id) || {})
+      : {};
 
-    return { identity, development, feeding, health, preferences, calculated, productState };
+    return {
+      identity,
+      development,
+      feeding,
+      health,
+      preferences,
+      calculated,
+      productState
+    };
   }
 
   // ============================================================
   // ПУБЛИЧНЫЙ API
   // ============================================================
+
   window.childService = {
     getChildren: getChildren,
     getActiveChild: getActiveChild,
@@ -173,7 +198,7 @@
     deleteChild: deleteChild,
     getChild: getChild,
     ensureActiveChild: ensureActiveChild,
-    getChildProfile: getChildProfile   // <-- новая функция
+    getChildProfile: getChildProfile
   };
 
   console.log('✅ child-service загружен');
