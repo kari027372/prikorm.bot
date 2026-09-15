@@ -9,7 +9,25 @@ window.renderHome = function() {
         ? window.getDiary()
         : (baby.diary || state.diary || []);
 
-    const introduced = state.products?.introduced || [];
+    // P0.7: количество введённых продуктов берём из Product State
+    // текущего ребёнка, а не из глобального legacy STATE.
+    let introduced = [];
+
+    if (
+        currentChild &&
+        currentChild.id &&
+        window.productStateService &&
+        typeof window.productStateService.getProductsByStatus === 'function'
+    ) {
+        introduced =
+            window.productStateService.getProductsByStatus(
+                currentChild.id,
+                'introduced'
+            ) || [];
+    } else {
+        introduced = state.products?.introduced || [];
+    }
+
     const totalIntroduced = introduced.length;
     const totalProducts = (window.PRODUCTS || []).length;
 
@@ -45,14 +63,12 @@ window.renderHome = function() {
 
     // ── Home visual refresh: только для отображения ─────────────
     // Значения ниже НЕ пишутся в STATE / storage.
-    // TODO: временные mock'и до подключения реальных данных.
 
     // Имя ребёнка
     const childName = baby.name || 'Малыш';
 
     // Склонение имени для «Для <имя>» (родительный падеж).
     // Работает по общим правилам + небольшой список исключений.
-    // TODO: при необходимости дополнять список exceptions.
     function inclineNameToGenitive(name, sex) {
         if (!name) return name;
         const key = name.toLowerCase();
@@ -93,58 +109,160 @@ window.renderHome = function() {
             'любовь': 'Любови',
             'рахиль': 'Рахили',
             'нинель': 'Нинели',
-            'марьям': 'Марьям',   // не склоняется
+            'марьям': 'Марьям',
             'марья':  'Марьи',
         };
+
         if (exceptions[key]) return exceptions[key];
 
         // -а: после ж, ш, ч, щ, ц → -и, иначе → -ы
         if (last === 'а') {
-            if ('жшчщц'.includes(beforeLast)) return name.slice(0, -1) + 'и';
+            if ('жшчщц'.includes(beforeLast)) {
+                return name.slice(0, -1) + 'и';
+            }
             return name.slice(0, -1) + 'ы';
         }
+
         // -я: обычно → -и (Аня → Ани, Софья → Софьи)
-        if (last === 'я') return name.slice(0, -1) + 'и';
+        if (last === 'я') {
+            return name.slice(0, -1) + 'и';
+        }
 
         // -ь: пол решает (Игорь → Игоря, Любовь → Любови)
         if (last === 'ь') {
-            if (sex === 'female') return name.slice(0, -1) + 'и';
+            if (sex === 'female') {
+                return name.slice(0, -1) + 'и';
+            }
             return name.slice(0, -1) + 'я';
         }
 
         // Прочие гласные (о, е, ё, у, ы, э, ю, и) — не склоняются
-        if ('оеёуыэюи'.includes(last)) return name;
+        if ('оеёуыэюи'.includes(last)) {
+            return name;
+        }
 
         // Согласная → +а (Кадим → Кадима, Иван → Ивана)
         return name + 'а';
     }
-    const childNameGenitive = inclineNameToGenitive(childName, baby.sex);
+
+    const childNameGenitive =
+        inclineNameToGenitive(childName, baby.sex);
 
     // Приветствие по времени суток (имени родителя в STATE пока нет)
     const _hNow = new Date().getHours();
-    const greetingText = _hNow < 12 ? 'Доброе утро'
-                       : _hNow < 18 ? 'Добрый день'
-                       : 'Добрый вечер';
 
-    // TODO: placeholder — продукт дня пока не подключён к рекомендациям
-    const todayProductName = 'Кабачок';
+    const greetingText =
+        _hNow < 12
+            ? 'Доброе утро'
+            : _hNow < 18
+                ? 'Добрый день'
+                : 'Добрый вечер';
 
-    // TODO: placeholder — воды пока нет в STATE, значение визуальное
-    const todayWaterAmount = '0 мл';
+    // ── P0.7: реальная рекомендация ────────────────────────────
+    let todayProductName = 'Пока нет рекомендации';
 
-    // TODO: placeholder — рекомендация пока не подключена
-    const todayRecommendationText = 'Здесь появится персональная рекомендация.';
+    let todayRecommendationText =
+        'Добавьте записи в дневник — появятся персональные подсказки.';
+
+    let hasTodayRecommendation = false;
+
+    try {
+        if (typeof window.getMainRecommendation === 'function') {
+            const main =
+                window.getMainRecommendation();
+
+            if (
+                main &&
+                main.product &&
+                main.product.name
+            ) {
+                todayProductName =
+                    main.product.name;
+
+                hasTodayRecommendation = true;
+
+            } else if (
+                main &&
+                main.type === 'empty'
+            ) {
+                todayProductName =
+                    main.title ||
+                    'Пока нет рекомендации';
+            }
+
+            if (
+                main &&
+                main.description
+            ) {
+                todayRecommendationText =
+                    main.description;
+            }
+        }
+    } catch (e) {
+        console.warn(
+            'Home: recommendation error',
+            e
+        );
+    }
+
+    // ── P0.7: вода за сегодня ─────────────────────────────────
+    let todayWaterAmount = '0 мл';
+
+    try {
+        const today =
+            new Date()
+                .toISOString()
+                .split('T')[0];
+
+        const waterEntries =
+            Array.isArray(state.waterLog)
+                ? state.waterLog
+                : [];
+
+        const totalMl =
+            waterEntries
+                .filter(function(item) {
+                    return (
+                        item &&
+                        item.date === today
+                    );
+                })
+                .reduce(function(sum, item) {
+                    return sum +
+                        (parseFloat(item.amount) || 0);
+                }, 0);
+
+        todayWaterAmount =
+            totalMl + ' мл';
+
+    } catch (e) {
+        console.warn(
+            'Home: water log error',
+            e
+        );
+    }
 
     // Последний приём пищи
-    const lastEntry = diary.length ? diary[diary.length - 1] : null;
+    const lastEntry =
+        diary.length
+            ? diary[diary.length - 1]
+            : null;
 
     let lastMealHtml = '';
 
     if (lastEntry) {
-        const food = lastEntry.productName || 'Продукт';
-        const amount = lastEntry.amount ? lastEntry.amount + ' г' : '';
+        const food =
+            lastEntry.productName || 'Продукт';
+
+        const amount =
+            lastEntry.amount
+                ? lastEntry.amount + ' г'
+                : '';
+
         const status = 'Хорошо';
-        const time = lastEntry.time || '12:30';
+
+        const time =
+            lastEntry.time || '12:30';
 
         lastMealHtml = `
             <div class="last-meal">
@@ -204,6 +322,7 @@ window.renderHome = function() {
                     <span class="home-greeting">${greetingText}<span class="heart">♡</span></span>
                     <span class="home-child-meta">${childName}${ageText && ageText !== 'Возраст не указан' ? ' · ' + ageText : ''}</span>
                 </div>
+
                 <button class="home-avatar"
                         data-action="navigate"
                         data-screen="baby"
@@ -212,26 +331,60 @@ window.renderHome = function() {
 
             <!-- Сегодня в прикорме -->
             <div class="home-today">
-                <div class="home-today-eyebrow"><span class="badge-ico" aria-hidden="true">🌿</span>Сегодня в прикорме</div>
-                <div class="home-today-label">Новый продукт</div>
-                <div class="home-today-name">${todayProductName}</div>
-                <button class="home-today-cta" type="button">Можно попробовать сегодня<span class="arrow">→</span></button>
+                <div class="home-today-eyebrow">
+                    <span class="badge-ico" aria-hidden="true">🌿</span>
+                    Сегодня в прикорме
+                </div>
+
+                <div class="home-today-label">
+                    Новый продукт
+                </div>
+
+                <div class="home-today-name">
+                    ${todayProductName}
+                </div>
+
+                ${hasTodayRecommendation
+                    ? `<button class="home-today-cta" type="button">
+                           Можно попробовать сегодня
+                           <span class="arrow">→</span>
+                       </button>`
+                    : ''}
             </div>
 
             <!-- Вода -->
             <div class="home-water">
                 <div class="home-water-info">
-                    <span class="home-water-label"><span class="emo" aria-hidden="true">💧</span>Вода сегодня</span>
-                    <span class="home-water-amount">${todayWaterAmount}</span>
+                    <span class="home-water-label">
+                        <span class="emo" aria-hidden="true">💧</span>
+                        Вода сегодня
+                    </span>
+
+                    <span class="home-water-amount">
+                        ${todayWaterAmount}
+                    </span>
                 </div>
-                <button class="home-water-add" type="button" aria-label="Добавить воду">+</button>
+
+                <button class="home-water-add"
+                        type="button"
+                        aria-label="Добавить воду">+</button>
             </div>
 
             <!-- Для ребёнка -->
             <div class="home-for-child">
-                <div class="home-for-child-label"><span class="stars" aria-hidden="true">✦<br/>✦</span> Для ${childNameGenitive}</div>
-                <div class="home-for-child-text">${todayRecommendationText}</div>
-                <button class="home-for-child-more" type="button">Подробнее →</button>
+                <div class="home-for-child-label">
+                    <span class="stars" aria-hidden="true">✦<br/>✦</span>
+                    Для ${childNameGenitive}
+                </div>
+
+                <div class="home-for-child-text">
+                    ${todayRecommendationText}
+                </div>
+
+                <button class="home-for-child-more"
+                        type="button">
+                    Подробнее →
+                </button>
             </div>
 
             ${lastBlock}
