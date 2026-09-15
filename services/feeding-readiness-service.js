@@ -13,6 +13,7 @@
       { min: 8, max: 9.9, stage: 'establishing', label: 'Установление режима', description: '3 основных приёма пищи, включаем кусочки, ребёнок учится жевать.' },
       { min: 10, max: Infinity, stage: 'transitioning', label: 'Переход к семейной еде', description: 'Ребёнок постепенно переходит на общий стол, текстуры и порции приближаются к взрослым.' }
     ],
+
     // Правила по стажу прикорма (в днях) – используются только если возраст не определён
     daysSinceStart: [
       { min: 0, max: 30, stage: 'initial', label: 'Начальный этап', description: 'Первые пробы, пюре.' },
@@ -23,7 +24,7 @@
   };
 
   // ============================================================
-  // СУЩЕСТВУЮЩИЕ ФУНКЦИИ (БЕЗ ИЗМЕНЕНИЙ)
+  // СУЩЕСТВУЮЩИЕ ФУНКЦИИ
   // ============================================================
 
   /**
@@ -31,30 +32,51 @@
    */
   function calculateAge(birthDate) {
     if (!birthDate) return { months: 0, days: 0 };
+
     const now = new Date();
     const birth = new Date(birthDate);
+
     let months = (now.getFullYear() - birth.getFullYear()) * 12;
     months += now.getMonth() - birth.getMonth();
+
     let days = now.getDate() - birth.getDate();
+
     if (days < 0) {
       months -= 1;
       const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
       days += prevMonth.getDate();
     }
+
     if (months < 0) months = 0;
+
     return { months, days };
   }
 
   /**
    * Определяет категорию срока рождения по гестационным неделям и дням
+   *
+   * P0.2:
+   * unknown ≠ no.
+   *
+   * null / undefined → unknown
+   * числовое значение / числовая строка → нормальная классификация
    */
   function getBirthTermCategory(weeks, days) {
-    const totalDays = weeks * 7 + (days || 0);
+    if (weeks === null || weeks === undefined) return 'unknown';
+
+    const weeksNum = Number(weeks);
+
+    if (!Number.isFinite(weeksNum)) return 'unknown';
+
+    const daysNum = Number(days) || 0;
+    const totalDays = weeksNum * 7 + daysNum;
+
     if (totalDays < 259) return 'preterm';          // < 37 недель
     if (totalDays < 273) return 'early_term';       // 37–38,6
     if (totalDays < 294) return 'full_term';        // 39–40,6
     if (totalDays < 301) return 'late_term';        // 41–41,6
     if (totalDays < 315) return 'post_term';        // 42–42,6
+
     return 'unknown';
   }
 
@@ -65,7 +87,8 @@
     if (!gestationalWeeks || gestationalWeeks >= 40) {
       return chronologicalMonths;
     }
-    const diff = (40 - gestationalWeeks) / 4.345; // примерно 4.345 недель в месяце
+
+    const diff = (40 - gestationalWeeks) / 4.345;
     return Math.max(0, chronologicalMonths - diff);
   }
 
@@ -80,7 +103,11 @@
       opensMouth: 'unknown',
       foodHandling: 'unknown'
     };
-    if (!rawAnswers || typeof rawAnswers !== 'object') return defaults;
+
+    if (!rawAnswers || typeof rawAnswers !== 'object') {
+      return defaults;
+    }
+
     return {
       headControl: rawAnswers.headControl || 'unknown',
       bodyPosition: rawAnswers.bodyPosition || 'unknown',
@@ -95,29 +122,65 @@
    */
   function evaluateReadiness(childData) {
     if (!childData) {
-      return { ready: false, reasons: ['Нет данных о ребёнке'], score: 0 };
+      return {
+        ready: false,
+        reasons: ['Нет данных о ребёнке'],
+        score: 0
+      };
     }
+
     const readiness = childData.readiness || {};
     const answers = parseReadinessAnswers(readiness);
     const values = Object.values(answers);
+
     const positive = values.filter(v => v === 'yes').length;
     const partial = values.filter(v => v === 'partial').length;
     const total = values.length;
-    const score = total > 0 ? (positive + partial * 0.5) / total : 0;
 
-    const ageInfo = childData.birthDate ? calculateAge(childData.birthDate) : { months: 0 };
+    const score = total > 0
+      ? (positive + partial * 0.5) / total
+      : 0;
+
+    const ageInfo = childData.birthDate
+      ? calculateAge(childData.birthDate)
+      : { months: 0 };
+
     const corrected = childData.gestationalAgeWeeks
-      ? calculateCorrectedAge(ageInfo.months, childData.gestationalAgeWeeks)
+      ? calculateCorrectedAge(
+          ageInfo.months,
+          childData.gestationalAgeWeeks
+        )
       : ageInfo.months;
 
     const reasons = [];
-    if (corrected < 4) reasons.push('Возраст менее 4 месяцев (скорректированный)');
-    if (positive < 3) reasons.push('Недостаточно признаков готовности');
-    if (partial > 2) reasons.push('Много частичных навыков');
-    if (reasons.length === 0 && score >= 0.7 && corrected >= 4) {
-      return { ready: true, reasons: ['Готов к прикорму'], score };
+
+    if (corrected < 4) {
+      reasons.push('Возраст менее 4 месяцев (скорректированный)');
     }
-    return { ready: false, reasons: reasons.length ? reasons : ['Не все критерии выполнены'], score };
+
+    if (positive < 3) {
+      reasons.push('Недостаточно признаков готовности');
+    }
+
+    if (partial > 2) {
+      reasons.push('Много частичных навыков');
+    }
+
+    if (reasons.length === 0 && score >= 0.7 && corrected >= 4) {
+      return {
+        ready: true,
+        reasons: ['Готов к прикорму'],
+        score
+      };
+    }
+
+    return {
+      ready: false,
+      reasons: reasons.length
+        ? reasons
+        : ['Не все критерии выполнены'],
+      score
+    };
   }
 
   // ============================================================
@@ -131,7 +194,10 @@
    */
   function getFeedingStage(profile) {
     if (!profile) {
-      return { stage: null, reason: 'no_profile' };
+      return {
+        stage: null,
+        reason: 'no_profile'
+      };
     }
 
     const { feeding, calculated } = profile;
@@ -148,13 +214,22 @@
     }
 
     // Проверяем наличие данных для определения этапа
-    const hasAge = calculated.correctedAgeMonths !== null && calculated.correctedAgeMonths !== undefined;
-    const hasChronoAge = calculated.chronologicalAgeMonths !== null && calculated.chronologicalAgeMonths !== undefined;
-    const hasDays = calculated.daysSinceStart !== null && calculated.daysSinceStart !== undefined;
+    const hasAge =
+      calculated.correctedAgeMonths !== null &&
+      calculated.correctedAgeMonths !== undefined;
+
+    const hasChronoAge =
+      calculated.chronologicalAgeMonths !== null &&
+      calculated.chronologicalAgeMonths !== undefined;
+
+    const hasDays =
+      calculated.daysSinceStart !== null &&
+      calculated.daysSinceStart !== undefined;
 
     // Используем correctedAgeMonths приоритетно, затем chronological
     let ageToUse = null;
     let ageType = null;
+
     if (hasAge) {
       ageToUse = calculated.correctedAgeMonths;
       ageType = 'corrected';
@@ -166,6 +241,7 @@
     // Если возраст есть – определяем этап по возрасту
     if (ageToUse !== null) {
       const rules = STAGE_RULES.age;
+
       for (const rule of rules) {
         if (ageToUse >= rule.min && ageToUse < rule.max) {
           return {
@@ -173,15 +249,22 @@
             label: rule.label,
             description: rule.description,
             basedOn: 'age',
-            details: { ageMonths: ageToUse, ageType }
+            details: {
+              ageMonths: ageToUse,
+              ageType
+            }
           };
         }
       }
-      // Если ни одно правило не подошло (например, возраст отрицательный) – fallback
+
+      // Если ни одно правило не подошло
       return {
         stage: null,
         reason: 'age_out_of_range',
-        details: { ageMonths: ageToUse, ageType }
+        details: {
+          ageMonths: ageToUse,
+          ageType
+        }
       };
     }
 
@@ -189,6 +272,7 @@
     if (hasDays) {
       const days = calculated.daysSinceStart;
       const rules = STAGE_RULES.daysSinceStart;
+
       for (const rule of rules) {
         if (days >= rule.min && days < rule.max) {
           return {
@@ -196,14 +280,19 @@
             label: rule.label,
             description: rule.description,
             basedOn: 'days',
-            details: { daysSinceStart: days }
+            details: {
+              daysSinceStart: days
+            }
           };
         }
       }
+
       return {
         stage: null,
         reason: 'days_out_of_range',
-        details: { daysSinceStart: days }
+        details: {
+          daysSinceStart: days
+        }
       };
     }
 
@@ -211,7 +300,11 @@
     return {
       stage: null,
       reason: 'insufficient_data',
-      details: { hasAge, hasChronoAge, hasDays }
+      details: {
+        hasAge,
+        hasChronoAge,
+        hasDays
+      }
     };
   }
 
@@ -225,7 +318,7 @@
     calculateCorrectedAge: calculateCorrectedAge,
     parseReadinessAnswers: parseReadinessAnswers,
     evaluateReadiness: evaluateReadiness,
-    getFeedingStage: getFeedingStage   // <-- новая функция
+    getFeedingStage: getFeedingStage
   };
 
   console.log('✅ feeding-readiness-service загружен');
