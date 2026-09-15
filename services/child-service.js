@@ -150,7 +150,15 @@
       birthTermCategory: termCategory
     };
 
-    return { identity, development, feeding, health, preferences, calculated };
+    // 7. Product State (P0.4) — история реакций/статусов по продуктам
+    //    конкретного ребёнка. Источник — productStateService.
+    //    В health.allergies ничего не переносится.
+    const productState = (window.productStateService &&
+      typeof window.productStateService.getAllForChild === 'function')
+      ? (window.productStateService.getAllForChild(id) || [])
+      : [];
+
+    return { identity, development, feeding, health, preferences, calculated, productState };
   }
 
   // ============================================================
