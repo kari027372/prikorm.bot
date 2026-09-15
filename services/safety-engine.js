@@ -44,7 +44,8 @@
       age: null,
       allergy: null,
       safety: null,
-      serving: null
+      serving: null,
+      productState: null   // ← P0.4
     };
 
     // ---------- 1. Проверка начала прикорма ----------
@@ -285,7 +286,33 @@
       }
     }
 
-    // ---------- 10. Итоговый статус ----------
+  // ---------- 9.5. Product State ребёнка (P0.4) ----------
+    // Отдельная сущность от health.allergies. Не смешивается, не переносится.
+    // Проверяем ТОЛЬКО текущий продукт по product.id — без категорий.
+    const productStateList = Array.isArray(profile.productState) ? profile.productState : [];
+    const productStateRecord = productStateList.find(
+      r => r && r.productId === product.id
+    );
+
+    if (productStateRecord) {
+      if (productStateRecord.status === 'confirmedAllergy') {
+        statuses.push('block');
+        reasons.push(
+          `Подтверждённая аллергическая реакция на «${product.name}» в истории ребёнка`
+        );
+        details.productState = { status: 'confirmedAllergy', productId: product.id };
+      } else if (productStateRecord.status === 'suspectedReaction') {
+        statuses.push('review');
+        reasons.push(
+          `Ранее отмечена реакция на «${product.name}». ` +
+          `Обычная рекомендация/введение не разрешены без оценки специалиста`
+        );
+        details.productState = { status: 'suspectedReaction', productId: product.id };
+      } else {
+        details.productState = { status: productStateRecord.status, productId: product.id };
+      }
+    }
+// ---------- 10. Итоговый статус ----------
     if (statuses.length === 0) {
       statuses.push('allow');
     }
