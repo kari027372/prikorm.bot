@@ -712,13 +712,32 @@
                 break;
 
             // ========================================================
+            // P0.3 — ОТКРЫТИЕ МОДАЛКИ ОТМЕТКИ РЕАКЦИИ
+            //
+            // Использует существующий window.showReactionModal
+            // (components/modal.js). Никакой новой системы реакций
+            // не создаётся.
+            // ========================================================
+
+            case 'open-reaction-modal':
+                if (
+                    productId &&
+                    typeof window.showReactionModal === 'function'
+                ) {
+                    window.showReactionModal(productId);
+                } else {
+                    console.warn(
+                        'open-reaction-modal: showReactionModal недоступен или нет productId'
+                    );
+                }
+
+                break;
+
+            // ========================================================
             // P0.3 — СОХРАНЕНИЕ РЕАКЦИИ В PRODUCT STATE
             //
-            // UI-триггер здесь НЕ создаём.
-            // Если существующий UI уже отдаёт
-            // data-action="save-reaction",
-            // этот обработчик передаст реакцию
-            // в productStateService.addReaction().
+            // Приоритет: данные из формы .reaction-form.
+            // Fallback: старые data-* атрибуты (обратная совместимость).
             // ========================================================
 
             case 'save-reaction':
@@ -741,13 +760,6 @@
                     break;
                 }
 
-                if (!productId) {
-                    console.warn(
-                        'save-reaction: нет data-product-id'
-                    );
-                    break;
-                }
-
                 if (
                     !window.productStateService ||
                     typeof window.productStateService.addReaction !== 'function'
@@ -758,20 +770,115 @@
                     break;
                 }
 
-                var symptomsAttr =
-                    target.getAttribute(
-                        'data-symptoms'
-                    ) || '';
+                // P0.3: если клик внутри формы реакции — читаем форму.
+                // Иначе fallback на data-* атрибуты кнопки.
+                var reactionForm =
+                    target.closest('.reaction-form');
 
-                var severityAttr =
-                    target.getAttribute(
-                        'data-severity'
-                    ) || 'mild';
+                var reactionProductId =
+                    productId;
 
-                var notesAttr =
-                    target.getAttribute(
-                        'data-notes'
-                    ) || '';
+                var symptomsPayload = [];
+                var severityPayload = 'mild';
+                var notesPayload = '';
+
+                if (reactionForm) {
+                    var hiddenIdInput =
+                        reactionForm.querySelector(
+                            'input[name="reaction-product-id"]'
+                        );
+
+                    if (
+                        hiddenIdInput &&
+                        hiddenIdInput.value
+                    ) {
+                        reactionProductId =
+                            hiddenIdInput.value;
+                    }
+
+                    var symptomInputs =
+                        reactionForm.querySelectorAll(
+                            'input[name="reaction-symptom"]:checked'
+                        );
+
+                    for (
+                        var si = 0;
+                        si < symptomInputs.length;
+                        si++
+                    ) {
+                        symptomsPayload.push(
+                            symptomInputs[si].value
+                        );
+                    }
+
+                    var severityInput =
+                        reactionForm.querySelector(
+                            'input[name="reaction-severity"]:checked'
+                        );
+
+                    if (
+                        severityInput &&
+                        severityInput.value
+                    ) {
+                        severityPayload =
+                            severityInput.value;
+                    }
+
+                    var notesInput =
+                        reactionForm.querySelector(
+                            '[name="reaction-notes"]'
+                        );
+
+                    if (
+                        notesInput &&
+                        typeof notesInput.value === 'string'
+                    ) {
+                        notesPayload =
+                            notesInput.value;
+                    }
+                } else {
+                    var symptomsAttr =
+                        target.getAttribute(
+                            'data-symptoms'
+                        ) || '';
+
+                    symptomsPayload =
+                        symptomsAttr
+                            ? symptomsAttr
+                                .split(',')
+                                .map(function(s) {
+                                    return s.trim();
+                                })
+                                .filter(Boolean)
+                            : [];
+
+                    severityPayload =
+                        target.getAttribute(
+                            'data-severity'
+                        ) || 'mild';
+
+                    notesPayload =
+                        target.getAttribute(
+                            'data-notes'
+                        ) || '';
+                }
+
+                if (!reactionProductId) {
+                    console.warn(
+                        'save-reaction: productId не определён'
+                    );
+
+                    if (
+                        typeof window.showToast === 'function'
+                    ) {
+                        window.showToast(
+                            'Не удалось определить продукт',
+                            'error'
+                        );
+                    }
+
+                    break;
+                }
 
                 var reactionPayload = {
                     date:
@@ -780,29 +887,22 @@
                             .split('T')[0],
 
                     symptoms:
-                        symptomsAttr
-                            ? symptomsAttr
-                                .split(',')
-                                .map(function(s) {
-                                    return s.trim();
-                                })
-                                .filter(Boolean)
-                            : [],
+                        symptomsPayload,
 
                     severity:
-                        severityAttr,
+                        severityPayload,
 
                     action:
                         'monitor',
 
                     notes:
-                        notesAttr
+                        notesPayload
                 };
 
                 var reactionOk =
                     window.productStateService.addReaction(
                         reactionChildId,
-                        productId,
+                        reactionProductId,
                         reactionPayload
                     );
 
