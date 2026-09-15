@@ -301,8 +301,97 @@
             .replace(/'/g, '&#039;');
     }
 
+    // ============================================================
+    // P0.3: минимальная модалка отметки реакции.
+    // Пишет в существующий #modal-root, использует существующие
+    // modal-* классы и существующий closeModal
+    // (data-action="close-modal"). Собственный механизм закрытия
+    // не создаётся.
+    // ============================================================
+    function showReactionModal(productId) {
+        var root = document.getElementById('modal-root');
+        if (!root) {
+            console.warn('showReactionModal: #modal-root не найден');
+            return;
+        }
+
+        var product = Array.isArray(window.PRODUCTS)
+            ? window.PRODUCTS.find(function (p) { return p.id === productId; })
+            : null;
+        var productName = (product && product.name) ? product.name : 'продукт';
+
+        var symptomOptions = [
+            { value: 'rash',     label: 'Сыпь' },
+            { value: 'redness',  label: 'Покраснение' },
+            { value: 'vomiting', label: 'Рвота' },
+            { value: 'diarrhea', label: 'Диарея' },
+            { value: 'swelling', label: 'Отёк' },
+            { value: 'cough',    label: 'Кашель' },
+            { value: 'other',    label: 'Другое' }
+        ];
+
+        var symptomsHtml = symptomOptions.map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="checkbox" name="reaction-symptom" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        var severityOptions = [
+            { value: 'mild',     label: 'Лёгкая',  checked: true },
+            { value: 'moderate', label: 'Средняя', checked: false },
+            { value: 'severe',   label: 'Тяжёлая', checked: false }
+        ];
+
+        var severityHtml = severityOptions.map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="reaction-severity" value="' + opt.value + '"' +
+                     (opt.checked ? ' checked' : '') + ' />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        root.innerHTML = '' +
+            '<div class="modal-overlay active">' +
+              '<div class="modal-content">' +
+                '<div class="modal-header">' +
+                  '<h2>Реакция на «' + escapeHtml(productName) + '»</h2>' +
+                  '<button class="modal-close" type="button" data-action="close-modal">×</button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                  '<form class="reaction-form" onsubmit="return false;">' +
+                    '<input type="hidden" name="reaction-product-id" value="' + escapeHtml(productId) + '" />' +
+                    '<div class="form-group">' +
+                      '<label>Симптомы</label>' +
+                      '<div class="reaction-options">' + symptomsHtml + '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                      '<label>Степень</label>' +
+                      '<div class="reaction-options">' + severityHtml + '</div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                      '<label>Заметки</label>' +
+                      '<textarea class="form-textarea" name="reaction-notes" rows="3" placeholder="Что вы заметили"></textarea>' +
+                    '</div>' +
+                  '</form>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                  '<button class="btn-secondary" type="button" data-action="close-modal">Отмена</button>' +
+                  '<button class="btn-primary" type="button" data-action="save-reaction" data-product-id="' + escapeHtml(productId) + '">Сохранить</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+
+        if (typeof UI !== 'undefined') {
+            UI.modal = root;
+        }
+    }
+
     window.showProductDetailModal =
         showProductDetailModal;
+
+    // P0.3: экспорт модалки реакции.
+    window.showReactionModal = showReactionModal;
 
     console.log('✅ components/modal.js загружен');
 })();
