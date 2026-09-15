@@ -141,11 +141,12 @@
         var status = getProductStatusForChild(product.id, childId);
         var safety = safeEvaluate(product, childId);
 
-        var statusText = '', statusClass = '', actionButton = '', showIntroButton = false;
+        // P0.3: добавлен флаг showReactionButton
+        var statusText = '', statusClass = '', actionButton = '', showIntroButton = false, showReactionButton = false;
         switch (status) {
             case 'notIntroduced': statusText = 'Не введено'; statusClass = 'status-not-introduced'; showIntroButton = true; break;
             case 'planned': statusText = 'Запланировано'; statusClass = 'status-planned'; showIntroButton = true; break;
-            case 'introduced': statusText = 'Введён'; statusClass = 'status-introduced'; showIntroButton = false; break;
+            case 'introduced': statusText = 'Введён'; statusClass = 'status-introduced'; showIntroButton = false; showReactionButton = true; break;
             case 'suspectedReaction': statusText = 'Была реакция'; statusClass = 'status-suspected'; showIntroButton = false; break;
             case 'confirmedAllergy': statusText = 'Аллергия'; statusClass = 'status-allergy'; showIntroButton = false; break;
             case 'parentExcluded': statusText = 'Не хочу вводить'; statusClass = 'status-excluded'; showIntroButton = false; break;
@@ -171,6 +172,11 @@
             actionButton = '<span class="product-status ' + statusClass + '"><span class="dot"></span>' + statusText + '</span>';
         }
 
+        // P0.3: кнопка отметки реакции только для introduced
+        var reactionButton = showReactionButton
+            ? '<button class="btn-secondary" type="button" data-action="open-reaction-modal" data-product-id="' + product.id + '">Отметить реакцию</button>'
+            : '';
+
         var escape = typeof escapeHTML === 'function' ? escapeHTML : function(s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         };
@@ -188,6 +194,7 @@
                 '</div>' +
                 '<div class="product-actions">' +
                     actionButton +
+                    reactionButton +
                     '<button class="btn-icon" data-action="show-product-menu" data-product-id="' + product.id + '">⋯</button>' +
                 '</div>' +
             '</div>' +
