@@ -33,13 +33,46 @@ const RECOMMENDATION_TYPES = {
    ============================================================ */
 
 function getRecommendationBaby() {
+    const childId = STATE?.currentChildId;
 
-    if (typeof getBaby === "function") {
-
-        return getBaby();
+    if (
+        !childId ||
+        !window.childService ||
+        typeof window.childService.getChildProfile !== "function"
+    ) {
+        return {};
     }
 
-    return STATE?.baby || {};
+    let profile = null;
+
+    try {
+        profile =
+            window.childService.getChildProfile(childId);
+    } catch (e) {
+        console.warn(
+            "recommendations: getChildProfile error",
+            e
+        );
+        return {};
+    }
+
+    if (!profile) {
+        return {};
+    }
+
+    let approach =
+        (profile.feeding && profile.feeding.approach) || "";
+
+    if (approach === "unknown") {
+        approach = "";
+    }
+
+    return {
+        birthDate:
+            (profile.identity && profile.identity.birthDate) || "",
+
+        approach: approach
+    };
 }
 
 
@@ -90,20 +123,33 @@ function getBabyAgeMonths() {
    ============================================================ */
 
 function getIntroducedProductIds() {
+    const childId = STATE?.currentChildId;
 
-    const introduced =
-        STATE?.products?.introduced || [];
+    if (
+        childId &&
+        window.productStateService &&
+        typeof window.productStateService.getProductsByStatus === 'function'
+    ) {
+        const ids = window.productStateService.getProductsByStatus(
+            childId,
+            'introduced'
+        );
+
+        if (Array.isArray(ids)) {
+            return ids.filter(Boolean);
+        }
+    }
+
+    const introduced = STATE?.products?.introduced || [];
 
     return introduced
-        .map(
-            item =>
-                typeof item === "object"
-                    ? item.id
-                    : item
+        .map(item =>
+            typeof item === "object"
+                ? item.id
+                : item
         )
         .filter(Boolean);
 }
-
 
 /* ============================================================
    ПОЛУЧЕНИЕ ИСТОРИИ
@@ -238,7 +284,6 @@ function getBabyApproach() {
 /* ============================================================
    БАЗОВЫЕ КАНДИДАТЫ
    ============================================================ */
-
 function getRecommendationCandidates() {
 
     const age =
@@ -249,37 +294,82 @@ function getRecommendationCandidates() {
             ? getAllProducts()
             : PRODUCT_DATABASE || [];
 
-
-    /*
-       Возраст используется как фильтр базы,
-       а не как самостоятельное медицинское
-       решение.
-    */
-
     if (age !== null) {
-
         products =
             products.filter(
                 product =>
-                    Number(
-                        product.min_age || 0
-                    ) <= age
+                    Number(product.min_age || 0) <= age
             );
     }
-
 
     const introduced =
         new Set(
             getIntroducedProductIds()
         );
 
+    let candidates =
+        products.filter(
+            product => !introduced.has(product.id)
+        );
 
-    return products.filter(
-        product =>
-            !introduced.has(
-                product.id
-            )
-    );
+    const childId = STATE?.currentChildId;
+
+    const hasChildService =
+        window.childService &&
+        typeof window.childService.getChildProfile === 'function';
+
+    const hasSafetyEngine =
+        window.safetyEngine &&
+        typeof window.safetyEngine.evaluateProductSafety === 'function';
+
+    if (!childId || !hasChildService || !hasSafetyEngine) {
+        return [];
+    }
+
+    let profile = null;
+
+    try {
+        profile =
+            window.childService.getChildProfile(childId);
+    } catch (e) {
+        console.warn(
+            'recommendations: getChildProfile error',
+            e
+        );
+        return [];
+    }
+
+    if (!profile) {
+        return [];
+    }
+
+    candidates =
+        candidates.filter(function(product) {
+
+            try {
+                const result =
+                    window.safetyEngine.evaluateProductSafety(
+                        profile,
+                        product,
+                        null
+                    );
+
+                return !!(
+                    result &&
+                    result.recommendation &&
+                    result.recommendation.canRecommend !== false
+                );
+
+            } catch (e) {
+                console.warn(
+                    'recommendations: safety error',
+                    e
+                );
+                return false;
+            }
+        });
+
+    return candidates;
 }
 
 
