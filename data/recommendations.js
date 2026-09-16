@@ -1316,3 +1316,4 @@ window.getRecommendationCard =
 
 window.getRecommendationFeed =
     getRecommendationFeed;
+    
