@@ -304,104 +304,22 @@
     // ============================================================
     // P1.6 — Reaction Modal (adaptive form)
     //
-    // Расширенный список симптомов, динамические уточнения,
+    // Расширенный список симптомов, динамические уточнения
+    // (встроены внутрь соответствующего symptom-блока),
     // emergency branch, severity без default.
     //
     // _meta (location, timing, count и т.д.) собирается в момент
     // сохранения через handlers.js и НЕ сохраняется в Product State.
+    //
+    // P1.6-UX: dynamic-question рендерится сразу после своего
+    // родительского symptom-чекбокса, а не в конце формы.
     // ============================================================
 
     function buildReactionFormHtml(productId, productName) {
-        var symptomGroups = [
-            {
-                title: 'Кожа',
-                items: [
-                    { value: 'redness', label: 'Покраснение' },
-                    { value: 'contact_urticaria', label: 'Контактная крапивница' },
-                    { value: 'hives', label: 'Крапивница / волдыри' }
-                ]
-            },
-            {
-                title: 'Отёк',
-                items: [
-                    { value: 'swelling', label: 'Отёк' }
-                ]
-            },
-            {
-                title: 'ЖКТ',
-                items: [
-                    { value: 'vomiting', label: 'Рвота' },
-                    { value: 'diarrhea', label: 'Жидкий стул' },
-                    { value: 'blood_in_stool', label: 'Кровь в стуле' },
-                    { value: 'mucus_in_stool', label: 'Слизь в стуле' },
-                    { value: 'abdominal_pain', label: 'Боль / вздутие' }
-                ]
-            },
-            {
-                title: 'Дыхание',
-                items: [
-                    { value: 'cough', label: 'Кашель' },
-                    { value: 'cough_persistent', label: 'Внезапный стойкий кашель' },
-                    { value: 'wheeze', label: 'Свистящее дыхание' },
-                    { value: 'breathing_difficult', label: 'Затруднённое дыхание' },
-                    { value: 'voice_change', label: 'Изменение голоса / крика' }
-                ]
-            },
-            {
-                title: 'Общее состояние',
-                items: [
-                    { value: 'pale', label: 'Резкая бледность' },
-                    { value: 'floppy', label: 'Обмякание' },
-                    { value: 'collapse', label: 'Коллапс' },
-                    { value: 'lethargy', label: 'Вялость' }
-                ]
-            },
-            {
-                title: 'Другое',
-                items: [
-                    { value: 'drooling', label: 'Внезапное слюнотечение' },
-                    { value: 'other', label: 'Другое' }
-                ]
-            }
-        ];
-
-        var symptomsHtml = symptomGroups.map(function (group) {
-            var itemsHtml = group.items.map(function (item) {
-                return '<label class="reaction-option">' +
-                         '<input type="checkbox" name="reaction-symptom" value="' + item.value + '" />' +
-                         '<span>' + escapeHtml(item.label) + '</span>' +
-                       '</label>';
-            }).join('');
-            return '<div class="form-group">' +
-                     '<label>' + escapeHtml(group.title) + '</label>' +
-                     '<div class="reaction-options">' + itemsHtml + '</div>' +
-                   '</div>';
-        }).join('');
-
-        var severityHtml = [
-            { value: 'mild',     label: 'Лёгкая' },
-            { value: 'moderate', label: 'Средняя' },
-            { value: 'severe',   label: 'Тяжёлая' }
-        ].map(function (opt) {
-            return '<label class="reaction-option">' +
-                     '<input type="radio" name="reaction-severity" value="' + opt.value + '" />' +
-                     '<span>' + opt.label + '</span>' +
-                   '</label>';
-        }).join('');
-
-        var timingHtml = [
-            { value: 'during',            label: 'Во время еды' },
-            { value: 'immediately_after', label: 'Сразу после' },
-            { value: 'delayed_1_to_4h',   label: 'Через 1–4 часа' },
-            { value: 'later',             label: 'Позже в тот же день' },
-            { value: 'next_day',          label: 'На следующий день' },
-            { value: 'unknown',           label: 'Не знаю' }
-        ].map(function (opt) {
-            return '<label class="reaction-option">' +
-                     '<input type="radio" name="reaction-timing" value="' + opt.value + '" />' +
-                     '<span>' + opt.label + '</span>' +
-                   '</label>';
-        }).join('');
+        // ============================================================
+        // Dynamic question blocks (HTML)
+        // Каждый блок вставляется сразу после родительского item.
+        // ============================================================
 
         var swellingLocationHtml = [
             { value: 'lips',         label: 'Губы' },
@@ -473,6 +391,156 @@
                    '</label>';
         }).join('');
 
+        // ============================================================
+        // Dynamic blocks (по ключу)
+        // ============================================================
+
+        var dynamicBlocks = {
+            swelling:
+                '<div class="form-group reaction-dynamic" data-requires="swelling" style="display:none;">' +
+                  '<label>Где был отёк?</label>' +
+                  '<div class="reaction-options">' + swellingLocationHtml + '</div>' +
+                '</div>',
+
+            hives:
+                '<div class="form-group reaction-dynamic" data-requires="hives" style="display:none;">' +
+                  '<label>Где была крапивница?</label>' +
+                  '<div class="reaction-options">' + hivesLocationHtml + '</div>' +
+                '</div>',
+
+            skin:
+                '<div class="form-group reaction-dynamic" data-requires="redness,contact_urticaria" style="display:none;">' +
+                  '<label>Где?</label>' +
+                  '<div class="reaction-options">' + skinLocationHtml + '</div>' +
+                '</div>',
+
+            vomiting:
+                '<div class="form-group reaction-dynamic" data-requires="vomiting" style="display:none;">' +
+                  '<label>Сколько раз была рвота?</label>' +
+                  '<div class="reaction-options">' + vomitingCountHtml + '</div>' +
+                '</div>',
+
+            diarrhea:
+                '<div class="form-group reaction-dynamic" data-requires="diarrhea" style="display:none;">' +
+                  '<label>Частота жидкого стула?</label>' +
+                  '<div class="reaction-options">' + diarrheaCountHtml + '</div>' +
+                '</div>',
+
+            drooling:
+                '<div class="form-group reaction-dynamic" data-requires="drooling" style="display:none;">' +
+                  '<label>Характер слюнотечения</label>' +
+                  '<div class="reaction-options">' + droolingContextHtml + '</div>' +
+                '</div>'
+        };
+
+        // ============================================================
+        // Symptom groups (с динамическими уточнениями внутри)
+        // ============================================================
+
+        var symptomGroups = [
+            {
+                title: 'Кожа',
+                items: [
+                    { value: 'redness', label: 'Покраснение' },
+                    { value: 'contact_urticaria', label: 'Контактная крапивница', dynamic: 'skin' },
+                    { value: 'hives', label: 'Крапивница / волдыри', dynamic: 'hives' }
+                ]
+            },
+            {
+                title: 'Отёк',
+                items: [
+                    { value: 'swelling', label: 'Отёк', dynamic: 'swelling' }
+                ]
+            },
+            {
+                title: 'ЖКТ',
+                items: [
+                    { value: 'vomiting', label: 'Рвота', dynamic: 'vomiting' },
+                    { value: 'diarrhea', label: 'Жидкий стул', dynamic: 'diarrhea' },
+                    { value: 'blood_in_stool', label: 'Кровь в стуле' },
+                    { value: 'mucus_in_stool', label: 'Слизь в стуле' },
+                    { value: 'abdominal_pain', label: 'Боль / вздутие' }
+                ]
+            },
+            {
+                title: 'Дыхание',
+                items: [
+                    { value: 'cough', label: 'Кашель' },
+                    { value: 'cough_persistent', label: 'Внезапный стойкий кашель' },
+                    { value: 'wheeze', label: 'Свистящее дыхание' },
+                    { value: 'breathing_difficult', label: 'Затруднённое дыхание' },
+                    { value: 'voice_change', label: 'Изменение голоса / крика' }
+                ]
+            },
+            {
+                title: 'Общее состояние',
+                items: [
+                    { value: 'pale', label: 'Резкая бледность' },
+                    { value: 'floppy', label: 'Обмякание' },
+                    { value: 'collapse', label: 'Коллапс' },
+                    { value: 'lethargy', label: 'Вялость' }
+                ]
+            },
+            {
+                title: 'Другое',
+                items: [
+                    { value: 'drooling', label: 'Внезапное слюнотечение', dynamic: 'drooling' },
+                    { value: 'other', label: 'Другое' }
+                ]
+            }
+        ];
+
+        var symptomsHtml = symptomGroups.map(function (group) {
+            var itemsHtml = group.items.map(function (item) {
+                var checkboxHtml =
+                    '<label class="reaction-option">' +
+                      '<input type="checkbox" name="reaction-symptom" value="' + item.value + '" />' +
+                      '<span>' + escapeHtml(item.label) + '</span>' +
+                    '</label>';
+
+                var dynamicHtml =
+                    (item.dynamic && dynamicBlocks[item.dynamic])
+                        ? dynamicBlocks[item.dynamic]
+                        : '';
+
+                return checkboxHtml + dynamicHtml;
+            }).join('');
+
+            return '<div class="form-group">' +
+                     '<label>' + escapeHtml(group.title) + '</label>' +
+                     '<div class="reaction-options">' + itemsHtml + '</div>' +
+                   '</div>';
+        }).join('');
+
+        // ============================================================
+        // Timing / Severity / Notes (общие вопросы, внизу формы)
+        // ============================================================
+
+        var timingHtml = [
+            { value: 'during',            label: 'Во время еды' },
+            { value: 'immediately_after', label: 'Сразу после' },
+            { value: 'delayed_1_to_4h',   label: 'Через 1–4 часа' },
+            { value: 'later',             label: 'Позже в тот же день' },
+            { value: 'next_day',          label: 'На следующий день' },
+            { value: 'unknown',           label: 'Не знаю' }
+        ].map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="reaction-timing" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        var severityHtml = [
+            { value: 'mild',     label: 'Лёгкая' },
+            { value: 'moderate', label: 'Средняя' },
+            { value: 'severe',   label: 'Тяжёлая' }
+        ].map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="reaction-severity" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
         return '' +
             '<div class="modal-overlay active">' +
               '<div class="modal-content">' +
@@ -485,36 +553,6 @@
                     '<input type="hidden" name="reaction-product-id" value="' + escapeHtml(productId) + '" />' +
 
                     symptomsHtml +
-
-                    '<div class="form-group reaction-dynamic" data-requires="swelling" style="display:none;">' +
-                      '<label>Где был отёк?</label>' +
-                      '<div class="reaction-options">' + swellingLocationHtml + '</div>' +
-                    '</div>' +
-
-                    '<div class="form-group reaction-dynamic" data-requires="hives" style="display:none;">' +
-                      '<label>Где была крапивница?</label>' +
-                      '<div class="reaction-options">' + hivesLocationHtml + '</div>' +
-                    '</div>' +
-
-                    '<div class="form-group reaction-dynamic" data-requires="redness,contact_urticaria" style="display:none;">' +
-                      '<label>Где?</label>' +
-                      '<div class="reaction-options">' + skinLocationHtml + '</div>' +
-                    '</div>' +
-
-                    '<div class="form-group reaction-dynamic" data-requires="vomiting" style="display:none;">' +
-                      '<label>Сколько раз была рвота?</label>' +
-                      '<div class="reaction-options">' + vomitingCountHtml + '</div>' +
-                    '</div>' +
-
-                    '<div class="form-group reaction-dynamic" data-requires="diarrhea" style="display:none;">' +
-                      '<label>Частота жидкого стула?</label>' +
-                      '<div class="reaction-options">' + diarrheaCountHtml + '</div>' +
-                    '</div>' +
-
-                    '<div class="form-group reaction-dynamic" data-requires="drooling" style="display:none;">' +
-                      '<label>Характер слюнотечения</label>' +
-                      '<div class="reaction-options">' + droolingContextHtml + '</div>' +
-                    '</div>' +
 
                     '<div class="form-group">' +
                       '<label>Когда появилось?</label>' +
