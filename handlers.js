@@ -1412,19 +1412,58 @@
 
                 var introducedProducts = [];
 
-                products.forEach(function(p) {
-                    var status =
-                        window.getProductStatusForChild
-                            ? window.getProductStatusForChild(
-                                p.id,
-                                currentChildId
-                            )
-                            : null;
+products.forEach(function(p) {
+    var state = null;
 
-                    if (status === 'introduced') {
-                        introducedProducts.push(p);
-                    }
-                });
+    if (
+        window.productStateService &&
+        typeof window.productStateService.getProductState === 'function'
+    ) {
+        try {
+            state = window.productStateService.getProductState(
+                currentChildId,
+                p.id
+            );
+        } catch (e) {
+            console.warn(
+                'show-introduced-products: getProductState error',
+                e
+            );
+        }
+    }
+
+    if (!state) return;
+
+    var wasIntroduced = false;
+
+    if (
+        window.productStateService &&
+        typeof window.productStateService.wasIntroduced === 'function'
+    ) {
+        try {
+            wasIntroduced =
+                window.productStateService.wasIntroduced(state);
+        } catch (e) {
+            console.warn(
+                'show-introduced-products: wasIntroduced error',
+                e
+            );
+        }
+    }
+
+    // Совместимость с существующими данными:
+    // introduced → продукт введён
+    // suspectedReaction → продукт был введён, затем была реакция
+    // confirmedAllergy → продукт был введён, затем подтверждена аллергия
+    if (
+        wasIntroduced ||
+        state.status === 'introduced' ||
+        state.status === 'suspectedReaction' ||
+        state.status === 'confirmedAllergy'
+    ) {
+        introducedProducts.push(p);
+    }
+});
 
                 if (
                     introducedProducts.length === 0
@@ -1456,14 +1495,16 @@
                         p.emoji || '🍽️';
 
                     modalContent +=
-                        '<div class="introduced-item">' +
-                        '<span class="ii-emoji">' +
-                        emoji +
-                        '</span>' +
-                        '<span class="ii-name">' +
-                        p.name +
-                        '</span>' +
-                        '</div>';
+    '<div class="introduced-item" data-action="select-product" data-product-id="' +
+    p.id +
+    '">' +
+    '<span class="ii-emoji">' +
+    emoji +
+    '</span>' +
+    '<span class="ii-name">' +
+    p.name +
+    '</span>' +
+    '</div>';
                 });
 
                 modalContent +=
