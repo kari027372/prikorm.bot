@@ -3,17 +3,20 @@
     'use strict';
 
     function showProductDetailModal(productOrId) {
-        var product = productOrId;
+     var product = productOrId;
 
-        if (typeof productOrId === 'string') {
-            var products = Array.isArray(window.PRODUCTS)
-                ? window.PRODUCTS
-                : [];
+if (
+    typeof productOrId === 'string' ||
+    typeof productOrId === 'number'
+) {
+    var products = Array.isArray(window.PRODUCTS)
+        ? window.PRODUCTS
+        : [];
 
-            product = products.find(function (item) {
-                return item.id === productOrId;
-            });
-        }
+    product = products.find(function (item) {
+        return String(item.id) === String(productOrId);
+    });
+}
 
         if (!product) {
             console.warn('⚠️ Продукт не найден:', productOrId);
