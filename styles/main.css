@@ -755,6 +755,20 @@ h1, h2, h3, h4, h5, h6 {
 .modal-overlay.active .modal-sheet {
   transform: translateY(0);
 }
+.modal-content {
+  background: var(--kenora-white);
+  max-width: 400px;
+  width: 100%;
+  border-radius: var(--kenora-radius-xl) var(--kenora-radius-xl) 0 0;
+  padding: 24px 20px 20px;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
+}
 
 /* ===== TOAST ===== */
 .toast {
