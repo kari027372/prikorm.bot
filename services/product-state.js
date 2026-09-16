@@ -274,6 +274,16 @@
     return result;
   }
 
+  // Канонический критерий «продукт когда-либо вводился».
+  // Не зависит от текущего статуса (introduced / suspectedReaction / confirmedAllergy).
+  // Опирается только на факт записи кормления: firstOffered или timesOffered.
+  function wasIntroduced(state) {
+    if (!state) return false;
+    if (state.firstOffered) return true;
+    if ((state.timesOffered || 0) > 0) return true;
+    return false;
+  }
+
   function getProductsByPreference(childId, preference) {
     const all = getAllForChild(childId);
     const result = [];
@@ -376,6 +386,7 @@
     getAllForChild: getAllForChild,
     getProductsByStatus: getProductsByStatus,
     getProductsByPreference: getProductsByPreference,
+    wasIntroduced: wasIntroduced,
     migrateGlobalData: migrateGlobalData
   };
 
