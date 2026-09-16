@@ -135,6 +135,109 @@
         };
     }
 
+    // ============================================================
+    // P1.6 — ЛОКАЛЬНАЯ КЛАССИФИКАЦИЯ РЕАКЦИИ
+    //
+    // Не сервис. Не второй Safety Engine.
+    // Возвращает одно из:
+    //   'isolated_local_contact'  → status остаётся introduced
+    //   'temporary_exclusion'     → status → suspectedReaction
+    //   'no_status_change'        → status остаётся introduced
+    // ============================================================
+    function classifyReaction(payload) {
+        var s = payload.symptoms || [];
+        var meta = payload._meta || {};
+
+        // ---- TIER 2: isolated local contact ----
+        if (
+            s.length === 1 &&
+            (s[0] === 'redness' || s[0] === 'contact_urticaria') &&
+            meta.skinLocation === 'perioral' &&
+            (meta.timing === 'during' || meta.timing === 'immediately_after')
+        ) {
+            return 'isolated_local_contact';
+        }
+
+        // ---- TIER 3a: hives + известная не-perioral локализация ----
+        if (s.indexOf('hives') !== -1) {
+            if (
+                meta.hivesLocation === 'face' ||
+                meta.hivesLocation === 'body' ||
+                meta.hivesLocation === 'multiple'
+            ) {
+                return 'temporary_exclusion';
+            }
+            // hives + perioral OR hives + unknown → no_status_change (fall through)
+        }
+
+        // ---- TIER 3a: swelling lips / face / eyes ----
+        if (
+            s.indexOf('swelling') !== -1 &&
+            (meta.swellingLocation === 'lips' ||
+             meta.swellingLocation === 'face' ||
+             meta.swellingLocation === 'eyes')
+        ) {
+            return 'temporary_exclusion';
+        }
+
+        // ---- TIER 3a: FPIES-like repeated vomiting + delayed timing ----
+        if (
+            s.indexOf('vomiting') !== -1 &&
+            meta.vomitingCount === '2+' &&
+            meta.timing === 'delayed_1_to_4h' &&
+            s.indexOf('hives') === -1 &&
+            s.indexOf('wheeze') === -1 &&
+            s.indexOf('breathing_difficult') === -1
+        ) {
+            return 'temporary_exclusion';
+        }
+
+        // ---- TIER 3a: vomiting + lethargy/pale + delayed timing ----
+        if (
+            s.indexOf('vomiting') !== -1 &&
+            (s.indexOf('lethargy') !== -1 || s.indexOf('pale') !== -1) &&
+            meta.timing === 'delayed_1_to_4h'
+        ) {
+            return 'temporary_exclusion';
+        }
+
+        // ---- Всё остальное: статус не меняется ----
+        return 'no_status_change';
+    }
+
+    // ============================================================
+    // P1.6 — EMERGENCY DETECTION
+    //
+    // Возвращает true, если форма должна быть прервана
+    // и показана emergency card.
+    //
+    // Emergency flag НЕ передаётся в Safety Engine.
+    // ============================================================
+    function isEmergency(payload) {
+        var s = payload.symptoms || [];
+        var meta = payload._meta || {};
+
+        if (s.indexOf('breathing_difficult') !== -1) return true;
+        if (s.indexOf('wheeze') !== -1) return true;
+        if (s.indexOf('cough_persistent') !== -1) return true;
+        if (s.indexOf('voice_change') !== -1) return true;
+        if (s.indexOf('collapse') !== -1) return true;
+        if (s.indexOf('pale') !== -1 && s.indexOf('floppy') !== -1) return true;
+
+        if (
+            s.indexOf('swelling') !== -1 &&
+            (meta.swellingLocation === 'tongue' || meta.swellingLocation === 'mouth_throat')
+        ) {
+            return true;
+        }
+
+        if (s.indexOf('drooling') !== -1 && meta.droolingContext === 'acute_airway') {
+            return true;
+        }
+
+        return false;
+    }
+
     // ===== ОСНОВНОЙ ОБРАБОТЧИК =====
     function handleDocumentClick(event) {
         var target = event.target.closest('[data-action]');
@@ -712,11 +815,7 @@
                 break;
 
             // ========================================================
-            // P0.3 — ОТКРЫТИЕ МОДАЛКИ ОТМЕТКИ РЕАКЦИИ
-            //
-            // Использует существующий window.showReactionModal
-            // (components/modal.js). Никакой новой системы реакций
-            // не создаётся.
+            // P0.3 + P1.6 — ОТКРЫТИЕ МОДАЛКИ ОТМЕТКИ РЕАКЦИИ
             // ========================================================
 
             case 'open-reaction-modal':
@@ -734,10 +833,22 @@
                 break;
 
             // ========================================================
-            // P0.3 — СОХРАНЕНИЕ РЕАКЦИИ В PRODUCT STATE
+            // P1.6 — СОХРАНЕНИЕ РЕАКЦИИ С КЛАССИФИКАЦИЕЙ
             //
-            // Приоритет: данные из формы .reaction-form.
-            // Fallback: старые data-* атрибуты (обратная совместимость).
+            // Поток:
+            //   read form
+            //   → collect symptoms
+            //   → collect severity (может быть null)
+            //   → collect _meta (для классификации)
+            //   → collect notes
+            //   → isEmergency()?
+            //        yes → classification = 'temporary_exclusion'
+            //        no  → classification = classifyReaction(payload)
+            //   → productStateService.addReaction(childId, productId,
+            //                                     reactionPayload,
+            //                                     { classification })
+            //
+            // _meta НЕ сохраняется в reaction object.
             // ========================================================
 
             case 'save-reaction':
@@ -770,17 +881,26 @@
                     break;
                 }
 
-                // P0.3: если клик внутри формы реакции — читаем форму.
-                // Иначе fallback на data-* атрибуты кнопки.
+                // P1.6: читаем .reaction-form.
+                // Fallback: старые data-* атрибуты (обратная совместимость).
                 var reactionForm =
-                    target.closest('.reaction-form');
+                    target.closest('.reaction-form') ||
+                    document.querySelector('.reaction-form');
 
-                var reactionProductId =
-                    productId;
-
+                var reactionProductId = productId;
                 var symptomsPayload = [];
-                var severityPayload = 'mild';
+                var severityPayload = null;
                 var notesPayload = '';
+
+                var meta = {
+                    swellingLocation: null,
+                    hivesLocation: null,
+                    skinLocation: null,
+                    vomitingCount: null,
+                    diarrheaCount: null,
+                    droolingContext: null,
+                    timing: null
+                };
 
                 if (reactionForm) {
                     var hiddenIdInput =
@@ -816,13 +936,9 @@
                             'input[name="reaction-severity"]:checked'
                         );
 
-                    if (
-                        severityInput &&
-                        severityInput.value
-                    ) {
-                        severityPayload =
-                            severityInput.value;
-                    }
+                    severityPayload = severityInput
+                        ? severityInput.value
+                        : null;
 
                     var notesInput =
                         reactionForm.querySelector(
@@ -836,6 +952,21 @@
                         notesPayload =
                             notesInput.value;
                     }
+
+                    var readRadio = function (name) {
+                        var el = reactionForm.querySelector(
+                            'input[name="' + name + '"]:checked'
+                        );
+                        return el ? el.value : null;
+                    };
+
+                    meta.swellingLocation = readRadio('swelling-location');
+                    meta.hivesLocation = readRadio('hives-location');
+                    meta.skinLocation = readRadio('skin-location');
+                    meta.vomitingCount = readRadio('vomiting-count');
+                    meta.diarrheaCount = readRadio('diarrhea-count');
+                    meta.droolingContext = readRadio('drooling-context');
+                    meta.timing = readRadio('reaction-timing');
                 } else {
                     var symptomsAttr =
                         target.getAttribute(
@@ -852,10 +983,14 @@
                                 .filter(Boolean)
                             : [];
 
-                    severityPayload =
+                    var legacySeverity =
                         target.getAttribute(
                             'data-severity'
-                        ) || 'mild';
+                        );
+
+                    severityPayload = legacySeverity
+                        ? legacySeverity
+                        : null;
 
                     notesPayload =
                         target.getAttribute(
@@ -899,11 +1034,38 @@
                         notesPayload
                 };
 
+                // ====================================================
+                // P1.6 — classification.
+                //
+                // Одна из трёх:
+                //   - 'temporary_exclusion' (emergency или Tier 3a)
+                //   - 'isolated_local_contact' (Tier 2)
+                //   - 'no_status_change' (всё остальное)
+                //
+                // Meta НЕ передаётся в reaction object.
+                // ====================================================
+                var classification;
+
+                var emergencyCheck = isEmergency({
+                    symptoms: symptomsPayload,
+                    _meta: meta
+                });
+
+                if (emergencyCheck) {
+                    classification = 'temporary_exclusion';
+                } else {
+                    classification = classifyReaction({
+                        symptoms: symptomsPayload,
+                        _meta: meta
+                    });
+                }
+
                 var reactionOk =
                     window.productStateService.addReaction(
                         reactionChildId,
                         reactionProductId,
-                        reactionPayload
+                        reactionPayload,
+                        { classification: classification }
                     );
 
                 if (reactionOk) {
