@@ -80,10 +80,6 @@
     const child = getChild(childId);
     if (!child) return false;
 
-    if (!child.productState) {
-      child.productState = {};
-    }
-
     if (status === 'confirmedAllergy') {
       const source = options.source || 'unknown';
       if (source !== 'parent' && source !== 'medicalProfile') {
@@ -96,9 +92,9 @@
     child.productState[productId] = {
       status: status,
       preference: current.preference || null,
-      firstOffered: current.firstOffered || null,   // НЕ меняем
-      lastOffered: current.lastOffered || null,     // НЕ меняем
-      timesOffered: current.timesOffered || 0,      // НЕ меняем
+      firstOffered: current.firstOffered || null,
+      lastOffered: current.lastOffered || null,
+      timesOffered: current.timesOffered || 0,
       notes: Object.prototype.hasOwnProperty.call(options, 'notes') ? options.notes : (current.notes || ''),
       reactions: Array.isArray(current.reactions) ? current.reactions : []
     };
@@ -151,13 +147,12 @@
       return false;
     }
 
-    // Меняем только статус, firstOffered и другие поля не трогаем
     child.productState[productId] = {
       status: 'introduced',
       preference: current.preference || null,
-      firstOffered: current.firstOffered || null,   // НЕ меняем
-      lastOffered: current.lastOffered || null,     // НЕ меняем
-      timesOffered: current.timesOffered || 0,      // НЕ меняем
+      firstOffered: current.firstOffered || null,
+      lastOffered: current.lastOffered || null,
+      timesOffered: current.timesOffered || 0,
       notes: current.notes || '',
       reactions: Array.isArray(current.reactions) ? current.reactions : []
     };
@@ -178,15 +173,13 @@
 
     const current = child.productState[productId] || {};
     const offerDate = date || new Date().toISOString().split('T')[0];
-
-    // firstOffered устанавливается только здесь, при первом предложении
     const firstDate = current.firstOffered || offerDate;
 
     child.productState[productId] = {
       status: current.status || 'notIntroduced',
       preference: current.preference || null,
-      firstOffered: firstDate,            // первый раз → offerDate, потом остаётся
-      lastOffered: offerDate,             // всегда обновляем
+      firstOffered: firstDate,
+      lastOffered: offerDate,
       timesOffered: (current.timesOffered || 0) + 1,
       notes: current.notes || '',
       reactions: Array.isArray(current.reactions) ? current.reactions : []
@@ -196,7 +189,7 @@
     return true;
   }
 
-  function addReaction(childId, productId, reaction) {
+  function addReaction(childId, productId, reaction, options) {
     if (!childId || !productId || !reaction) return false;
 
     const child = getChild(childId);
@@ -212,7 +205,7 @@
     const newReaction = {
       date: reaction.date || new Date().toISOString().split('T')[0],
       symptoms: reaction.symptoms || [],
-      severity: reaction.severity || 'mild',
+      severity: (reaction.severity === undefined) ? 'mild' : reaction.severity,
       action: reaction.action || 'monitor',
       notes: reaction.notes || ''
     };
@@ -220,11 +213,20 @@
     reactions.push(newReaction);
 
     let newStatus = current.status || 'notIntroduced';
-    // Меняем статус только если текущий не блокирующий и уже introduced
+
     if (newStatus === 'introduced') {
-      newStatus = 'suspectedReaction';
+      const classification = options && options.classification;
+
+      if (classification === 'isolated_local_contact') {
+        // status остаётся introduced
+      } else if (classification === 'temporary_exclusion') {
+        newStatus = 'suspectedReaction';
+      } else if (classification === 'no_status_change') {
+        // status остаётся introduced
+      } else {
+        newStatus = 'suspectedReaction';
+      }
     }
-    // Если notIntroduced, confirmedAllergy, parentExcluded — не меняем
 
     child.productState[productId] = {
       status: newStatus,
@@ -266,17 +268,16 @@
   function getProductsByStatus(childId, status) {
     const all = getAllForChild(childId);
     const result = [];
+
     for (const [productId, state] of Object.entries(all)) {
       if (state.status === status) {
         result.push(productId);
       }
     }
+
     return result;
   }
 
-  // Канонический критерий «продукт когда-либо вводился».
-  // Не зависит от текущего статуса (introduced / suspectedReaction / confirmedAllergy).
-  // Опирается только на факт записи кормления: firstOffered или timesOffered.
   function wasIntroduced(state) {
     if (!state) return false;
     if (state.firstOffered) return true;
@@ -287,17 +288,15 @@
   function getProductsByPreference(childId, preference) {
     const all = getAllForChild(childId);
     const result = [];
+
     for (const [productId, state] of Object.entries(all)) {
       if (state.preference === preference) {
         result.push(productId);
       }
     }
+
     return result;
   }
-
-  // ============================================================
-  // МИГРАЦИЯ ГЛОБАЛЬНЫХ ДАННЫХ
-  // ============================================================
 
   function migrateGlobalData() {
     const state = window.STATE;
@@ -309,10 +308,10 @@
     }
 
     const children = state.children || [];
+
     if (children.length === 0) {
       state.productStateMigrationVersion = 1;
       saveState();
-      console.log('✅ Миграция productState: нет детей, пропускаем');
       return;
     }
 
@@ -322,12 +321,12 @@
     if (globalIntroduced.length === 0 && globalFavorites.length === 0) {
       state.productStateMigrationVersion = 1;
       saveState();
-      console.log('✅ Миграция productState: глобальных данных нет, пропускаем');
       return;
     }
 
     if (children.length === 1) {
       const child = children[0];
+
       if (!child.productState) {
         child.productState = {};
       }
@@ -364,17 +363,11 @@
 
       state.productStateMigrationVersion = 1;
       saveState();
-      console.log(`✅ Миграция productState выполнена для ребёнка ${child.name}: introduced=${globalIntroduced.length}, favorites=${globalFavorites.length}`);
     } else {
       state.productStateMigrationVersion = 1;
       saveState();
-      console.warn('⚠️ Миграция productState пропущена: несколько детей, глобальные данные неоднозначны');
     }
   }
-
-  // ============================================================
-  // ПУБЛИЧНЫЙ API
-  // ============================================================
 
   window.productStateService = {
     getProductState: getProductState,
