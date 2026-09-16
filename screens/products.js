@@ -125,6 +125,24 @@
         return 'notIntroduced';
     }
 
+    function getProductStateForChild(productId, childId) {
+        if (window.productStateService && typeof window.productStateService.getProductState === 'function') {
+            try {
+                return window.productStateService.getProductState(childId, productId);
+            } catch (error) { console.warn('[Products] getProductState error', error); }
+        }
+        return null;
+    }
+
+    // «Продукт когда-либо вводился» — независимо от текущего статуса.
+    // Опирается на canonical predicate productStateService.wasIntroduced().
+    function isProductIntroducedEver(productId, childId) {
+        if (window.productStateService && typeof window.productStateService.wasIntroduced === 'function') {
+            return window.productStateService.wasIntroduced(getProductStateForChild(productId, childId));
+        }
+        return false;
+    }
+
     // ===== НОВОЕ: SVG для search / filter =====
     var uiIcons = {
         search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>',
@@ -211,7 +229,7 @@
     function getIntroducedProductsCount(childId) {
         if (!childId || !PRODUCTS.length) return 0;
         return PRODUCTS.filter(function(p) {
-            return getProductStatusForChild(p.id, childId) === 'introduced';
+            return isProductIntroducedEver(p.id, childId);
         }).length;
     }
     function getProductsProgressPercent(childId) {
@@ -250,7 +268,7 @@
         } else if (statusFilter === 'planned') {
             filtered = filtered.filter(function(p) { return getProductStatusForChild(p.id, childId) === 'planned'; });
         } else if (statusFilter === 'introduced') {
-            filtered = filtered.filter(function(p) { return getProductStatusForChild(p.id, childId) === 'introduced'; });
+            filtered = filtered.filter(function(p) { return isProductIntroducedEver(p.id, childId); });
         } else if (statusFilter === 'reaction') {
             filtered = filtered.filter(function(p) {
                 var s = getProductStatusForChild(p.id, childId);
