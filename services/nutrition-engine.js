@@ -184,8 +184,12 @@
       }
     }
 
-    // 3. Получить список введённых продуктов из Product State
-    const introducedIds = window.productStateService.getProductsByStatus(childIdActual, 'introduced') || [];
+    // 3. Получить список продуктов, которые когда-либо вводились (canonical predicate).
+    //    Продукт с реакцией остаётся в этом списке, если firstOffered/timesOffered не пусты.
+    const allStates = window.productStateService.getAllForChild(childIdActual) || {};
+    const introducedIds = Object.keys(allStates).filter(function(id) {
+      return window.productStateService.wasIntroduced(allStates[id]);
+    });
 
     // 4. Построить индексы (если ещё не построены)
     buildIndexes();
