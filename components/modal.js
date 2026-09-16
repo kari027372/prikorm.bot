@@ -183,6 +183,15 @@
                 '</div>';
         }
 
+        // ============================================================
+        // P1.6 — Секция «Реакции»
+        //
+        // Читает productState[productId].reactions[] через существующий
+        // productStateService.getProductState(). Если реакций нет,
+        // секция не показывается. Product State не меняется.
+        // ============================================================
+        var reactionsHtml = buildReactionsHtml(product);
+
         var content =
             '<div class="product-detail-modal">' +
 
@@ -213,6 +222,8 @@
             ageText +
             '</p>' +
             '</div>' +
+
+            reactionsHtml +
 
             (
                 highlightsHtml
@@ -288,6 +299,149 @@
         });
     }
 
+    // ============================================================
+    // P1.6 — Построение секции «Реакции» для Product Detail Modal.
+    // Возвращает HTML-строку или '' (если реакций нет / данных нет).
+    // Все пользовательские данные проходят через escapeHtml().
+    // ============================================================
+    function buildReactionsHtml(product) {
+        if (!product || !product.id) return '';
+
+        var childId = null;
+
+        if (typeof window.getCurrentChildId === 'function') {
+            try {
+                childId = window.getCurrentChildId();
+            } catch (e) {
+                console.warn('buildReactionsHtml: getCurrentChildId error', e);
+            }
+        }
+
+        if (!childId && window.STATE && window.STATE.currentChildId) {
+            childId = window.STATE.currentChildId;
+        }
+
+        if (!childId) return '';
+
+        if (
+            !window.productStateService ||
+            typeof window.productStateService.getProductState !== 'function'
+        ) {
+            return '';
+        }
+
+        var state = null;
+
+        try {
+            state = window.productStateService.getProductState(
+                childId,
+                product.id
+            );
+        } catch (e) {
+            console.warn('buildReactionsHtml: getProductState error', e);
+            return '';
+        }
+
+        if (
+            !state ||
+            !Array.isArray(state.reactions) ||
+            !state.reactions.length
+        ) {
+            return '';
+        }
+
+        var symptomLabels = {
+            redness: 'Покраснение',
+            contact_urticaria: 'Контактная крапивница',
+            hives: 'Крапивница / волдыри',
+            rash: 'Сыпь',
+            swelling: 'Отёк',
+            vomiting: 'Рвота',
+            diarrhea: 'Жидкий стул',
+            blood_in_stool: 'Кровь в стуле',
+            mucus_in_stool: 'Слизь в стуле',
+            abdominal_pain: 'Боль / вздутие',
+            cough: 'Кашель',
+            cough_persistent: 'Внезапный стойкий кашель',
+            wheeze: 'Свистящее дыхание',
+            breathing_difficult: 'Затруднённое дыхание',
+            voice_change: 'Изменение голоса / крика',
+            pale: 'Резкая бледность',
+            floppy: 'Обмякание',
+            collapse: 'Коллапс',
+            lethargy: 'Вялость',
+            drooling: 'Внезапное слюнотечение',
+            other: 'Другое'
+        };
+
+        var severityLabels = {
+            mild: 'Лёгкая',
+            moderate: 'Средняя',
+            severe: 'Тяжёлая'
+        };
+
+        var itemsHtml = state.reactions.map(function (reaction) {
+            if (!reaction || typeof reaction !== 'object') return '';
+
+            var parts = [];
+
+            if (reaction.date) {
+                parts.push(
+                    '<strong>Дата:</strong> ' +
+                    escapeHtml(String(reaction.date))
+                );
+            }
+
+            var symptomsArr = Array.isArray(reaction.symptoms)
+                ? reaction.symptoms
+                : [];
+
+            if (symptomsArr.length) {
+                var symptomsText = symptomsArr
+                    .map(function (s) {
+                        return symptomLabels[s] || String(s);
+                    })
+                    .join(', ');
+
+                parts.push(
+                    '<strong>Симптомы:</strong> ' +
+                    escapeHtml(symptomsText)
+                );
+            }
+
+            if (
+                reaction.severity &&
+                severityLabels[reaction.severity]
+            ) {
+                parts.push(
+                    '<strong>Степень:</strong> ' +
+                    escapeHtml(severityLabels[reaction.severity])
+                );
+            }
+
+            if (
+                reaction.notes &&
+                String(reaction.notes).trim() !== ''
+            ) {
+                parts.push(
+                    '<strong>Заметки:</strong> ' +
+                    escapeHtml(String(reaction.notes))
+                );
+            }
+
+            if (!parts.length) return '';
+
+            return '<li>' + parts.join('<br>') + '</li>';
+        }).filter(Boolean).join('');
+
+        if (!itemsHtml) return '';
+
+        return '<div class="modal-section">' +
+                   '<h4>📋 Реакции</h4>' +
+                   '<ul>' + itemsHtml + '</ul>' +
+               '</div>';
+    }
+
     function escapeHtml(value) {
         if (value === null || value === undefined) {
             return '';
@@ -316,11 +470,6 @@
     // ============================================================
 
     function buildReactionFormHtml(productId, productName) {
-        // ============================================================
-        // Dynamic question blocks (HTML)
-        // Каждый блок вставляется сразу после родительского item.
-        // ============================================================
-
         var swellingLocationHtml = [
             { value: 'lips',         label: 'Губы' },
             { value: 'face',         label: 'Лицо' },
@@ -391,10 +540,6 @@
                    '</label>';
         }).join('');
 
-        // ============================================================
-        // Dynamic blocks (по ключу)
-        // ============================================================
-
         var dynamicBlocks = {
             swelling:
                 '<div class="form-group reaction-dynamic" data-requires="swelling" style="display:none;">' +
@@ -432,10 +577,6 @@
                   '<div class="reaction-options">' + droolingContextHtml + '</div>' +
                 '</div>'
         };
-
-        // ============================================================
-        // Symptom groups (с динамическими уточнениями внутри)
-        // ============================================================
 
         var symptomGroups = [
             {
@@ -511,10 +652,6 @@
                      '<div class="reaction-options">' + itemsHtml + '</div>' +
                    '</div>';
         }).join('');
-
-        // ============================================================
-        // Timing / Severity / Notes (общие вопросы, внизу формы)
-        // ============================================================
 
         var timingHtml = [
             { value: 'during',            label: 'Во время еды' },
