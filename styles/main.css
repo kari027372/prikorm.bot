@@ -755,6 +755,8 @@ h1, h2, h3, h4, h5, h6 {
 .modal-overlay.active .modal-sheet {
   transform: translateY(0);
 }
+
+/* ===== P1.6 FIX: MODAL CONTENT (для modal.js / handlers.js) ===== */
 .modal-content {
   background: var(--kenora-white);
   max-width: 400px;
