@@ -302,56 +302,178 @@
     }
 
     // ============================================================
-    // P0.3: минимальная модалка отметки реакции.
-    // Пишет в существующий #modal-root, использует существующие
-    // modal-* классы и существующий closeModal
-    // (data-action="close-modal"). Собственный механизм закрытия
-    // не создаётся.
+    // P1.6 — Reaction Modal (adaptive form)
+    //
+    // Расширенный список симптомов, динамические уточнения,
+    // emergency branch, severity без default.
+    //
+    // _meta (location, timing, count и т.д.) собирается в момент
+    // сохранения через handlers.js и НЕ сохраняется в Product State.
     // ============================================================
-    function showReactionModal(productId) {
-        var root = document.getElementById('modal-root');
-        if (!root) {
-            console.warn('showReactionModal: #modal-root не найден');
-            return;
-        }
 
-        var product = Array.isArray(window.PRODUCTS)
-            ? window.PRODUCTS.find(function (p) { return p.id === productId; })
-            : null;
-        var productName = (product && product.name) ? product.name : 'продукт';
+    function buildReactionFormHtml(productId, productName) {
+        var symptomGroups = [
+            {
+                title: 'Кожа',
+                items: [
+                    { value: 'redness', label: 'Покраснение' },
+                    { value: 'contact_urticaria', label: 'Контактная крапивница' },
+                    { value: 'hives', label: 'Крапивница / волдыри' }
+                ]
+            },
+            {
+                title: 'Отёк',
+                items: [
+                    { value: 'swelling', label: 'Отёк' }
+                ]
+            },
+            {
+                title: 'ЖКТ',
+                items: [
+                    { value: 'vomiting', label: 'Рвота' },
+                    { value: 'diarrhea', label: 'Жидкий стул' },
+                    { value: 'blood_in_stool', label: 'Кровь в стуле' },
+                    { value: 'mucus_in_stool', label: 'Слизь в стуле' },
+                    { value: 'abdominal_pain', label: 'Боль / вздутие' }
+                ]
+            },
+            {
+                title: 'Дыхание',
+                items: [
+                    { value: 'cough', label: 'Кашель' },
+                    { value: 'cough_persistent', label: 'Внезапный стойкий кашель' },
+                    { value: 'wheeze', label: 'Свистящее дыхание' },
+                    { value: 'breathing_difficult', label: 'Затруднённое дыхание' },
+                    { value: 'voice_change', label: 'Изменение голоса / крика' }
+                ]
+            },
+            {
+                title: 'Общее состояние',
+                items: [
+                    { value: 'pale', label: 'Резкая бледность' },
+                    { value: 'floppy', label: 'Обмякание' },
+                    { value: 'collapse', label: 'Коллапс' },
+                    { value: 'lethargy', label: 'Вялость' }
+                ]
+            },
+            {
+                title: 'Другое',
+                items: [
+                    { value: 'drooling', label: 'Внезапное слюнотечение' },
+                    { value: 'other', label: 'Другое' }
+                ]
+            }
+        ];
 
-        var symptomOptions = [
-            { value: 'rash',     label: 'Сыпь' },
-            { value: 'redness',  label: 'Покраснение' },
-            { value: 'vomiting', label: 'Рвота' },
-            { value: 'diarrhea', label: 'Диарея' },
-            { value: 'swelling', label: 'Отёк' },
-            { value: 'cough',    label: 'Кашель' },
+        var symptomsHtml = symptomGroups.map(function (group) {
+            var itemsHtml = group.items.map(function (item) {
+                return '<label class="reaction-option">' +
+                         '<input type="checkbox" name="reaction-symptom" value="' + item.value + '" />' +
+                         '<span>' + escapeHtml(item.label) + '</span>' +
+                       '</label>';
+            }).join('');
+            return '<div class="form-group">' +
+                     '<label>' + escapeHtml(group.title) + '</label>' +
+                     '<div class="reaction-options">' + itemsHtml + '</div>' +
+                   '</div>';
+        }).join('');
+
+        var severityHtml = [
+            { value: 'mild',     label: 'Лёгкая' },
+            { value: 'moderate', label: 'Средняя' },
+            { value: 'severe',   label: 'Тяжёлая' }
+        ].map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="reaction-severity" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        var timingHtml = [
+            { value: 'during',            label: 'Во время еды' },
+            { value: 'immediately_after', label: 'Сразу после' },
+            { value: 'delayed_1_to_4h',   label: 'Через 1–4 часа' },
+            { value: 'later',             label: 'Позже в тот же день' },
+            { value: 'next_day',          label: 'На следующий день' },
+            { value: 'unknown',           label: 'Не знаю' }
+        ].map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="reaction-timing" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        var swellingLocationHtml = [
+            { value: 'lips',         label: 'Губы' },
+            { value: 'face',         label: 'Лицо' },
+            { value: 'eyes',         label: 'Глаза' },
+            { value: 'tongue',       label: 'Язык' },
+            { value: 'mouth_throat', label: 'Рот / горло' },
+            { value: 'other',        label: 'Другое' }
+        ].map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="swelling-location" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        var hivesLocationHtml = [
+            { value: 'perioral', label: 'Вокруг рта' },
+            { value: 'face',     label: 'Лицо' },
+            { value: 'body',     label: 'Тело' },
+            { value: 'multiple', label: 'Несколько областей' },
+            { value: 'unknown',  label: 'Не уверена' }
+        ].map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="hives-location" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        var skinLocationHtml = [
+            { value: 'perioral', label: 'Вокруг рта' },
             { value: 'other',    label: 'Другое' }
-        ];
-
-        var symptomsHtml = symptomOptions.map(function (opt) {
+        ].map(function (opt) {
             return '<label class="reaction-option">' +
-                     '<input type="checkbox" name="reaction-symptom" value="' + opt.value + '" />' +
+                     '<input type="radio" name="skin-location" value="' + opt.value + '" />' +
                      '<span>' + opt.label + '</span>' +
                    '</label>';
         }).join('');
 
-        var severityOptions = [
-            { value: 'mild',     label: 'Лёгкая',  checked: true },
-            { value: 'moderate', label: 'Средняя', checked: false },
-            { value: 'severe',   label: 'Тяжёлая', checked: false }
-        ];
-
-        var severityHtml = severityOptions.map(function (opt) {
+        var vomitingCountHtml = [
+            { value: '1',       label: '1 раз' },
+            { value: '2+',      label: '2 и более' },
+            { value: 'unknown', label: 'Не уверена' }
+        ].map(function (opt) {
             return '<label class="reaction-option">' +
-                     '<input type="radio" name="reaction-severity" value="' + opt.value + '"' +
-                     (opt.checked ? ' checked' : '') + ' />' +
+                     '<input type="radio" name="vomiting-count" value="' + opt.value + '" />' +
                      '<span>' + opt.label + '</span>' +
                    '</label>';
         }).join('');
 
-        root.innerHTML = '' +
+        var diarrheaCountHtml = [
+            { value: '1',        label: '1 раз' },
+            { value: 'multiple', label: 'Несколько' },
+            { value: 'watery',   label: 'Водянистый' },
+            { value: 'unknown',  label: 'Не уверена' }
+        ].map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="diarrhea-count" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        var droolingContextHtml = [
+            { value: 'ordinary',     label: 'Обычное, связано с зубами' },
+            { value: 'acute_airway', label: 'Внезапное, не связано с зубами' }
+        ].map(function (opt) {
+            return '<label class="reaction-option">' +
+                     '<input type="radio" name="drooling-context" value="' + opt.value + '" />' +
+                     '<span>' + opt.label + '</span>' +
+                   '</label>';
+        }).join('');
+
+        return '' +
             '<div class="modal-overlay active">' +
               '<div class="modal-content">' +
                 '<div class="modal-header">' +
@@ -361,14 +483,49 @@
                 '<div class="modal-body">' +
                   '<form class="reaction-form" onsubmit="return false;">' +
                     '<input type="hidden" name="reaction-product-id" value="' + escapeHtml(productId) + '" />' +
-                    '<div class="form-group">' +
-                      '<label>Симптомы</label>' +
-                      '<div class="reaction-options">' + symptomsHtml + '</div>' +
+
+                    symptomsHtml +
+
+                    '<div class="form-group reaction-dynamic" data-requires="swelling" style="display:none;">' +
+                      '<label>Где был отёк?</label>' +
+                      '<div class="reaction-options">' + swellingLocationHtml + '</div>' +
                     '</div>' +
+
+                    '<div class="form-group reaction-dynamic" data-requires="hives" style="display:none;">' +
+                      '<label>Где была крапивница?</label>' +
+                      '<div class="reaction-options">' + hivesLocationHtml + '</div>' +
+                    '</div>' +
+
+                    '<div class="form-group reaction-dynamic" data-requires="redness,contact_urticaria" style="display:none;">' +
+                      '<label>Где?</label>' +
+                      '<div class="reaction-options">' + skinLocationHtml + '</div>' +
+                    '</div>' +
+
+                    '<div class="form-group reaction-dynamic" data-requires="vomiting" style="display:none;">' +
+                      '<label>Сколько раз была рвота?</label>' +
+                      '<div class="reaction-options">' + vomitingCountHtml + '</div>' +
+                    '</div>' +
+
+                    '<div class="form-group reaction-dynamic" data-requires="diarrhea" style="display:none;">' +
+                      '<label>Частота жидкого стула?</label>' +
+                      '<div class="reaction-options">' + diarrheaCountHtml + '</div>' +
+                    '</div>' +
+
+                    '<div class="form-group reaction-dynamic" data-requires="drooling" style="display:none;">' +
+                      '<label>Характер слюнотечения</label>' +
+                      '<div class="reaction-options">' + droolingContextHtml + '</div>' +
+                    '</div>' +
+
                     '<div class="form-group">' +
-                      '<label>Степень</label>' +
+                      '<label>Когда появилось?</label>' +
+                      '<div class="reaction-options">' + timingHtml + '</div>' +
+                    '</div>' +
+
+                    '<div class="form-group">' +
+                      '<label>Степень (необязательно)</label>' +
                       '<div class="reaction-options">' + severityHtml + '</div>' +
                     '</div>' +
+
                     '<div class="form-group">' +
                       '<label>Заметки</label>' +
                       '<textarea class="form-textarea" name="reaction-notes" rows="3" placeholder="Что вы заметили"></textarea>' +
@@ -381,6 +538,187 @@
                 '</div>' +
               '</div>' +
             '</div>';
+    }
+
+    function updateDynamicQuestions(form) {
+        var checked = {};
+
+        form.querySelectorAll('input[name="reaction-symptom"]:checked').forEach(function (el) {
+            checked[el.value] = true;
+        });
+
+        form.querySelectorAll('.reaction-dynamic').forEach(function (block) {
+            var requires = block.getAttribute('data-requires');
+            if (!requires) return;
+
+            var required = requires.split(',').map(function (s) { return s.trim(); });
+            var show = required.some(function (r) { return checked[r]; });
+
+            block.style.display = show ? '' : 'none';
+
+            if (!show) {
+                block.querySelectorAll('input[type="radio"]').forEach(function (r) {
+                    r.checked = false;
+                });
+            }
+        });
+    }
+
+    function readFormState(form) {
+        var symptoms = [];
+
+        form.querySelectorAll('input[name="reaction-symptom"]:checked').forEach(function (el) {
+            symptoms.push(el.value);
+        });
+
+        var severityInput = form.querySelector('input[name="reaction-severity"]:checked');
+        var notesInput = form.querySelector('[name="reaction-notes"]');
+
+        function getRadio(name) {
+            var el = form.querySelector('input[name="' + name + '"]:checked');
+            return el ? el.value : null;
+        }
+
+        return {
+            symptoms: symptoms,
+            severity: severityInput ? severityInput.value : null,
+            notes: notesInput ? notesInput.value : '',
+            meta: {
+                swellingLocation: getRadio('swelling-location'),
+                hivesLocation: getRadio('hives-location'),
+                skinLocation: getRadio('skin-location'),
+                vomitingCount: getRadio('vomiting-count'),
+                diarrheaCount: getRadio('diarrhea-count'),
+                droolingContext: getRadio('drooling-context'),
+                timing: getRadio('reaction-timing')
+            }
+        };
+    }
+
+    function isEmergencyFromState(state) {
+        var s = state.symptoms;
+        var m = state.meta;
+
+        if (s.indexOf('breathing_difficult') !== -1) return true;
+        if (s.indexOf('wheeze') !== -1) return true;
+        if (s.indexOf('cough_persistent') !== -1) return true;
+        if (s.indexOf('voice_change') !== -1) return true;
+        if (s.indexOf('collapse') !== -1) return true;
+        if (s.indexOf('pale') !== -1 && s.indexOf('floppy') !== -1) return true;
+
+        if (s.indexOf('swelling') !== -1 &&
+            (m.swellingLocation === 'tongue' || m.swellingLocation === 'mouth_throat')) {
+            return true;
+        }
+
+        if (s.indexOf('drooling') !== -1 && m.droolingContext === 'acute_airway') {
+            return true;
+        }
+
+        return false;
+    }
+
+    function showEmergencyCard(root, productId, productName, state) {
+        root.innerHTML = '' +
+            '<div class="modal-overlay active">' +
+              '<div class="modal-content">' +
+                '<div class="modal-header">' +
+                  '<h2>Возможна тяжёлая реакция</h2>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                  '<div class="modal-section">' +
+                    '<p>Эти признаки могут соответствовать тяжёлой аллергической реакции.</p>' +
+                    '<p><strong>Немедленно обратитесь за медицинской помощью.</strong></p>' +
+                    '<p>Это не диагноз. Решение принимает врач.</p>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                  '<button class="btn-secondary" type="button" data-action="close-modal">Понятно</button>' +
+                  '<button class="btn-primary emergency-save-btn" type="button">Сохранить запись</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+
+        var saveBtn = root.querySelector('.emergency-save-btn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function () {
+                var childId = (window.STATE && window.STATE.currentChildId)
+                    ? window.STATE.currentChildId
+                    : null;
+
+                if (!childId) {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Выберите ребёнка', 'error');
+                    }
+                    return;
+                }
+
+                if (!window.productStateService ||
+                    typeof window.productStateService.addReaction !== 'function') {
+                    console.warn('addReaction недоступен');
+                    return;
+                }
+
+                var payload = {
+                    date: new Date().toISOString().split('T')[0],
+                    symptoms: state.symptoms,
+                    severity: state.severity,
+                    action: 'monitor',
+                    notes: state.notes
+                };
+
+                var ok = window.productStateService.addReaction(
+                    childId,
+                    productId,
+                    payload,
+                    { classification: 'temporary_exclusion' }
+                );
+
+                if (ok) {
+                    if (typeof window.saveState === 'function') {
+                        window.saveState();
+                    }
+                    if (typeof window.closeModal === 'function') {
+                        window.closeModal();
+                    }
+                    if (typeof window.updateProductsList === 'function') {
+                        window.updateProductsList();
+                    }
+                } else {
+                    console.warn('emergency addReaction вернул false');
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Не удалось сохранить реакцию', 'error');
+                    }
+                }
+            });
+        }
+    }
+
+    function showReactionModal(productId) {
+        var root = document.getElementById('modal-root');
+        if (!root) {
+            console.warn('showReactionModal: #modal-root не найден');
+            return;
+        }
+
+        var product = Array.isArray(window.PRODUCTS)
+            ? window.PRODUCTS.find(function (p) { return p.id === productId; })
+            : null;
+        var productName = (product && product.name) ? product.name : 'продукт';
+
+        root.innerHTML = buildReactionFormHtml(productId, productName);
+
+        var form = root.querySelector('.reaction-form');
+        if (form) {
+            form.addEventListener('change', function () {
+                updateDynamicQuestions(form);
+
+                var state = readFormState(form);
+                if (isEmergencyFromState(state)) {
+                    showEmergencyCard(root, productId, productName, state);
+                }
+            });
+        }
 
         if (typeof UI !== 'undefined') {
             UI.modal = root;
@@ -390,7 +728,7 @@
     window.showProductDetailModal =
         showProductDetailModal;
 
-    // P0.3: экспорт модалки реакции.
+    // P0.3 + P1.6: экспорт модалки реакции.
     window.showReactionModal = showReactionModal;
 
     console.log('✅ components/modal.js загружен');
