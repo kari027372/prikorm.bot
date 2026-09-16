@@ -128,15 +128,16 @@ function getIntroducedProductIds() {
     if (
         childId &&
         window.productStateService &&
-        typeof window.productStateService.getProductsByStatus === 'function'
+        typeof window.productStateService.getAllForChild === 'function' &&
+        typeof window.productStateService.wasIntroduced === 'function'
     ) {
-        const ids = window.productStateService.getProductsByStatus(
-            childId,
-            'introduced'
-        );
+        const all =
+            window.productStateService.getAllForChild(childId);
 
-        if (Array.isArray(ids)) {
-            return ids.filter(Boolean);
+        if (all && typeof all === 'object') {
+            return Object.keys(all).filter(
+                id => window.productStateService.wasIntroduced(all[id])
+            );
         }
     }
 
@@ -764,9 +765,69 @@ function getRepeatRecommendations(
             .filter(Boolean);
 
 
+    // STOP-фикс: фильтруем через Safety Engine так же, как в getRecommendationCandidates.
+    // Никакой отдельной Safety-логики и никаких ручных проверок статусов.
+    const childId = STATE?.currentChildId;
+
+    const hasChildService =
+        window.childService &&
+        typeof window.childService.getChildProfile === 'function';
+
+    const hasSafetyEngine =
+        window.safetyEngine &&
+        typeof window.safetyEngine.evaluateProductSafety === 'function';
+
+    if (!childId || !hasChildService || !hasSafetyEngine) {
+        return [];
+    }
+
+    let profile = null;
+
+    try {
+        profile =
+            window.childService.getChildProfile(childId);
+    } catch (e) {
+        console.warn(
+            'recommendations: getChildProfile error',
+            e
+        );
+        return [];
+    }
+
+    if (!profile) {
+        return [];
+    }
+
+    const safeProducts =
+        products.filter(function(product) {
+
+            try {
+                const result =
+                    window.safetyEngine.evaluateProductSafety(
+                        profile,
+                        product,
+                        null
+                    );
+
+                return !!(
+                    result &&
+                    result.recommendation &&
+                    result.recommendation.canRecommend !== false
+                );
+
+            } catch (e) {
+                console.warn(
+                    'recommendations: safety error',
+                    e
+                );
+                return false;
+            }
+        });
+
+
     const oldProducts =
         getProductsNotEatenRecently(
-            products,
+            safeProducts,
             7
         );
 
