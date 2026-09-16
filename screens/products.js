@@ -136,12 +136,34 @@
 
     // «Продукт когда-либо вводился» — независимо от текущего статуса.
     // Опирается на canonical predicate productStateService.wasIntroduced().
-    function isProductIntroducedEver(productId, childId) {
-        if (window.productStateService && typeof window.productStateService.wasIntroduced === 'function') {
-            return window.productStateService.wasIntroduced(getProductStateForChild(productId, childId));
+    // «Продукт когда-либо вводился» — независимо от текущего статуса.
+// Исторический predicate используем первым.
+// Fallback нужен для существующих состояний, где продукт уже был
+// отмечен как introduced, но firstOffered/timesOffered ещё не заполнены.
+function isProductIntroducedEver(productId, childId) {
+    var state = getProductStateForChild(productId, childId);
+
+    if (!state) return false;
+
+    if (
+        window.productStateService &&
+        typeof window.productStateService.wasIntroduced === 'function'
+    ) {
+        if (window.productStateService.wasIntroduced(state)) {
+            return true;
         }
-        return false;
     }
+
+    // Совместимость с существующими данными:
+    // introduced = продукт был введён.
+    // suspectedReaction / confirmedAllergy = продукт был введён,
+    // после чего возникла реакция.
+    return (
+        state.status === 'introduced' ||
+        state.status === 'suspectedReaction' ||
+        state.status === 'confirmedAllergy'
+    );
+}
 
     // ===== НОВОЕ: SVG для search / filter =====
     var uiIcons = {
