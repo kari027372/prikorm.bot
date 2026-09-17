@@ -566,6 +566,44 @@
                 break;
 
             // ========================================================
+            // P0 — PICKER (выбор продукта внутри Add Food Modal)
+            // ========================================================
+
+            case 'open-picker':
+                if (typeof window.openProductPicker === 'function') {
+                    window.openProductPicker();
+                } else if (typeof openProductPicker === 'function') {
+                    openProductPicker();
+                } else {
+                    console.warn('openProductPicker не определён');
+                }
+                break;
+
+            case 'choose-picker-product':
+                if (!productId) {
+                    break;
+                }
+                var pickerProduct = null;
+                if (Array.isArray(window.PRODUCTS)) {
+                    pickerProduct = window.PRODUCTS.find(function(p) {
+                        return p.id === productId;
+                    });
+                }
+                if (!pickerProduct) {
+                    console.warn(
+                        'Продукт для picker не найден:',
+                        productId
+                    );
+                    break;
+                }
+                if (typeof window.openAddFoodModal === 'function') {
+                    window.openAddFoodModal(pickerProduct);
+                } else {
+                    console.warn('openAddFoodModal не определён');
+                }
+                break;
+
+            // ========================================================
             // P0.1 — SAVE FOOD
             //
             // Запись в дневник сохраняется.
@@ -573,6 +611,7 @@
             // только после Safety.
             // ========================================================
 
+            case 'save-diary':
             case 'save-food':
                 // Сохранение записи в дневник текущего ребёнка
                 var diaryChildId =
@@ -834,21 +873,6 @@
 
             // ========================================================
             // P1.6 — СОХРАНЕНИЕ РЕАКЦИИ С КЛАССИФИКАЦИЕЙ
-            //
-            // Поток:
-            //   read form
-            //   → collect symptoms
-            //   → collect severity (может быть null)
-            //   → collect _meta (для классификации)
-            //   → collect notes
-            //   → isEmergency()?
-            //        yes → classification = 'temporary_exclusion'
-            //        no  → classification = classifyReaction(payload)
-            //   → productStateService.addReaction(childId, productId,
-            //                                     reactionPayload,
-            //                                     { classification })
-            //
-            // _meta НЕ сохраняется в reaction object.
             // ========================================================
 
             case 'save-reaction':
@@ -881,8 +905,6 @@
                     break;
                 }
 
-                // P1.6: читаем .reaction-form.
-                // Fallback: старые data-* атрибуты (обратная совместимость).
                 var reactionForm =
                     target.closest('.reaction-form') ||
                     document.querySelector('.reaction-form');
@@ -1034,16 +1056,6 @@
                         notesPayload
                 };
 
-                // ====================================================
-                // P1.6 — classification.
-                //
-                // Одна из трёх:
-                //   - 'temporary_exclusion' (emergency или Tier 3a)
-                //   - 'isolated_local_contact' (Tier 2)
-                //   - 'no_status_change' (всё остальное)
-                //
-                // Meta НЕ передаётся в reaction object.
-                // ====================================================
                 var classification;
 
                 var emergencyCheck = isEmergency({
@@ -1086,9 +1098,6 @@
                     ) {
                         window.updateProductsList();
                     }
-
-                    // Home обновится автоматически
-                    // через prikorm:statechange.
                 } else {
                     console.warn(
                         'addReaction вернул false'
@@ -1412,58 +1421,58 @@
 
                 var introducedProducts = [];
 
-products.forEach(function(p) {
-    var state = null;
+                products.forEach(function(p) {
+                    var state = null;
 
-    if (
-        window.productStateService &&
-        typeof window.productStateService.getProductState === 'function'
-    ) {
-        try {
-            state = window.productStateService.getProductState(
-                currentChildId,
-                p.id
-            );
-        } catch (e) {
-            console.warn(
-                'show-introduced-products: getProductState error',
-                e
-            );
-        }
-    }
+                    if (
+                        window.productStateService &&
+                        typeof window.productStateService.getProductState === 'function'
+                    ) {
+                        try {
+                            state = window.productStateService.getProductState(
+                                currentChildId,
+                                p.id
+                            );
+                        } catch (e) {
+                            console.warn(
+                                'show-introduced-products: getProductState error',
+                                e
+                            );
+                        }
+                    }
 
-    if (!state) return;
+                    if (!state) return;
 
-    var wasIntroduced = false;
+                    var wasIntroduced = false;
 
-    if (
-        window.productStateService &&
-        typeof window.productStateService.wasIntroduced === 'function'
-    ) {
-        try {
-            wasIntroduced =
-                window.productStateService.wasIntroduced(state);
-        } catch (e) {
-            console.warn(
-                'show-introduced-products: wasIntroduced error',
-                e
-            );
-        }
-    }
+                    if (
+                        window.productStateService &&
+                        typeof window.productStateService.wasIntroduced === 'function'
+                    ) {
+                        try {
+                            wasIntroduced =
+                                window.productStateService.wasIntroduced(state);
+                        } catch (e) {
+                            console.warn(
+                                'show-introduced-products: wasIntroduced error',
+                                e
+                            );
+                        }
+                    }
 
-    // Совместимость с существующими данными:
-    // introduced → продукт введён
-    // suspectedReaction → продукт был введён, затем была реакция
-    // confirmedAllergy → продукт был введён, затем подтверждена аллергия
-    if (
-        wasIntroduced ||
-        state.status === 'introduced' ||
-        state.status === 'suspectedReaction' ||
-        state.status === 'confirmedAllergy'
-    ) {
-        introducedProducts.push(p);
-    }
-});
+                    // Совместимость с существующими данными:
+                    // introduced → продукт введён
+                    // suspectedReaction → продукт был введён, затем была реакция
+                    // confirmedAllergy → продукт был введён, затем подтверждена аллергия
+                    if (
+                        wasIntroduced ||
+                        state.status === 'introduced' ||
+                        state.status === 'suspectedReaction' ||
+                        state.status === 'confirmedAllergy'
+                    ) {
+                        introducedProducts.push(p);
+                    }
+                });
 
                 if (
                     introducedProducts.length === 0
@@ -1495,16 +1504,16 @@ products.forEach(function(p) {
                         p.emoji || '🍽️';
 
                     modalContent +=
-    '<div class="introduced-item" data-action="select-product" data-product-id="' +
-    p.id +
-    '">' +
-    '<span class="ii-emoji">' +
-    emoji +
-    '</span>' +
-    '<span class="ii-name">' +
-    p.name +
-    '</span>' +
-    '</div>';
+                        '<div class="introduced-item" data-action="select-product" data-product-id="' +
+                        p.id +
+                        '">' +
+                        '<span class="ii-emoji">' +
+                        emoji +
+                        '</span>' +
+                        '<span class="ii-name">' +
+                        p.name +
+                        '</span>' +
+                        '</div>';
                 });
 
                 modalContent +=
