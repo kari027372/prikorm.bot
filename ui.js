@@ -709,8 +709,8 @@ function openAddFoodModal(product = null) {
                     <div class="form-group">
                         <label>Как приготовили?</label>
                         <div class="btn-group">
-                            <button class="btn-option" data-value="homemade">🏠 Приготовила сама</button>
-                            <button class="btn-option" data-value="store">🛒 Купила</button>
+                          <button class="btn-option" data-action="select-food-option" data-group="source" data-value="homemade">🏠 Приготовила сама</button>
+                           <button class="btn-option" data-action="select-food-option" data-group="source" data-value="store">🛒 Купила</button>
                         </div>
                     </div>
 
@@ -729,17 +729,16 @@ function openAddFoodModal(product = null) {
                     <div class="form-group">
                         <label>Способ приготовления</label>
                         <div class="btn-group">
-                            <button class="btn-option" data-value="boil">Варила</button>
-                            <button class="btn-option" data-value="steam">На пару</button>
-                            <button class="btn-option" data-value="bake">Запекала</button>
-                            <button class="btn-option" data-value="other">Другое</button>
+                          <button class="btn-option" data-action="select-food-option" data-group="preparation" data-value="boil">Варила</button>
+                           <button class="btn-option" data-action="select-food-option" data-group="preparation" data-value="steam">На пару</button>
+                           <button class="btn-option" data-action="select-food-option" data-group="preparation" data-value="bake">Запекала</button>
+                           <button class="btn-option" data-action="select-food-option" data-group="preparation" data-value="other">Другое</button>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>Сколько съел?</label>
-                        <input type="number" placeholder="0" class="form-input" style="width:80px">
-                        <span>г</span>
+                        <input type="number" id="food-amount" placeholder="0" class="form-input" style="width:80px">
                     </div>
 
                     <div class="form-group">
@@ -755,24 +754,24 @@ function openAddFoodModal(product = null) {
                     <div class="form-group">
                         <label>Понравилось?</label>
                         <div class="btn-group">
-                            <button class="btn-option" data-value="like">❤️ Понравилось</button>
-                            <button class="btn-option" data-value="dislike">👎 Не понравилось</button>
+                            <button class="btn-option" data-action="select-food-option" data-group="liked" data-value="like">❤️ Понравилось</button>
+                             <button class="btn-option" data-action="select-food-option" data-group="liked" data-value="dislike">👎 Не понравилось</button>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>Заметка</label>
-                        <textarea class="form-textarea" placeholder="Ваши заметки..."></textarea>
+                       <textarea id="food-notes" class="form-textarea" placeholder="Ваши заметки..."></textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" checked> Это новый продукт для малыша
+                           <input type="checkbox" id="food-new-product" checked> Это новый продукт для малыша
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-primary" data-action="save-diary">Добавить в дневник</button>
+                    <button class="btn-primary" data-action="save-food">Добавить в дневник</button>
                 </div>
             </div>
         </div>
